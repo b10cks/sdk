@@ -1,0 +1,308 @@
+import { computed, ref } from 'vue'
+import type {
+  IBBaseQueryParams,
+  IBBlock,
+  IBContent,
+  IBContentQueryParams,
+  IBDataEntry,
+  IBDataSource,
+  IBSpace
+} from '@b10cks/client'
+import type { Endpoint } from '@b10cks/client'
+import { useNuxtApp, useState } from '#app'
+
+export interface UseB10cksApiOptions<T> {
+  immediate?: boolean;
+  params?: Omit<IBBaseQueryParams, 'token'>;
+  transform?: (data: unknown) => T;
+}
+
+interface UseB10cksApiReturn {
+  useContent: <T = never>(
+    full_slug: string,
+    params?: Omit<IBContentQueryParams, 'token' | 'full_slug'>,
+    options?: Omit<UseB10cksApiOptions<IBContent<T>>, 'params'>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useContents: <T = never>(
+    params?: Omit<IBContentQueryParams, 'token'>,
+    options?: Omit<UseB10cksApiOptions<IBContent<T>[]>, 'params'>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useBlocks: (
+    params?: Omit<IBBaseQueryParams, 'token'>,
+    options?: Omit<UseB10cksApiOptions<IBBlock[]>, 'params'>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useDataEntries: (
+    source: string,
+    params?: Omit<IBBaseQueryParams, 'token'>,
+    options?: Omit<UseB10cksApiOptions<IBDataEntry[]>, 'params'>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useDataSources: (
+    options?: UseB10cksApiOptions<IBDataSource[]>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useSpace: (
+    options?: UseB10cksApiOptions<IBSpace>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useApiResource: <T = never>(
+    endpoint: Endpoint,
+    options?: UseB10cksApiOptions<T>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useApiCollection: <T = never>(
+    endpoint: Endpoint,
+    options?: UseB10cksApiOptions<T[]>
+  ) => {
+    data: import('vue').Ref<any>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useB10cksConfig: <T>(params?: { slug?: string } & IBContentQueryParams) => Promise<{
+    config: import('vue').ComputedRef<T>;
+  }>;
+  client: any;
+}
+
+export const useB10cksApi = (): UseB10cksApiReturn => {
+  const { $b10cksClient } = useNuxtApp()
+
+  function useApiResource<T = never>(
+    endpoint: Endpoint,
+    options: UseB10cksApiOptions<T> = {}
+  ) {
+    const { immediate = true, params = {}, transform } = options
+    const pending = ref(false)
+    const data = ref<T | null>(null)
+    const error = ref<Error | null>(null)
+
+    const execute = async () => {
+      pending.value = true
+      error.value = null
+
+      try {
+        const result = await $b10cksClient.get(endpoint, params)
+        data.value = transform ? transform(result) : result
+        return data.value
+      } catch (err) {
+        error.value = err instanceof Error ? err : new Error(String(err))
+        throw error.value
+      } finally {
+        pending.value = false
+      }
+    }
+
+    if (immediate) {
+      execute().catch(err => console.error(`Error fetching ${endpoint}:`, err))
+    }
+
+    return {
+      data,
+      pending,
+      error,
+      execute,
+      refresh: execute,
+    }
+  }
+
+  function useApiCollection<T = never>(
+    endpoint: Endpoint,
+    options: UseB10cksApiOptions<T[]> = {}
+  ) {
+    const { immediate = false, params = {}, transform } = options
+    const pending = ref(false)
+    const data = ref<T[] | null>(null)
+    const error = ref<Error | null>(null)
+
+    const execute = async () => {
+      pending.value = true
+      error.value = null
+
+      try {
+        const results = await $b10cksClient.getAll(endpoint, params)
+        data.value = transform ? transform(results) : results
+        return data.value
+      } catch (err) {
+        error.value = err instanceof Error ? err : new Error(String(err))
+        throw error.value
+      } finally {
+        pending.value = false
+      }
+    }
+
+    if (immediate) {
+      execute().catch(err => console.error(`Error fetching ${endpoint}:`, err))
+    }
+
+    return {
+      data,
+      pending,
+      error,
+      execute,
+      refresh: execute,
+    }
+  }
+
+  const useContent = <T = never>(
+    full_slug: string,
+    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
+    options: Omit<UseB10cksApiOptions<IBContent<T>>, 'params'> = {}
+  ) => {
+    return useApiResource<IBContent<T>>(
+      `contents/${full_slug}`,
+      {
+        ...options,
+        params: params,
+        transform: (result) => {
+          if ('data' in result) {
+            return result.data
+          }
+          return result
+        },
+      }
+    )
+  }
+
+  const useContents = <T = never>(
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBContent<T>[]>, 'params'> = {}
+  ) => {
+    return useApiCollection<IBContent<T>>(
+      'contents',
+      {
+        ...options,
+        params,
+      }
+    )
+  }
+
+  const useBlocks = (
+    params: Omit<IBBaseQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBBlock[]>, 'params'> = {}
+  ) => {
+    return useApiCollection<IBBlock>(
+      'blocks',
+      {
+        ...options,
+        params,
+      }
+    )
+  }
+
+  const useDataEntries = (
+    source: string,
+    params: Omit<IBBaseQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBDataEntry[]>, 'params'> = {}
+  ) => {
+    return useApiCollection<IBDataEntry>(
+      `datasources/${source}/entries`,
+      {
+        ...options,
+        params,
+      }
+    )
+  }
+
+  const useDataSources = (
+    options: UseB10cksApiOptions<IBDataSource[]> = {}
+  ) => {
+    return useApiCollection<IBDataSource>(
+      'datasources',
+      options
+    )
+  }
+
+  const useSpace = (
+    options: UseB10cksApiOptions<IBSpace> = {}
+  ) => {
+    return useApiResource<IBSpace>(
+      'spaces/me',
+      {
+        ...options,
+        transform: (result) => {
+          if ('data' in result) {
+            return result.data
+          }
+          return result
+        },
+      }
+    )
+  }
+
+  const configCache = useState('config')
+
+  const useB10cksConfig = async <T>({ slug = '_config', version, language, ...params }: { slug?: string } & IBContentQueryParams = {}) => {
+    const options = {
+      params: {
+        ...params,
+        version,
+        vid: null,
+        language,
+        token: $b10cksClient.token,
+      },
+    }
+    const { data: config, execute } = useContent(slug, options.params, { immediate: false })
+
+    if (!configCache.value) {
+      await execute()
+      configCache.value = config.value?.content || {}
+    }
+
+    return {
+      config: computed(() => configCache.value) as T,
+    }
+  }
+
+  return {
+    useContent,
+    useContents,
+    useBlocks,
+    useDataEntries,
+    useDataSources,
+    useSpace,
+    useApiResource,
+    useApiCollection,
+    useB10cksConfig,
+    client: $b10cksClient,
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "dom"
+    ],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "paths": {
+      "@b10cks/client": [
+        "./packages/client/src"
+      ],
+      "@b10cks/vue": [
+        "./packages/vue/src"
+      ],
+      "@b10cks/nuxt": [
+        "./packages/nuxt/src"
+      ]
+    }
+  }
+}

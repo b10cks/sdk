@@ -1,0 +1,50 @@
+{
+  "name": "@b10cks/client",
+  "license": "MIT",
+  "version": "0.9.5",
+  "author": "Michael Wallner @ Coder's Cantina",
+  "description": "Core b10cks API client",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b10cks/sdk.git",
+    "directory": "packages/client"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "bun test",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "chalk": "^5.6.0",
+    "vite": "^7.1.4",
+    "vite-plugin-banner": "^0.8.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
