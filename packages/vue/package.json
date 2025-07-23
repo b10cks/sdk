@@ -1,0 +1,49 @@
+{
+  "name": "@b10cks/vue",
+  "license": "MIT",
+  "version": "0.9.0",
+  "author": "Michael Wallner @ Coder's Cantina",
+  "description": "SDK to integrate b10cks into your vue applications",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/b10cks-vue.mjs",
+      "require": "./dist/b10cks-vue.js"
+    }
+  },
+  "main": "./dist/b10cks-vue.js",
+  "module": "./dist/b10cks-vue.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b1ocks/sdk.git",
+    "directory": "packages/vue"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.18"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "vite": "^7.0.5"
+  },
+  "dependencies": {
+    "@b10cks/client": "workspace:*"
+  }
+}

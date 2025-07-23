@@ -1,0 +1,26 @@
+{
+  "name": "@b10cks/sdk",
+  "module": "index.ts",
+  "version": "1.0.0",
+  "author": "Michael Wallner @ Coder's Cantina",
+  "description": "Official b10cks SDKs",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "nx run-many --target=build",
+    "lint": "nx run-many --target=lint",
+    "lint:fix": "nx run-many --target=lint --fix",
+    "lint:affected": "nx affected:lint"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@nx/js": "^21.3.5",
+    "nx": "^21.3.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

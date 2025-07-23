@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultProject": "main",
+  "parallel": 4,
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false
+    }
+  },
+  "tui": {
+    "enabled": false
+  },
+  "release": {
+    "projectsRelationship": "independent",
+    "groups": {
+      "core": {
+        "projects": [
+          "client"
+        ],
+        "projectsRelationship": "independent"
+      },
+      "sdk": {
+        "projects": ["vue", "nuxt"],
+        "projectsRelationship": "independent"
+      }
+    },
+    "version": {
+      "conventionalCommits": true,
+      "fallbackCurrentVersionResolver": "disk",
+      "versionActionsOptions": {
+        "skipLockFileUpdate": true
+      }
+    },
+    "changelog": {
+      "automaticFromRef": false,
+      "projectChangelogs": {
+        "createRelease": "github",
+        "file": false
+      }
+    }
+  }
+}
