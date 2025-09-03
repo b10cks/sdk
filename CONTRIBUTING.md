@@ -17,7 +17,7 @@ Thank you for your interest in contributing to b10cks Open Source SDKs! We welco
 ### Pre-requisites
 
 - Ensure you have [Node.js](https://nodejs.org/) installed (version 22 or higher).
-- Install [bun](https://bun.sh/) as the package manager.
+- Install [pnpm](https://pnpm.io/) as the package manager.
 
 ### Installation
 
@@ -27,7 +27,7 @@ Thank you for your interest in contributing to b10cks Open Source SDKs! We welco
     ```
 2. Inside the project directory, run to install the required dependencies:
     ```bash
-    bun install
+    pnpm install
     ```
    
 ## Questions and Support?

@@ -1,4 +1,4 @@
-import type { Directive, DirectiveBinding, VNode } from 'vue'
+import type { DirectiveBinding, VNode } from 'vue'
 import type { SelectUpdateEvent } from '../preview-bridge'
 import { previewBridge } from '../preview-bridge'
 
@@ -47,13 +47,11 @@ export const EditableDirective = {
 
     const handleUpdate = ({ content }: { content: any }) => {
       if (content && content.id === itemId) {
-        if (node.component) {
-          if (node.component.parent && node.component.parent.attrs) {
-            node.component.parent.attrs.block = content
-          }
-          node.component.props.block = content
-          node.component.update()
-        }
+        const ctx = (node as any).ctx
+        ctx.parent.attrs.block = content
+        ctx.update()
+        ctx.props.block = content
+        ctx.update()
       }
     }
 
@@ -100,9 +98,6 @@ function scrollIntoViewIfNeeded(el: HTMLElement) {
 if (previewBridge.isInPreviewMode()) {
   const style = document.createElement('style')
   style.innerHTML = `
-    .b10cks-preview {
-      cursor: pointer;
-    }
     .b10cks-hover,
     .b10cks-preview:hover {
       outline: 2px dashed rgba(59, 130, 246, 0.5);
