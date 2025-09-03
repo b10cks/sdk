@@ -7,31 +7,32 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "bun run build:packages",
-    "build:packages": "bun run --filter='@b10cks/client' build && bun run --filter='@b10cks/vue' build && bun run --filter='@b10cks/nuxt' build",
-    "test": "bun run --filter='*' test",
-    "lint": "bun run --filter='*' lint",
-    "clean": "bun run --filter='*' clean",
+    "build": "pnpm run build:packages",
+    "build:packages": "pnpm --filter='@b10cks/client' run build && pnpm --filter='@b10cks/vue' run build && pnpm --filter='@b10cks/nuxt' run build",
+    "test": "pnpm --filter='*' run test",
+    "lint": "pnpm --filter='*' run lint",
+    "clean": "pnpm --filter='*' run clean",
     "lint:fix": "nx run-many --target=lint --fix",
     "lint:affected": "nx affected:lint",
-    "version:check": "bun run scripts/version-check.js",
+    "version:check": "pnpm run scripts/version-check.js",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
-    "release": "bun run build && bun run fix:workspace && bun run changeset:publish && bun run check:workspace"
+    "release": "pnpm run build && pnpm run fix:workspace && pnpm run changeset:publish && pnpm run check:workspace"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.1",
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.6",
     "ajv": "^8.17.1",
-    "typescript": "^5.9.0",
+    "typescript": "^5.9.2",
     "vite": "^7.1.4",
     "vite-plugin-dts": "^4.5.4"
   },
   "engines": {
-    "bun": ">=1.0.0"
+    "node": ">=24.7.0"
+  },
+  "packageManager": "pnpm@10.15.1",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.1"
   }
 }

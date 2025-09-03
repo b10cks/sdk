@@ -6,7 +6,9 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
-  IBSpace
+  IBSpace,
+  IBRedirect,
+  IBResponse
 } from '@b10cks/client'
 import type { Endpoint } from '@b10cks/client'
 import { useNuxtApp, useState } from '#app'
@@ -14,7 +16,7 @@ import { useNuxtApp, useState } from '#app'
 export interface UseB10cksApiOptions<T> {
   immediate?: boolean;
   params?: Omit<IBBaseQueryParams, 'token'>;
-  transform?: (data: unknown) => T;
+  transform?: (data: IBResponse<T>) => T;
 }
 
 interface UseB10cksApiReturn {
@@ -23,7 +25,7 @@ interface UseB10cksApiReturn {
     params?: Omit<IBContentQueryParams, 'token' | 'full_slug'>,
     options?: Omit<UseB10cksApiOptions<IBContent<T>>, 'params'>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBContent<T> | null>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -33,7 +35,7 @@ interface UseB10cksApiReturn {
     params?: Omit<IBContentQueryParams, 'token'>,
     options?: Omit<UseB10cksApiOptions<IBContent<T>[]>, 'params'>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBContent<T>[]>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -43,7 +45,7 @@ interface UseB10cksApiReturn {
     params?: Omit<IBBaseQueryParams, 'token'>,
     options?: Omit<UseB10cksApiOptions<IBBlock[]>, 'params'>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBBlock[]>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -54,7 +56,7 @@ interface UseB10cksApiReturn {
     params?: Omit<IBBaseQueryParams, 'token'>,
     options?: Omit<UseB10cksApiOptions<IBDataEntry[]>, 'params'>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBDataEntry[]>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -63,7 +65,7 @@ interface UseB10cksApiReturn {
   useDataSources: (
     options?: UseB10cksApiOptions<IBDataSource[]>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBDataSource[]>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -72,7 +74,16 @@ interface UseB10cksApiReturn {
   useSpace: (
     options?: UseB10cksApiOptions<IBSpace>
   ) => {
-    data: import('vue').Ref<any>;
+    data: import('vue').Ref<IBSpace>;
+    pending: import('vue').Ref<boolean>;
+    error: import('vue').Ref<Error | null>;
+    execute: () => Promise<any>;
+    refresh: () => Promise<any>;
+  };
+  useRedirects: (
+    options?: UseB10cksApiOptions<Record<string, { target: string; status_code: number }>>
+  ) => {
+    data: import('vue').Ref<Record<string, { target: string; status_code: number }> | null>;
     pending: import('vue').Ref<boolean>;
     error: import('vue').Ref<Error | null>;
     execute: () => Promise<any>;
@@ -159,7 +170,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       error.value = null
 
       try {
-        const results = await $b10cksClient.getAll(endpoint, params)
+        const results = await $b10cksClient.getAll<T>(endpoint, params)
         data.value = transform ? transform(results) : results
         return data.value
       } catch (err) {
@@ -193,7 +204,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       {
         ...options,
         params: params,
-        transform: (result) => {
+        transform: (result: IBResponse<IBContent<T>>): IBContent<T> => {
           if ('data' in result) {
             return result.data
           }
@@ -259,7 +270,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       'spaces/me',
       {
         ...options,
-        transform: (result) => {
+        transform: (result: IBResponse<IBSpace>): IBSpace => {
           if ('data' in result) {
             return result.data
           }
@@ -267,6 +278,55 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
         },
       }
     )
+  }
+
+  const cache = useState<IBRedirect[]>('redirects')
+
+  const useRedirects = (
+    options: UseB10cksApiOptions<IBRedirect[]> = {}
+  ) => {
+    const { immediate = true, params = {}, transform } = options
+    const pending = ref(false)
+    const data = ref<IBRedirect[] | null>(cache.value || null)
+    const error = ref<Error | null>(null)
+
+    const execute = async () => {
+      if (cache.value) {
+        return cache.value
+      }
+      pending.value = true
+      error.value = null
+
+      try {
+        const results = await $b10cksClient.getAll('redirects' as Endpoint, params) as IBRedirect[]
+        const transformed = Object.fromEntries(
+          results.map(({ source, target, status_code }) => [
+            source,
+            { target, status_code }
+          ])
+        )
+        data.value = transformed
+        cache.value = transformed
+        return transformed
+      } catch (err) {
+        error.value = err instanceof Error ? err : new Error(String(err))
+        throw error.value
+      } finally {
+        pending.value = false
+      }
+    }
+
+    if (immediate && !cache.value) {
+      execute().catch(err => console.error('Error fetching redirects:', err))
+    }
+
+    return {
+      data,
+      pending,
+      error,
+      execute,
+      refresh: execute,
+    }
   }
 
   const configCache = useState('config')
@@ -300,6 +360,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
     useDataEntries,
     useDataSources,
     useSpace,
+    useRedirects,
     useApiResource,
     useApiCollection,
     useB10cksConfig,

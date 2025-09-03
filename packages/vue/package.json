@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/vue",
   "license": "MIT",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "author": "Michael Wallner @ Coder's Cantina",
   "description": "SDK to integrate b10cks into your vue applications",
   "type": "module",
@@ -22,7 +22,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "test": "bun test",
+    "test": "vitest",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix",
     "clean": "rm -rf dist"
   },

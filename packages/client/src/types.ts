@@ -112,6 +112,13 @@ export interface IBSpace {
   updated_at: string
 }
 
+
+export interface IBRedirect {
+  source: string
+  target: string
+  status_code: number
+}
+
 export interface IBContentQueryParams extends IBBaseQueryParams {
   slug?: string
   full_slug?: string

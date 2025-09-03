@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/client",
   "license": "MIT",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "author": "Michael Wallner @ Coder's Cantina",
   "description": "Core b10cks API client",
   "type": "module",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "test": "bun test",
+    "test": "vitest",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix",
     "clean": "rm -rf dist"
   },

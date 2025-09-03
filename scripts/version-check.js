@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
