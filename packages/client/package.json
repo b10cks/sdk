@@ -33,8 +33,8 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "chalk": "^5.6.0",
-    "vite": "^7.1.4",
+    "chalk": "^5.6.2",
+    "vite": "^7.2.4",
     "vite-plugin-banner": "^0.8.1",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"

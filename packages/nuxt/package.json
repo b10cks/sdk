@@ -29,12 +29,12 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.9.0",
-    "@nuxt/eslint-config": "^1.9.0",
-    "@nuxt/kit": "^4.0.3",
+    "@nuxt/eslint": "^1.10.0",
+    "@nuxt/eslint-config": "^1.10.0",
+    "@nuxt/kit": "^4.2.1",
     "@nuxt/module-builder": "^1.0.2",
-    "@nuxt/schema": "^4.0.3",
-    "nuxt": "^4.0.3"
+    "@nuxt/schema": "^4.2.1",
+    "nuxt": "^4.2.1"
   },
   "release": {
     "branches": [
