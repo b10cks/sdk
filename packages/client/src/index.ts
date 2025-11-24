@@ -31,7 +31,7 @@ export class ApiClient {
     this.setRv(url.searchParams.get('b10cks_rv') || options.rv || rv)
   }
 
-  async get<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<T> {
+  async get<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<IBResponse<T>> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
       ...params,
@@ -39,12 +39,14 @@ export class ApiClient {
       token: this.token
     })
 
-    const response = await this.fetchClient(url) as unknown as IBResponse<T>
+    const res = await this.fetchClient(url)
+    const response = (typeof res === 'object' && res !== null ? res : await res.json()) as IBResponse<T>
+
     if (response.rv) {
       this.setRv(response.rv)
     }
 
-    return response as T
+    return response
   }
 
   async getAll<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<T[]> {
@@ -52,22 +54,22 @@ export class ApiClient {
       endpoint,
       { ...params, page: 1 }
     )
-    if (response.rv) {
-      this.setRv(response.rv)
-    }
 
-    if (!response.meta || response.meta.last_page <= 1) {
-      return 'data' in response ? response.data : (response as unknown as T[])
+    const collectionData = response.data as IBCollectionResponse<T>
+
+    if (!collectionData.meta || collectionData.meta.last_page <= 1) {
+      return collectionData.data
     }
 
     const pageRequests = Array.from(
-      { length: response.meta.last_page },
-      (_, i) => this.get<IBCollectionResponse<T>>(endpoint, { ...params, page: i + 1 })
+      { length: collectionData.meta.last_page },
+      (_, i) =>
+        this.get<IBCollectionResponse<T>>(endpoint, { ...params, page: i + 1 })
     )
 
     const allResponses = await Promise.all(pageRequests)
 
-    return allResponses.flatMap(r => r.data)
+    return allResponses.flatMap(r => (r.data as IBCollectionResponse<T>).data)
   }
 
   setRv(value: string | number) {

@@ -9,8 +9,9 @@ export default defineNuxtModule<ModuleOptions>({
     configKey: 'b10cks',
   },
   defaults: {
-    accessToken: '',
-    apiUrl: 'https://api.b10cks.com/api',
+    baseUrl: '',
+    token: '',
+    version: 'published',
     componentsDir: '~/b10cks',
   },
   setup(options: ModuleOptions, nuxt: Nuxt) {
@@ -25,8 +26,9 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.build.transpile.push(resolver.resolve('@b10cks/vue'))
 
     nuxt.options.runtimeConfig.public.b10cks = {
-      accessToken: options.accessToken,
-      apiUrl: options.apiUrl,
+      baseUrl: options.baseUrl,
+      token: options.token,
+      version: options.version,
     }
 
     addPlugin(resolver.resolve('./runtime/plugin'))

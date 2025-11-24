@@ -1,3 +1,13 @@
 {
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "emitDeclarationOnly": true,
+    "types": ["nuxt/schema", "@nuxt/test-utils"]
+  },
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Nuxt Module - TypeScript Configuration",
+  "include": ["./src"],
+  "exclude": ["node_modules", "dist", ".nuxt", "./src/**/*.test.ts", "./src/**/*.spec.ts"]
 }

@@ -45,13 +45,22 @@ export const EditableDirective = {
       }
     }
 
-    const handleUpdate = ({ content }: { content: any }) => {
-      if (content && content.id === itemId) {
+    const handleUpdate = ({ content }: { content: unknown }) => {
+      if (
+        content &&
+        typeof content === 'object' &&
+        'id' in content &&
+        content.id === itemId
+      ) {
         const ctx = (node as any).ctx
-        ctx.parent.attrs.block = content
-        ctx.update()
-        ctx.props.block = content
-        ctx.update()
+        if (ctx?.parent?.attrs) {
+          ctx.parent.attrs.block = content
+          ctx.update?.()
+        }
+        if (ctx?.props) {
+          ctx.props.block = content
+          ctx.update?.()
+        }
       }
     }
 

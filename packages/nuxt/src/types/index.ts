@@ -1,6 +1,6 @@
 export interface ModuleOptions {
-  accessToken: string
-  componentsDir: string
-  ilumUrl: string
-  apiUrl: string
+  baseUrl: string
+  token: string
+  version?: 'draft' | 'published'
+  componentsDir?: string
 }

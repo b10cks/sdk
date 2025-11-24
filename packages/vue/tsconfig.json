@@ -1,41 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "strict": true,
     "declaration": true,
     "declarationDir": "dist/types",
-    "emitDeclarationOnly": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@b10cks/client": [
-        "../client/src"
-      ],
-      "@b10cks/vue": [
-        "./src"
-      ],
-      "@b10cks/nuxt": [
-        "../nuxt/src"
-      ]
-    }
+    "emitDeclarationOnly": true
   },
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Recommended",
-  "include": [
-    "./src"
-  ],
-  "exclude": [
-    "node_modules",
-    "./src/**/*.test.ts",
-    "./src/**/*.spec.ts"
-  ]
+  "display": "Vue SDK - TypeScript Configuration",
+  "include": ["./src"],
+  "exclude": ["node_modules", "dist", "./src/**/*.test.ts", "./src/**/*.spec.ts"]
 }

@@ -18,8 +18,9 @@ export default defineNuxtPlugin((nuxtApp) => {
   const rvState = useState<string | number>('b10cks_rv', () => 0)
 
   const b10cksClient = new ApiClient({
-    baseUrl: config.public.b10cks.apiUrl || 'https://api.b10cks.com/api',
-    token: config.public.b10cks.accessToken,
+    baseUrl: config.public.b10cks.baseUrl,
+    token: config.public.b10cks.token,
+    version: config.public.b10cks.version as 'draft' | 'published',
     fetchClient: $fetch,
     getRv: () => rvState.value,
     setRv: (value: string | number) => { rvState.value = value }
