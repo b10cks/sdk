@@ -7,6 +7,7 @@ export interface IBResponse<T> {
 
 export interface IBCollectionResponse<T> {
   data: T[]
+  rv?: string | number
   links: {
     first: string | null
     last: string | null
@@ -130,6 +131,9 @@ export interface IBContentQueryParams extends IBBaseQueryParams {
 export interface B10cksApiClientOptions {
   baseUrl: string
   token: string
+  rv?: string | number
   version?: 'draft' | 'published'
   fetchClient: FetchClient
+  getRv?: () => string | number
+  setRv?: (value: string | number) => void
 }

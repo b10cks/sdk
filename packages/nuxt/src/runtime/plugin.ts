@@ -1,6 +1,7 @@
 import { ApiClient } from '@b10cks/client'
 import { previewBridge, B10cksVue } from '@b10cks/vue'
 import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
+import { useState } from '#app'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
@@ -14,10 +15,14 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
   }
 
+  const rvState = useState<string | number>('b10cks_rv', () => 0)
+
   const b10cksClient = new ApiClient({
     baseUrl: config.public.b10cks.apiUrl || 'https://api.b10cks.com/api',
     token: config.public.b10cks.accessToken,
-    fetchClient: $fetch
+    fetchClient: $fetch,
+    getRv: () => rvState.value,
+    setRv: (value: string | number) => { rvState.value = value }
   }, url)
 
   return {

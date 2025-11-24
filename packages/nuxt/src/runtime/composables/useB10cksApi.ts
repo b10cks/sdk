@@ -160,7 +160,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
     endpoint: Endpoint,
     options: UseB10cksApiOptions<T[]> = {}
   ) {
-    const { immediate = false, params = {}, transform } = options
+    const { immediate = false, params = {} } = options
     const pending = ref(false)
     const data = ref<T[] | null>(null)
     const error = ref<Error | null>(null)
@@ -170,8 +170,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       error.value = null
 
       try {
-        const results = await $b10cksClient.getAll<T>(endpoint, params)
-        data.value = transform ? transform(results) : results
+        data.value = await $b10cksClient.getAll<T>(endpoint, params)
         return data.value
       } catch (err) {
         error.value = err instanceof Error ? err : new Error(String(err))
