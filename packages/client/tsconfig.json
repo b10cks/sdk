@@ -7,7 +7,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "strict": true,
     "declaration": true,
-    "declarationDir": "dist/types",
+    "declarationDir": "dist",
     "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
