@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/vue",
   "license": "MIT",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "author": "Michael Wallner @ Coder's Cantina",
   "description": "SDK to integrate b10cks into your vue applications",
   "type": "module",

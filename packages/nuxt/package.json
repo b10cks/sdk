@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/nuxt",
   "license": "MIT",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "author": "Michael Wallner @ Coder's Cantina",
   "description": "b10cks Nuxt module",
   "type": "module",
