@@ -46,7 +46,7 @@ export const EditableDirective = {
       }
     }
 
-    const handleUpdate = ({ content }: { content: unknown }) => {
+    const handleUpdate = ({ content }: { content: any }) => {
       if (content && content.id === itemId) {
         // biome-ignore lint/suspicious/noExplicitAny: use of any to access internal properties
         const ctx = (node as any).ctx
