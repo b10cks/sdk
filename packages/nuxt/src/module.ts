@@ -1,6 +1,6 @@
-import { addComponentsDir, addImports, addPlugin, createResolver, defineNuxtModule, } from '@nuxt/kit'
-import type { ModuleOptions } from './types'
+import { addComponentsDir, addImports, addPlugin, createResolver, defineNuxtModule } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
+import type { ModuleOptions } from './types'
 
 export * from './types'
 export default defineNuxtModule<ModuleOptions>({
@@ -31,8 +31,12 @@ export default defineNuxtModule<ModuleOptions>({
 
     addPlugin(resolver.resolve('./runtime/plugin'))
 
-    addImports({ name: 'useB10cksApi', as: 'useB10cksApi', from: resolver.resolve('./runtime/composables/useB10cksApi') })
+    addImports({
+      name: 'useB10cksApi',
+      as: 'useB10cksApi',
+      from: resolver.resolve('./runtime/composables/useB10cksApi'),
+    })
 
     nuxt.options.typescript.hoist.push('@b10cks/vue')
-  }
+  },
 })

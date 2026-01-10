@@ -1,5 +1,5 @@
-import { previewBridge } from '../preview-bridge'
 import type { Directive, DirectiveBinding } from 'vue'
+import { previewBridge } from '../preview-bridge'
 
 export const EditableContentDirective: Directive<HTMLElement> = {
   mounted(el: HTMLElement, binding: DirectiveBinding) {
@@ -10,5 +10,5 @@ export const EditableContentDirective: Directive<HTMLElement> = {
     el.addEventListener('input', (event: Event) => {
       previewBridge.updateField(itemId, field, (event.target as HTMLInputElement).innerText)
     })
-  }
+  },
 }

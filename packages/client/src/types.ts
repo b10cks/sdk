@@ -44,9 +44,7 @@ export interface IBContentRelation {
   updated_at: string
 }
 
-export interface IBContent<
-  Content = IBContentBlock<string> & { [index: string]: unknown },
-> {
+export interface IBContent<Content = IBContentBlock<string> & { [index: string]: unknown }> {
   id: string
   slug: string
   name: string
@@ -61,9 +59,9 @@ export interface IBContent<
 }
 
 export interface IBContentBlock<T extends string> {
-  id?: string;
-  block?: T;
-  _editable?: string;
+  id?: string
+  block?: T
+  _editable?: string
 }
 
 export interface IBDataEntry {
@@ -112,7 +110,6 @@ export interface IBSpace {
   name: string
   updated_at: string
 }
-
 
 export interface IBRedirect {
   source: string

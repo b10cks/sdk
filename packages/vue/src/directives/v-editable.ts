@@ -12,6 +12,7 @@ export const EditableDirective = {
     const { id: itemId } = binding.value
 
     if (!itemId) {
+      // biome-ignore lint/suspicious/noConsole: give developers feedback
       console.warn('v-editable directive requires a block with an id')
       return
     }
@@ -45,8 +46,9 @@ export const EditableDirective = {
       }
     }
 
-    const handleUpdate = ({ content }: { content: any }) => {
+    const handleUpdate = ({ content }: { content: unknown }) => {
       if (content && content.id === itemId) {
+        // biome-ignore lint/suspicious/noExplicitAny: use of any to access internal properties
         const ctx = (node as any).ctx
         ctx.parent.attrs.block = content
         ctx.update()
@@ -86,7 +88,7 @@ export const EditableDirective = {
     }
 
     el.classList.remove('b10cks-preview', 'b10cks-selected')
-  }
+  },
 }
 
 function scrollIntoViewIfNeeded(el: HTMLElement) {

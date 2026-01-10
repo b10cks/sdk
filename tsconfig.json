@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "dom"
-    ],
+    "lib": ["ESNext", "dom"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
@@ -22,15 +19,9 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
     "paths": {
-      "@b10cks/client": [
-        "./packages/client/src"
-      ],
-      "@b10cks/vue": [
-        "./packages/vue/src"
-      ],
-      "@b10cks/nuxt": [
-        "./packages/nuxt/src"
-      ]
+      "@b10cks/client": ["./packages/client/src"],
+      "@b10cks/vue": ["./packages/vue/src"],
+      "@b10cks/nuxt": ["./packages/nuxt/src"]
     }
   }
 }

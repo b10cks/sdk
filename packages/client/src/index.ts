@@ -1,15 +1,22 @@
-import type { B10cksApiClientOptions, IBBaseQueryParams, IBCollectionResponse, IBMeta, IBResponse, } from './types'
+import type { B10cksApiClientOptions, IBBaseQueryParams, IBCollectionResponse, IBMeta, IBResponse } from './types'
 
 export type FetchClient = typeof fetch
-export type Endpoint = 'blocks' | 'contents' | `contents/${string}` | `datasources/${string}/entries` | 'datasources' | 'spaces/me'
+export type Endpoint =
+  | 'blocks'
+  | 'contents'
+  | `contents/${string}`
+  | `datasources/${string}/entries`
+  | 'datasources'
+  | 'spaces/me'
 
 export interface B10cksApiClientRvOptions {
   getRv?: () => string | number
   setRv?: (value: string | number) => void
 }
 
+export type { B10cksApiClientOptions, IBBlock, IBContent, IBResponse } from './types'
 export * as types from './types'
-export type { IBBlock, IBResponse, IBContent, B10cksApiClientOptions } from './types'
+
 let rv: string | number = 0
 
 export class ApiClient {
@@ -36,10 +43,10 @@ export class ApiClient {
       vid: this.vid,
       ...params,
       rv: this.getRv(),
-      token: this.token
+      token: this.token,
     })
 
-    const response = await this.fetchClient(url) as unknown as IBResponse<T>
+    const response = (await this.fetchClient(url)) as unknown as IBResponse<T>
     if (response.rv) {
       this.setRv(response.rv)
     }
@@ -48,10 +55,7 @@ export class ApiClient {
   }
 
   async getAll<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<T[]> {
-    const response = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(
-      endpoint,
-      { ...params, page: 1 }
-    )
+    const response = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(endpoint, { ...params, page: 1 })
     if (response.rv) {
       this.setRv(response.rv)
     }
@@ -60,14 +64,13 @@ export class ApiClient {
       return 'data' in response ? response.data : (response as unknown as T[])
     }
 
-    const pageRequests = Array.from(
-      { length: response.meta.last_page },
-      (_, i) => this.get<IBCollectionResponse<T>>(endpoint, { ...params, page: i + 1 })
+    const pageRequests = Array.from({ length: response.meta.last_page }, (_, i) =>
+      this.get<IBCollectionResponse<T>>(endpoint, { ...params, page: i + 1 })
     )
 
     const allResponses = await Promise.all(pageRequests)
 
-    return allResponses.flatMap(r => r.data)
+    return allResponses.flatMap((r) => r.data)
   }
 
   setRv(value: string | number) {

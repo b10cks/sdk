@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/sdk",
   "module": "index.ts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "Michael Wallner @ Coder's Cantina",
   "description": "Official b10cks SDKs",
   "type": "module",
@@ -10,10 +10,10 @@
     "build": "pnpm run build:packages",
     "build:packages": "pnpm --filter='@b10cks/client' run build && pnpm --filter='@b10cks/vue' run build && pnpm --filter='@b10cks/nuxt' run build",
     "test": "pnpm --filter='*' run test",
-    "lint": "pnpm --filter='*' run lint",
+    "lint": "biome lint .",
+    "lint:fix": "biome check --apply .",
+    "format": "biome format --write .",
     "clean": "pnpm --filter='*' run clean",
-    "lint:fix": "nx run-many --target=lint --fix",
-    "lint:affected": "nx affected:lint",
     "version:check": "pnpm run scripts/version-check.js",
     "changeset": "changeset",
     "changeset:version": "changeset version",
@@ -21,11 +21,11 @@
     "release": "pnpm run build && pnpm run changeset:publish"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.7",
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "ajv": "^8.17.1",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4",
+    "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4"
   },
   "engines": {
@@ -33,7 +33,7 @@
   },
   "packageManager": "pnpm@10.15.1",
   "dependencies": {
-    "@vitejs/plugin-vue": "^6.0.2"
+    "@vitejs/plugin-vue": "^6.0.3"
   },
   "workspaces": [
     "packages/*"

@@ -23,8 +23,8 @@
   "scripts": {
     "prepack": "nuxt-module-build build",
     "build": "nuxt-module-build prepare && nuxt-module-build build",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix",
-    "lint:fix": "eslint . --fix",
+    "lint": "biome check --apply .",
+    "lint:fix": "biome check --apply .",
     "test": "vitest",
     "clean": "rm -rf dist"
   },

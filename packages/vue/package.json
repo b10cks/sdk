@@ -23,7 +23,7 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts --fix",
+    "lint": "biome lint --write",
     "clean": "rm -rf dist"
   },
   "repository": {

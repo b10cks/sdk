@@ -12,9 +12,9 @@ export default defineNuxtConfig({
         paths: {
           '@b10cks/client': ['../client/src'],
           '@b10cks/vue': ['../vue/src'],
-          '@b10cks/nuxt': ['../nuxt/src']
-        }
-      }
-    }
-  }
-});
+          '@b10cks/nuxt': ['../nuxt/src'],
+        },
+      },
+    },
+  },
+})

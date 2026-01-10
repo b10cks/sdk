@@ -1,13 +1,11 @@
 <script setup lang="ts">
-
 import type { IBContent } from '@b10cks/client'
 
 export interface IB10cksFallbackProps {
-  block: IBContent<any>
+  block: IBContent
 }
 
 defineProps<IB10cksFallbackProps>()
-
 </script>
 
 <template>

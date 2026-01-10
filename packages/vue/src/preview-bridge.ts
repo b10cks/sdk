@@ -1,31 +1,31 @@
 export type ContentUpdateEvent = {
-  content: Record<string, any>;
-};
+  content: Record<string, unknown>
+}
 
 export type SelectUpdateEvent = {
-  selectedItem: string;
-};
+  selectedItem: string
+}
 
-export type EventType = 'CONTENT_UPDATE' | 'SELECT_UPDATE' | 'HOVER_UPDATE';
+export type EventType = 'CONTENT_UPDATE' | 'SELECT_UPDATE' | 'HOVER_UPDATE'
 
 export type EventPayloadMap = {
-  'CONTENT_UPDATE': ContentUpdateEvent;
-  'SELECT_UPDATE': SelectUpdateEvent;
-  'HOVER_UPDATE': SelectUpdateEvent;
-};
+  CONTENT_UPDATE: ContentUpdateEvent
+  SELECT_UPDATE: SelectUpdateEvent
+  HOVER_UPDATE: SelectUpdateEvent
+}
 
 export type BridgeEvent = {
-  type: EventType;
-  payload: ContentUpdateEvent | SelectUpdateEvent;
-  b10cksId?: string;
-};
+  type: EventType
+  payload: ContentUpdateEvent | SelectUpdateEvent
+  b10cksId?: string
+}
 
-type EventCallback<T> = (payload: T) => void;
+type EventCallback<T> = (payload: T) => void
 
 class PreviewBridge {
   private static instance: PreviewBridge
   private eventListeners: {
-    [key in EventType]?: Array<EventCallback<EventPayloadMap[key]>>;
+    [key in EventType]?: Array<EventCallback<EventPayloadMap[key]>>
   } = {}
 
   private isEnabled = false
@@ -33,7 +33,6 @@ class PreviewBridge {
   private constructor() {
     this.isEnabled = this.isIframe()
   }
-
 
   public init(): void {
     if (this.isEnabled && window) {
@@ -67,26 +66,25 @@ class PreviewBridge {
     const listeners = this.eventListeners[type] as Array<EventCallback<EventPayloadMap[T]>> | undefined
 
     if (listeners) {
-      listeners.forEach(listener => listener(payload))
+      listeners.forEach((listener) => {
+        listener(payload)
+      })
     }
   }
 
-  public on<T extends EventType>(
-    eventType: T,
-    callback: EventCallback<EventPayloadMap[T]>
-  ): () => void {
-    if (!this.isEnabled) return () => {
-    }
+  public on<T extends EventType>(eventType: T, callback: EventCallback<EventPayloadMap[T]>): () => void {
+    if (!this.isEnabled) return () => {}
 
     if (!this.eventListeners[eventType]) {
       this.eventListeners[eventType] = []
     }
 
-    (this.eventListeners[eventType] as Array<EventCallback<EventPayloadMap[T]>>).push(callback)
+    ;(this.eventListeners[eventType] as Array<EventCallback<EventPayloadMap[T]>>).push(callback)
 
     return () => {
-      this.eventListeners[eventType] = (this.eventListeners[eventType] as Array<EventCallback<EventPayloadMap[T]>>)
-        .filter(listener => listener !== callback) as never
+      this.eventListeners[eventType] = (
+        this.eventListeners[eventType] as Array<EventCallback<EventPayloadMap[T]>>
+      ).filter((listener) => listener !== callback) as never
     }
   }
 
@@ -96,7 +94,7 @@ class PreviewBridge {
     window.parent.postMessage(
       {
         type: 'SELECT_UPDATE',
-        payload: { selectedItem }
+        payload: { selectedItem },
       },
       '*'
     )
@@ -108,7 +106,7 @@ class PreviewBridge {
     window.parent.postMessage(
       {
         type: 'FIELD_UPDATE',
-        payload: { itemId, field, value }
+        payload: { itemId, field, value },
       },
       '*'
     )
