@@ -1,0 +1,49 @@
+{
+  "name": "@b10cks/mgmt-client",
+  "license": "MIT",
+  "version": "0.1.0",
+  "author": "Michael Wallner @ Coder's Cantina",
+  "description": "Management API client for b10cks",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b10cks/sdk.git",
+    "directory": "packages/mgmt-client"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "vitest",
+    "lint": "biome lint --write .",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4",
+    "vite-plugin-banner": "^0.8.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
