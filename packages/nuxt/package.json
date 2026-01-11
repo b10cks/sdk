@@ -29,8 +29,6 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.10.0",
-    "@nuxt/eslint-config": "^1.10.0",
     "@nuxt/kit": "^4.2.1",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.2.1",
