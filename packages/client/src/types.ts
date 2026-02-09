@@ -108,6 +108,7 @@ export interface IBDataSource {
 export interface IBSpace {
   id: string
   name: string
+  rv: string | number
   updated_at: string
 }
 

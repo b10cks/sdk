@@ -20,8 +20,8 @@ export interface B10cksApiClientRvOptions {
   setRv?: (value: string | number) => void
 }
 
-export type { B10cksApiClientOptions, IBBlock, IBContent, IBResponse } from './types'
 export * as types from './types'
+export type { B10cksApiClientOptions, IBBlock, IBContent, IBResponse } from './types'
 
 let rv: string | number = 0
 

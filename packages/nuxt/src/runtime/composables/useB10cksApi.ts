@@ -1,17 +1,16 @@
-import type {
-  Endpoint,
-  IBBaseQueryParams,
-  IBBlock,
-  IBContent,
-  IBContentQueryParams,
-  IBDataEntry,
-  IBDataSource,
-  IBRedirect,
-  IBResponse,
-  IBSpace,
+import { callOnce, useNuxtApp, useState } from '#app'
+import {
+  type Endpoint,
+  type IBBaseQueryParams,
+  type IBBlock,
+  type IBContent,
+  type IBContentQueryParams,
+  type IBDataEntry,
+  type IBDataSource,
+  type IBRedirect,
+  type IBResponse,
+  type IBSpace,
 } from '@b10cks/client'
-
-import { useNuxtApp, useState } from '#app'
 import { computed, ref } from 'vue'
 
 export interface UseB10cksApiOptions<T> {
@@ -195,6 +194,7 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       ...options,
       params: params,
       transform: (result: IBResponse<IBContent<T>>): IBContent<T> => {
+        console.log('Content fetched:', result)
         if ('data' in result) {
           return result.data
         }
@@ -320,12 +320,20 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
     if (!configCache.value) {
       await execute()
       configCache.value = config.value?.content || {}
+      console.log('Config fetched:', configCache.value)
     }
 
     return {
       config: computed(() => configCache.value) as T,
     }
   }
+
+  callOnce(async () => {
+    const { data: space, execute } = useSpace({ immediate: false })
+    await execute()
+    $b10cksClient.setRv(space.value?.rv || 426713400)
+    console.log('Space fetched:', space.value)
+  })
 
   return {
     useContent,
