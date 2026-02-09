@@ -52,7 +52,7 @@ class PreviewBridge {
   }
 
   private isIframe(): boolean {
-    return window && window.self !== window.top
+    return typeof window !== 'undefined' && window.self !== window.top
   }
 
   private handleMessage = (event: MessageEvent): void => {
