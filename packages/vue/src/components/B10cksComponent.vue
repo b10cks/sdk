@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { IBContent } from '@b10cks/client'
-import { type Component, computed, defineAsyncComponent, shallowRef, useTemplateRef, watch } from 'vue'
+import {
+  type Component,
+  computed,
+  defineAsyncComponent,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from 'vue'
 
 const props = defineProps<{
   block: IBContent<string> & Record<string, never>
@@ -43,6 +50,11 @@ watch(
 )
 </script>
 <template>
-  <component :is="resolvedComponent" v-if="resolvedComponent" ref="blockRef" v-bind="{ ...$props, ...$attrs }" />
+  <component
+    :is="resolvedComponent"
+    v-if="resolvedComponent"
+    ref="blockRef"
+    v-bind="{ ...$props, ...$attrs }"
+  />
   <div v-else>Component for block type "{{ componentName }}" not found.</div>
 </template>

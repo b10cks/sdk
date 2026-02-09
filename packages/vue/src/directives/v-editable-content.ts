@@ -1,4 +1,5 @@
 import type { Directive, DirectiveBinding } from 'vue'
+
 import { previewBridge } from '../preview-bridge'
 
 export const EditableContentDirective: Directive<HTMLElement> = {

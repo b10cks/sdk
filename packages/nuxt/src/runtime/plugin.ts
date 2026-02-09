@@ -1,7 +1,7 @@
+import { useState } from '#app'
 import { ApiClient } from '@b10cks/client'
 import { B10cksVue, previewBridge } from '@b10cks/vue'
 import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
-import { useState } from '#app'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()

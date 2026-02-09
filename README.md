@@ -52,45 +52,45 @@ npm install @b10cks/nuxt
 ```typescript
 // nuxt.config.ts
 export default defineNuxtConfig({
-  modules: ["@b10cks/nuxt"],
+  modules: ['@b10cks/nuxt'],
   b10cks: {
-    accessToken: "your-access-token",
-    apiUrl: "https://api.b10cks.com/api",
+    accessToken: 'your-access-token',
+    apiUrl: 'https://api.b10cks.com/api',
   },
-});
+})
 ```
 
 ### For Vue Projects
 
 ```typescript
-import { createApp } from "vue";
-import { B10cksVue } from "@b10cks/vue";
+import { createApp } from 'vue'
+import { B10cksVue } from '@b10cks/vue'
 
-const app = createApp(App);
+const app = createApp(App)
 
 app.use(B10cksVue, {
-  accessToken: "your-access-token",
-  apiUrl: "https://api.b10cks.com/api",
-});
+  accessToken: 'your-access-token',
+  apiUrl: 'https://api.b10cks.com/api',
+})
 
-app.mount("#app");
+app.mount('#app')
 ```
 
 ### For Direct API Access
 
 ```typescript
-import { ApiClient } from "@b10cks/client";
+import { ApiClient } from '@b10cks/client'
 
 const client = new ApiClient(
   {
-    baseUrl: "https://api.b10cks.com/api",
-    token: "your-access-token",
+    baseUrl: 'https://api.b10cks.com/api',
+    token: 'your-access-token',
     fetchClient: fetch,
   },
-  new URL(window.location.href),
-);
+  new URL(window.location.href)
+)
 
-const blocks = await client.get("blocks");
+const blocks = await client.get('blocks')
 ```
 
 ## 📖 Documentation

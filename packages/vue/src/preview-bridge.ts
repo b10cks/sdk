@@ -63,7 +63,9 @@ class PreviewBridge {
   }
 
   private notifyListeners<T extends EventType>(type: T, payload: EventPayloadMap[T]): void {
-    const listeners = this.eventListeners[type] as Array<EventCallback<EventPayloadMap[T]>> | undefined
+    const listeners = this.eventListeners[type] as
+      | Array<EventCallback<EventPayloadMap[T]>>
+      | undefined
 
     if (listeners) {
       listeners.forEach((listener) => {
@@ -72,7 +74,10 @@ class PreviewBridge {
     }
   }
 
-  public on<T extends EventType>(eventType: T, callback: EventCallback<EventPayloadMap[T]>): () => void {
+  public on<T extends EventType>(
+    eventType: T,
+    callback: EventCallback<EventPayloadMap[T]>
+  ): () => void {
     if (!this.isEnabled) return () => {}
 
     if (!this.eventListeners[eventType]) {

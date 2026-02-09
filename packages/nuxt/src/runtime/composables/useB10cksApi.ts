@@ -10,8 +10,9 @@ import type {
   IBResponse,
   IBSpace,
 } from '@b10cks/client'
-import { computed, ref } from 'vue'
+
 import { useNuxtApp, useState } from '#app'
+import { computed, ref } from 'vue'
 
 export interface UseB10cksApiOptions<T> {
   immediate?: boolean
@@ -76,7 +77,9 @@ interface UseB10cksApiReturn {
     execute: () => Promise<any>
     refresh: () => Promise<any>
   }
-  useRedirects: (options?: UseB10cksApiOptions<Record<string, { target: string; status_code: number }>>) => {
+  useRedirects: (
+    options?: UseB10cksApiOptions<Record<string, { target: string; status_code: number }>>
+  ) => {
     data: import('vue').Ref<Record<string, { target: string; status_code: number }> | null>
     pending: import('vue').Ref<boolean>
     error: import('vue').Ref<Error | null>
@@ -263,7 +266,10 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       error.value = null
 
       try {
-        const results = (await $b10cksClient.getAll('redirects' as Endpoint, params)) as IBRedirect[]
+        const results = (await $b10cksClient.getAll(
+          'redirects' as Endpoint,
+          params
+        )) as IBRedirect[]
         const transformed = Object.fromEntries(
           results.map(({ source, target, status_code }) => [source, { target, status_code }])
         )

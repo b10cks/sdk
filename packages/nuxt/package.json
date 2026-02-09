@@ -1,25 +1,28 @@
 {
   "name": "@b10cks/nuxt",
-  "license": "MIT",
   "version": "0.10.1",
-  "author": "Michael Wallner @ Coder's Cantina",
   "description": "b10cks Nuxt module",
-  "type": "module",
+  "license": "MIT",
+  "author": "Michael Wallner @ Coder's Cantina",
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
     "directory": "packages/nuxt"
   },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/module.mjs",
   "exports": {
     ".": {
       "types": "./dist/types.d.mts",
       "import": "./dist/module.mjs"
     }
   },
-  "main": "./dist/module.mjs",
-  "files": [
-    "dist"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepack": "nuxt-module-build build",
     "build": "nuxt-module-build prepare && nuxt-module-build build",
@@ -27,6 +30,10 @@
     "lint:fix": "biome check --apply .",
     "test": "vitest",
     "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@b10cks/client": "workspace:^",
+    "@b10cks/vue": "workspace:^"
   },
   "devDependencies": {
     "@nuxt/kit": "^4.2.1",
@@ -38,12 +45,5 @@
     "branches": [
       "main"
     ]
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@b10cks/client": "workspace:^",
-    "@b10cks/vue": "workspace:^"
   }
 }

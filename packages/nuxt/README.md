@@ -28,6 +28,7 @@ export default defineNuxtConfig({
 ### Directives
 
 #### `v-editable`
+
 Mark content as editable within the b10cks editor.
 
 ```vue
@@ -37,6 +38,7 @@ Mark content as editable within the b10cks editor.
 ```
 
 #### `v-editable-field`
+
 Mark specific fields within editable blocks.
 
 ```vue
@@ -49,6 +51,7 @@ Mark specific fields within editable blocks.
 ### Components
 
 #### `B10cksComponent`
+
 Render b10cks components directly in your Nuxt app.
 
 ```vue

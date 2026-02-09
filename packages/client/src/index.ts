@@ -1,4 +1,10 @@
-import type { B10cksApiClientOptions, IBBaseQueryParams, IBCollectionResponse, IBMeta, IBResponse } from './types'
+import type {
+  B10cksApiClientOptions,
+  IBBaseQueryParams,
+  IBCollectionResponse,
+  IBMeta,
+  IBResponse,
+} from './types'
 
 export type FetchClient = typeof fetch
 export type Endpoint =
@@ -55,7 +61,10 @@ export class ApiClient {
   }
 
   async getAll<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<T[]> {
-    const response = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(endpoint, { ...params, page: 1 })
+    const response = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(endpoint, {
+      ...params,
+      page: 1,
+    })
     if (response.rv) {
       this.setRv(response.rv)
     }

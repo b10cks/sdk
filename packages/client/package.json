@@ -1,16 +1,23 @@
 {
   "name": "@b10cks/client",
-  "license": "MIT",
   "version": "0.10.1",
-  "author": "Michael Wallner @ Coder's Cantina",
   "description": "Core b10cks API client",
-  "type": "module",
+  "license": "MIT",
+  "author": "Michael Wallner @ Coder's Cantina",
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
     "directory": "packages/client"
   },
+  "source": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,13 +25,9 @@
       "require": "./dist/index.js"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "source": "src/index.ts",
-  "files": [
-    "dist"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
@@ -43,8 +46,5 @@
     "branches": [
       "main"
     ]
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

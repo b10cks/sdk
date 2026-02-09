@@ -1,5 +1,7 @@
 import type { DirectiveBinding, VNode } from 'vue'
+
 import type { SelectUpdateEvent } from '../preview-bridge'
+
 import { previewBridge } from '../preview-bridge'
 
 interface EditableElement extends HTMLElement {

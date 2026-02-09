@@ -22,17 +22,18 @@ Thank you for your interest in contributing to b10cks Open Source SDKs! We welco
 ### Installation
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/b10cks/sdk.git
-    ```
+   ```bash
+   git clone https://github.com/b10cks/sdk.git
+   ```
 2. Inside the project directory, run to install the required dependencies:
-    ```bash
-    pnpm install
-    ```
-   
+   ```bash
+   pnpm install
+   ```
+
 ## Questions and Support?
 
 If you have any questions or need support, feel free to reach out to the maintainers. We are here to help!
+
 1. You can check the [b10cks documentation](https://docs.b10cks.com/).
 2. Open an issue in this repository if you encounter any problems or have questions about the SDKs.
 3. Join our [Discord community](https://discord.gg/coders_cantina) for community support.

@@ -1,9 +1,10 @@
 import type { Plugin } from 'vue'
-import B10cksComponent from './components/B10cksComponent.vue'
 
+import type { B10cksVuePluginOptions } from './types'
+
+import B10cksComponent from './components/B10cksComponent.vue'
 import { EditableDirective } from './directives/v-editable'
 import { EditableContentDirective } from './directives/v-editable-content'
-import type { B10cksVuePluginOptions } from './types'
 
 export { previewBridge } from './preview-bridge'
 

@@ -1,5 +1,13 @@
-import { addComponentsDir, addImports, addPlugin, createResolver, defineNuxtModule } from '@nuxt/kit'
 import type { Nuxt } from '@nuxt/schema'
+
+import {
+  addComponentsDir,
+  addImports,
+  addPlugin,
+  createResolver,
+  defineNuxtModule,
+} from '@nuxt/kit'
+
 import type { ModuleOptions } from './types'
 
 export * from './types'
