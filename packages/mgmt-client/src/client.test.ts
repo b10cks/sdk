@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+
 import { ManagementClient } from './client'
 import { ManagementApiError } from './http-client'
 

@@ -36,9 +36,9 @@ The client accepts the following configuration options:
 
 ```typescript
 interface ClientConfig {
-  baseUrl: string      // Base URL of the b10cks API
-  token: string        // Bearer token for authentication
-  timeout?: number     // Request timeout in milliseconds (default: 30000)
+  baseUrl: string // Base URL of the b10cks API
+  token: string // Bearer token for authentication
+  timeout?: number // Request timeout in milliseconds (default: 30000)
 }
 ```
 
@@ -264,14 +264,15 @@ await client.contents.setVersionAsCurrent('space-id', 'content-id', 1)
 
 ### Assets
 
-Manage media assets.
+Manage media assets with file upload support.
 
 ```typescript
 // List assets
 const assets = await client.assets.list('space-id')
 
-// Create an asset
-const asset = await client.assets.create('space-id')
+// Create an asset with file upload
+
+// In Browser (withconst asset = await client.assets.create('space-id')
 
 // Get an asset
 const asset = await client.assets.get('space-id', 'asset-id')
@@ -454,9 +455,9 @@ const result = await client.blocks.list('space-id', {
   per_page: 20,
 })
 
-console.log(result.data)        // Array of items
-console.log(result.meta.total)  // Total number of items
-console.log(result.links.next)  // URL for next page
+console.log(result.data) // Array of items
+console.log(result.meta.total) // Total number of items
+console.log(result.links.next) // URL for next page
 ```
 
 ## TypeScript Support
@@ -464,13 +465,7 @@ console.log(result.links.next)  // URL for next page
 This package is written in TypeScript and includes full type definitions:
 
 ```typescript
-import type { 
-  User, 
-  Space, 
-  Block, 
-  Content,
-  PaginatedResponse 
-} from '@b10cks/mgmt-client'
+import type { User, Space, Block, Content, PaginatedResponse } from '@b10cks/mgmt-client'
 ```
 
 ## License

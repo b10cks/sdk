@@ -12,17 +12,20 @@ Thank you for your interest in contributing to the b10cks Management Client! Thi
 ### Initial Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/b10cks/sdk.git
 cd sdk
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Navigate to the management client package:
+
 ```bash
 cd packages/mgmt-client
 ```
@@ -32,11 +35,13 @@ cd packages/mgmt-client
 #### Building
 
 Build the package:
+
 ```bash
 pnpm build
 ```
 
 Watch mode for development:
+
 ```bash
 pnpm dev
 ```
@@ -44,16 +49,19 @@ pnpm dev
 #### Testing
 
 Run tests:
+
 ```bash
 pnpm test
 ```
 
 Run tests in watch mode:
+
 ```bash
 pnpm test --watch
 ```
 
 Run tests with coverage:
+
 ```bash
 pnpm test --coverage
 ```
@@ -61,6 +69,7 @@ pnpm test --coverage
 #### Linting
 
 Lint and fix code:
+
 ```bash
 pnpm lint
 ```
@@ -68,6 +77,7 @@ pnpm lint
 #### Cleaning
 
 Remove build artifacts:
+
 ```bash
 pnpm clean
 ```
@@ -96,18 +106,23 @@ pnpm clean
 We follow SOLID principles and clean code practices:
 
 #### Single Responsibility Principle
+
 Each class and function should have one reason to change. Resource managers handle only their specific domain.
 
 #### Open/Closed Principle
+
 Classes should be open for extension but closed for modification. Use composition over inheritance.
 
 #### Liskov Substitution Principle
+
 Derived classes must be substitutable for their base classes.
 
 #### Interface Segregation Principle
+
 Clients should not depend on interfaces they don't use.
 
 #### Dependency Inversion Principle
+
 Depend on abstractions, not concretions. Resources depend on HttpClient interface.
 
 ### File Structure
@@ -138,6 +153,7 @@ src/
 ### Adding a New Resource
 
 1. Create a new file in `src/resources/`:
+
 ```typescript
 import type { HttpClient } from '../http-client'
 import type { YourType } from '../types'
@@ -168,6 +184,7 @@ export class YourResource {
 ```
 
 2. Add types to `src/types.ts`:
+
 ```typescript
 export interface YourType {
   id: string
@@ -186,6 +203,7 @@ export interface UpdateYourParams {
 ```
 
 3. Register resource in `src/client.ts`:
+
 ```typescript
 import { YourResource } from './resources/your-resource'
 
@@ -200,6 +218,7 @@ export class ManagementClient {
 ```
 
 4. Export types from `src/index.ts`:
+
 ```typescript
 export type { YourType, CreateYourParams, UpdateYourParams } from './types'
 ```
@@ -269,6 +288,7 @@ describe('ResourceName', () => {
 ### README Updates
 
 When adding features, update:
+
 - API Resources section with new methods
 - Examples with practical usage
 - Type exports list
@@ -276,6 +296,7 @@ When adding features, update:
 ### Examples
 
 Add practical examples to `examples/` directory demonstrating:
+
 - Common use cases
 - Best practices
 - Error handling

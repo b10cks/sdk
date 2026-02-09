@@ -1,26 +1,32 @@
 import type { HttpClient } from '../http-client'
-import type { UpdateAvatarParams, UpdatePasswordParams, UpdateUserParams, User } from '../types'
+import type {
+  RequestOptions,
+  UpdateAvatarParams,
+  UpdatePasswordParams,
+  UpdateUserParams,
+  User,
+} from '../types'
 
 export class UsersResource {
   constructor(private readonly client: HttpClient) {}
 
-  async getMe(): Promise<User> {
-    return this.client.get<User>('/mgmt/v1/users/me')
+  async getMe(options?: RequestOptions): Promise<User> {
+    return this.client.get<User>('/mgmt/v1/users/me', undefined, options?.headers)
   }
 
-  async updateMe(params: UpdateUserParams): Promise<User> {
-    return this.client.patch<User>('/mgmt/v1/users/me', params)
+  async updateMe(params: UpdateUserParams, options?: RequestOptions): Promise<User> {
+    return this.client.patch<User>('/mgmt/v1/users/me', params, options?.headers)
   }
 
-  async updateSettings(): Promise<void> {
-    return this.client.post<void>('/mgmt/v1/users/me/settings')
+  async updateSettings(payload: Record<string, unknown>, options?: RequestOptions): Promise<void> {
+    return this.client.post<void>('/mgmt/v1/users/me/settings', payload, options?.headers)
   }
 
-  async updateAvatar(params: UpdateAvatarParams): Promise<void> {
-    return this.client.post<void>('/mgmt/v1/users/me/avatar', params)
+  async updateAvatar(params: UpdateAvatarParams, options?: RequestOptions): Promise<void> {
+    return this.client.post<void>('/mgmt/v1/users/me/avatar', params, options?.headers)
   }
 
-  async updatePassword(params: UpdatePasswordParams): Promise<void> {
-    return this.client.post<void>('/mgmt/v1/users/me/password', params)
+  async updatePassword(params: UpdatePasswordParams, options?: RequestOptions): Promise<void> {
+    return this.client.post<void>('/mgmt/v1/users/me/password', params, options?.headers)
   }
 }

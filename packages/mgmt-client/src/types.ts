@@ -2,6 +2,11 @@ export interface ClientConfig {
   baseUrl: string
   token: string
   timeout?: number
+  headers?: Record<string, string>
+}
+
+export interface RequestOptions {
+  headers?: Record<string, string>
 }
 
 export interface PaginationParams {
@@ -143,6 +148,7 @@ export interface UpdateSpaceIconParams {
 
 export interface Block {
   id: string
+  external_id?: string | null
   name: string
   slug: string
   type: string
@@ -159,6 +165,7 @@ export interface Block {
 
 export interface GetBlocksParams extends PaginationParams {
   search?: string
+  external_id?: string
   folder_id?: string
   tag_id?: string
   include_archived?: boolean
@@ -172,6 +179,7 @@ export interface GetBlocksParams extends PaginationParams {
 
 export interface BlockTag {
   id: string
+  external_id?: string | null
   name: string
   slug: string
   color: string | null
@@ -182,6 +190,7 @@ export interface BlockTag {
 
 export interface BlockFolder {
   id: string
+  external_id?: string | null
   name: string
   parent_id: string | null
   space_id: string
@@ -191,6 +200,7 @@ export interface BlockFolder {
 
 export interface Content {
   id: string
+  external_id?: string | null
   name: string
   slug: string
   block_id: string
@@ -208,6 +218,7 @@ export interface GetContentsParams extends PaginationParams {
   published_after?: string
   search?: string
   block_id?: string | string[]
+  external_id?: string
   published?: boolean
   [key: string]: unknown
 }
@@ -245,6 +256,7 @@ export interface GetRedirectsParams extends PaginationParams {
 
 export interface Asset {
   id: string
+  external_id?: string | null
   name: string
   filename: string
   mime_type: string
@@ -259,6 +271,7 @@ export interface Asset {
 
 export interface AssetFolder {
   id: string
+  external_id?: string | null
   name: string
   parent_id: string | null
   space_id: string
@@ -268,6 +281,7 @@ export interface AssetFolder {
 
 export interface AssetTag {
   id: string
+  external_id?: string | null
   name: string
   slug: string
   color: string | null
@@ -297,6 +311,7 @@ export interface CreateSpaceTokenParams {
 
 export interface DataSource {
   id: string
+  external_id?: string | null
   name: string
   slug: string
   type: string
@@ -309,6 +324,7 @@ export interface DataSource {
 
 export interface DataEntry {
   id: string
+  external_id?: string | null
   data_source_id: string
   data: Record<string, unknown>
   metadata: Record<string, unknown> | null

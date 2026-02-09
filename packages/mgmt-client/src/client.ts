@@ -1,3 +1,5 @@
+import type { ClientConfig } from './types'
+
 import { HttpClient } from './http-client'
 import { AiResource } from './resources/ai'
 import { AssetFoldersResource } from './resources/asset-folders'
@@ -14,7 +16,6 @@ import { SystemResource } from './resources/system'
 import { TeamsResource } from './resources/teams'
 import { TokensResource } from './resources/tokens'
 import { UsersResource } from './resources/users'
-import type { ClientConfig } from './types'
 
 export class ManagementClient {
   private readonly httpClient: HttpClient
