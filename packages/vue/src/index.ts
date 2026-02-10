@@ -7,6 +7,7 @@ import { EditableDirective } from './directives/v-editable'
 import { EditableContentDirective } from './directives/v-editable-content'
 
 export { previewBridge } from './preview-bridge'
+export { B10cksComponentResolverKey, type BlockComponentResolver } from './types'
 
 export const B10cksVue: Plugin = {
   install(app, pluginOptions: B10cksVuePluginOptions) {

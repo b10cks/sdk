@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import type { IBContent } from '@b10cks/client'
-import {
-  type Component,
-  computed,
-  defineAsyncComponent,
-  shallowRef,
-  useTemplateRef,
-  watch,
-} from 'vue'
+import { computed, defineAsyncComponent, inject, shallowRef, useTemplateRef, watch } from 'vue'
+
+import { B10cksComponentResolverKey } from '../types'
 
 const props = defineProps<{
   block: IBContent<string> & Record<string, never>
@@ -16,8 +11,10 @@ const props = defineProps<{
 const blockRef = useTemplateRef('blockRef')
 defineExpose({ value: blockRef })
 
-const resolvedComponent = shallowRef<Component | null>(null)
+const resolvedComponent = shallowRef<ReturnType<typeof defineAsyncComponent> | null>(null)
 const componentName = computed(() => props.block?.block || null)
+
+const resolveBlockComponent = inject(B10cksComponentResolverKey, null)
 
 watch(
   () => componentName.value,
@@ -27,23 +24,21 @@ watch(
       return
     }
 
-    const pascalCaseBlockType = newComponentName
-      .replace(/^([a-z])/, (match: string) => match.toUpperCase())
-      .replace(/([a-z])([A-Z])/g, '$1$2')
+    if (!resolveBlockComponent) {
+      // biome-ignore lint/suspicious/noConsole: give developers feedback
+      console.error(
+        'B10cks: No component resolver found. Make sure you are using @b10cks/nuxt module or have provided a custom resolver.'
+      )
+      resolvedComponent.value = null
+      return
+    }
 
     try {
-      resolvedComponent.value = defineAsyncComponent({
-        loader: () => import(`~/b10cks/${pascalCaseBlockType}.vue`),
-        timeout: 3000,
-        onError: (error, _, fail) => {
-          // biome-ignore lint/suspicious/noConsole: give developers feedback
-          console.warn(`Failed to load block component for type "${newComponentName}":`, error)
-          fail()
-        },
-      })
+      resolvedComponent.value = await resolveBlockComponent(newComponentName)
     } catch (error) {
       // biome-ignore lint/suspicious/noConsole: give developers feedback
-      console.error(`Error resolving component for block type "${newComponentName}":`, error)
+      console.warn(`Failed to load block component for type "${newComponentName}":`, error)
+      resolvedComponent.value = null
     }
   },
   { immediate: true }

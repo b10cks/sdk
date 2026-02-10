@@ -194,7 +194,6 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
       ...options,
       params: params,
       transform: (result: IBResponse<IBContent<T>>): IBContent<T> => {
-        console.log('Content fetched:', result)
         if ('data' in result) {
           return result.data
         }
@@ -320,7 +319,6 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
     if (!configCache.value) {
       await execute()
       configCache.value = config.value?.content || {}
-      console.log('Config fetched:', configCache.value)
     }
 
     return {
@@ -332,7 +330,6 @@ export const useB10cksApi = (): UseB10cksApiReturn => {
     const { data: space, execute } = useSpace({ immediate: false })
     await execute()
     $b10cksClient.setRv(space.value?.rv || 426713400)
-    console.log('Space fetched:', space.value)
   })
 
   return {
