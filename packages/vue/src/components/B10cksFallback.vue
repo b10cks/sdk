@@ -2,7 +2,7 @@
 import type { IBContent } from '@b10cks/client'
 
 export interface IB10cksFallbackProps {
-  block: IBContent
+  block: IBContent<string> & Record<string, never>
 }
 
 defineProps<IB10cksFallbackProps>()
