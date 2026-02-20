@@ -8,9 +8,10 @@ This monorepo contains multiple packages that enable seamless integration of b10
 
 ### [@b10cks/client](./packages/client)
 
-**Core API client** for communicating with the b10cks API.
+**Framework-agnostic core** for communicating with the b10cks Data API.
 
 - Type-safe HTTP client
+- Shared `B10cksDataApi` abstraction
 - Automatic pagination handling
 - Revision and version tracking
 - Works in browsers and Node.js
@@ -24,6 +25,7 @@ npm install @b10cks/client
 **Vue 3 integration** for building interactive content management experiences.
 
 - Vue 3 plugin with global directives
+- Data composables built on `@b10cks/client`
 - Editable content directives (`v-editable`, `v-editable-field`)
 - Reusable component system
 - Preview bridge support
@@ -37,12 +39,48 @@ npm install @b10cks/vue @b10cks/client
 **Nuxt 4 module** for zero-config integration with Nuxt applications.
 
 - Auto-configured b10cks integration
-- Global component registration
+- Shared composables via `@b10cks/vue`
 - Runtime configuration
 - Built on top of `@b10cks/vue`
 
 ```bash
 npm install @b10cks/nuxt
+```
+
+### [@b10cks/react](./packages/react)
+
+**React integration** with provider, hooks, and block rendering.
+
+- `B10cksProvider` context for client/data API
+- Typed hooks (`useB10cksApi`)
+- Preview bridge integration
+
+```bash
+npm install @b10cks/react @b10cks/client
+```
+
+### [@b10cks/svelte](./packages/svelte)
+
+**Svelte integration** with context, stores, and actions.
+
+- Svelte context setup (`createB10cksContext`)
+- Typed async stores (`createB10cksStores`)
+- `editable` and `editableField` actions
+
+```bash
+npm install @b10cks/svelte @b10cks/client
+```
+
+### [@b10cks/next](./packages/next)
+
+**Next.js integration layer** on top of the React SDK.
+
+- Next-friendly provider (`B10cksNextProvider`)
+- Server helper (`createB10cksNextApi`)
+- Config helper (`withB10cks`)
+
+```bash
+npm install @b10cks/next @b10cks/react @b10cks/client
 ```
 
 ## 🚀 Quick Start
@@ -69,8 +107,10 @@ import { B10cksVue } from '@b10cks/vue'
 const app = createApp(App)
 
 app.use(B10cksVue, {
-  accessToken: 'your-access-token',
-  apiUrl: 'https://api.b10cks.com/api',
+  apiClientOptions: {
+    token: 'your-access-token',
+    baseUrl: 'https://api.b10cks.com/api',
+  },
 })
 
 app.mount('#app')
@@ -80,6 +120,7 @@ app.mount('#app')
 
 ```typescript
 import { ApiClient } from '@b10cks/client'
+import { createB10cksDataApi } from '@b10cks/client'
 
 const client = new ApiClient(
   {
@@ -90,7 +131,8 @@ const client = new ApiClient(
   new URL(window.location.href)
 )
 
-const blocks = await client.get('blocks')
+const dataApi = createB10cksDataApi(client)
+const blocks = await dataApi.getBlocks()
 ```
 
 ## 📖 Documentation
@@ -131,7 +173,10 @@ sdk/
 ├── packages/
 │   ├── client/       # Core API client
 │   ├── vue/          # Vue 3 plugin
-│   └── nuxt/         # Nuxt module
+│   ├── react/        # React SDK
+│   ├── svelte/       # Svelte SDK
+│   ├── nuxt/         # Nuxt module
+│   └── next/         # Next.js integration
 ├── scripts/          # Build and utility scripts
 └── .changeset/       # Changesets for versioning
 ```

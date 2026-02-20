@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/client",
-  "version": "0.10.2",
+  "version": "1.0.0",
   "description": "Core b10cks API client",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",

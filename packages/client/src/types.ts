@@ -1,4 +1,16 @@
-import type { FetchClient } from './index.ts'
+export type FetchClient = (
+  input: URL | string | RequestInfo,
+  init?: RequestInit
+) => Promise<unknown>
+
+export type Endpoint =
+  | 'blocks'
+  | 'contents'
+  | `contents/${string}`
+  | `datasources/${string}/entries`
+  | 'datasources'
+  | 'redirects'
+  | 'spaces/me'
 
 export interface IBResponse<T> {
   data: T
@@ -131,7 +143,7 @@ export interface B10cksApiClientOptions {
   token: string
   rv?: string | number
   version?: 'draft' | 'published'
-  fetchClient: FetchClient
+  fetchClient?: FetchClient
   getRv?: () => string | number
   setRv?: (value: string | number) => void
 }

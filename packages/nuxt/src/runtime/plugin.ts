@@ -1,6 +1,6 @@
 import { useState } from '#app'
-import { ApiClient } from '@b10cks/client'
-import { B10cksVue, previewBridge } from '@b10cks/vue'
+import { ApiClient, createB10cksDataApi, previewBridge } from '@b10cks/client'
+import { B10cksClientKey, B10cksDataApiKey, B10cksVue } from '@b10cks/vue'
 import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
 
 let rv: number | string = 0
@@ -20,7 +20,10 @@ export default defineNuxtPlugin({
       }
     }
 
-    const rvState = useState<string | number>('b10cks_rv', () => url.searchParams.get('rv') || rv)
+    const rvState = useState<string | number>(
+      'b10cks_rv',
+      () => url.searchParams.get('b10cks_rv') || url.searchParams.get('rv') || rv
+    )
     const b10cksClient = new ApiClient(
       {
         baseUrl: config.public.b10cks.apiUrl || 'https://api.b10cks.com/api',
@@ -37,10 +40,15 @@ export default defineNuxtPlugin({
       },
       url
     )
+    const b10cksDataApi = createB10cksDataApi(b10cksClient)
+
+    nuxtApp.vueApp.provide(B10cksClientKey, b10cksClient)
+    nuxtApp.vueApp.provide(B10cksDataApiKey, b10cksDataApi)
 
     return {
       provide: {
         b10cksClient,
+        b10cksDataApi,
       },
     }
   },

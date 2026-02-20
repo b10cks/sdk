@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { IBContent } from '@b10cks/client'
-import { computed, inject, resolveDynamicComponent, useTemplateRef } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  inject,
+  resolveDynamicComponent,
+  useTemplateRef,
+} from 'vue'
 
 import { B10cksComponentResolverKey } from '../types'
 import B10cksFallback from './B10cksFallback.vue'
@@ -39,6 +45,16 @@ const resolvedComponent = computed(() => {
 
   // resolveDynamicComponent returns a string if component not found
   if (typeof component === 'string') {
+    if (customResolver) {
+      return defineAsyncComponent(async () => {
+        try {
+          return await customResolver(pascalCaseName)
+        } catch {
+          return B10cksFallback
+        }
+      })
+    }
+
     // biome-ignore lint/suspicious/noConsole: give developers feedback
     console.warn(
       `Component "${pascalCaseName}" not found. Make sure it's registered in your components directory.`

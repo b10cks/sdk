@@ -11,7 +11,7 @@ npm install @b10cks/client
 ## Usage
 
 ```typescript
-import { ApiClient } from '@b10cks/client'
+import { ApiClient, createB10cksDataApi } from '@b10cks/client'
 
 const client = new ApiClient(
   {
@@ -22,27 +22,42 @@ const client = new ApiClient(
   new URL(window.location.href)
 )
 
+const dataApi = createB10cksDataApi(client)
+
 // Fetch blocks
-const blocks = await client.get('blocks')
+const blocks = await dataApi.getBlocks()
 
 // Fetch all contents with pagination
-const contents = await client.getAll('contents')
+const contents = await dataApi.getContents()
 
 // Fetch specific datasource entries
-const entries = await client.get('datasources/my-datasource/entries')
+const entries = await dataApi.getDataEntries('my-datasource')
 ```
 
 ## Features
 
 - **Simple HTTP Client**: Type-safe API client for b10cks endpoints
+- **Framework-Agnostic Data API**: Shared `B10cksDataApi` used by all framework SDKs
 - **Pagination Support**: Automatic handling of paginated responses
 - **Revision Tracking**: Built-in support for revision (RV) and version (VID) parameters
-- **Flexible Fetch**: Use any fetch implementation (browser, Node.js, custom)
+- **Flexible Fetch**: Use browser fetch, Node fetch, or a custom fetch implementation
 
 ## API Methods
 
 - `get<T>(endpoint, params)` - Fetch single page of data
 - `getAll<T>(endpoint, params)` - Fetch all data across pages
+
+## Data API Methods
+
+- `getContent(fullSlug, params)`
+- `getContents(params)`
+- `getBlocks(params)`
+- `getDataEntries(source, params)`
+- `getDataSources(params)`
+- `getSpace(params)`
+- `getRedirects(params, forceRefresh)`
+- `getConfig(options)`
+- `syncRevision(fallbackRv)`
 
 ## Supported Endpoints
 

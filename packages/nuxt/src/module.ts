@@ -31,6 +31,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.build.transpile.push(resolver.resolve('./runtime'))
     nuxt.options.build.transpile.push(resolver.resolve('@b10cks/nuxt'))
     nuxt.options.build.transpile.push(resolver.resolve('@b10cks/vue'))
+    nuxt.options.build.transpile.push(resolver.resolve('@b10cks/client'))
 
     nuxt.options.runtimeConfig.public.b10cks = {
       accessToken: options.accessToken,

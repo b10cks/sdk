@@ -1,19 +1,20 @@
 {
-  "name": "@b10cks/vue",
-  "version": "1.0.0",
-  "description": "SDK to integrate b10cks into your vue applications",
+  "name": "@b10cks/react",
+  "version": "0.1.0",
+  "description": "React SDK for integrating b10cks into React applications",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
-    "directory": "packages/vue"
+    "directory": "packages/react"
   },
   "source": "src/index.ts",
   "files": [
     "dist"
   ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -31,20 +32,23 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest",
-    "lint": "biome lint --write",
+    "lint": "biome lint --write .",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "@b10cks/client": "workspace:^"
   },
   "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-dts": "^4.5.4",
-    "vue": "^3.5.25"
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
-    "vue": "^3.5.21"
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
   },
   "release": {
     "branches": [
