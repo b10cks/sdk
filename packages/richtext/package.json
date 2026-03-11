@@ -1,13 +1,13 @@
 {
-  "name": "@b10cks/react",
-  "version": "0.2.0",
-  "description": "React SDK for integrating b10cks into React applications",
+  "name": "@b10cks/richtext",
+  "version": "0.1.0",
+  "description": "Framework-agnostic rich text rendering for b10cks Rich text",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
-    "directory": "packages/react"
+    "directory": "packages/richtext"
   },
   "source": "src/index.ts",
   "files": [
@@ -36,21 +36,23 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@b10cks/client": "workspace:^",
-    "@b10cks/richtext": "workspace:^"
+    "@tiptap/core": "^2.26.1",
+    "@tiptap/extension-link": "^2.26.1",
+    "@tiptap/extension-table": "^2.26.1",
+    "@tiptap/extension-table-cell": "^2.26.1",
+    "@tiptap/extension-table-header": "^2.26.1",
+    "@tiptap/extension-table-row": "^2.26.1",
+    "@tiptap/extension-underline": "^2.26.1",
+    "@tiptap/html": "^2.26.1",
+    "@tiptap/starter-kit": "^2.26.1"
   },
   "devDependencies": {
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"
   },
-  "peerDependencies": {
-    "react": "^18.3.0 || ^19.0.0",
-    "react-dom": "^18.3.0 || ^19.0.0"
-  },
+  "peerDependencies": {},
   "release": {
     "branches": [
       "main"

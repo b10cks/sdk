@@ -15,7 +15,8 @@
     "paths": {
       "@b10cks/client": ["../client/src"],
       "@b10cks/vue": ["./src"],
-      "@b10cks/nuxt": ["../nuxt/src"]
+      "@b10cks/nuxt": ["../nuxt/src"],
+      "@b10cks/richtext": ["../richtext/src"]
     }
   },
   "$schema": "https://json.schemastore.org/tsconfig",

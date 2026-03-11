@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/vue",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "SDK to integrate b10cks into your vue applications",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
@@ -35,7 +35,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@b10cks/client": "workspace:^"
+    "@b10cks/client": "workspace:^",
+    "@b10cks/richtext": "workspace:^"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

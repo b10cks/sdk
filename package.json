@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/sdk",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Official b10cks SDKs",
   "license": "MIT",
   "author": {
@@ -15,7 +15,7 @@
   "module": "index.ts",
   "scripts": {
     "build": "pnpm run build:packages",
-    "build:packages": "pnpm --filter='@b10cks/client' run build && pnpm --filter='@b10cks/mgmt-client' run build && pnpm --filter='@b10cks/vue' run build && pnpm --filter='@b10cks/react' run build && pnpm --filter='@b10cks/svelte' run build && pnpm --filter='@b10cks/nuxt' run build && pnpm --filter='@b10cks/next' run build",
+    "build:packages": "pnpm --filter='@b10cks/client' run build && pnpm --filter='@b10cks/mgmt-client' run build && pnpm --filter='@b10cks/richtext' run build && pnpm --filter='@b10cks/vue' run build && pnpm --filter='@b10cks/react' run build && pnpm --filter='@b10cks/svelte' run build && pnpm --filter='@b10cks/nuxt' run build && pnpm --filter='@b10cks/next' run build",
     "test": "pnpm --filter='*' run test",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",

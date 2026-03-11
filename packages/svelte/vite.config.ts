@@ -22,11 +22,12 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'js'}`,
     },
     rollupOptions: {
-      external: ['svelte', 'svelte/store', '@b10cks/client'],
+      external: ['svelte', 'svelte/store', '@b10cks/client', '@b10cks/richtext'],
       output: {
         globals: {
           svelte: 'Svelte',
           '@b10cks/client': 'b10cksClient',
+          '@b10cks/richtext': 'b10cksRichtext',
         },
       },
     },

@@ -1,2 +1,5 @@
+export { B10cksRichText, renderRichTextHtml } from '@b10cks/react'
+export type { B10cksRichTextProps, RichTextDocument } from '@b10cks/react'
+export type { RichTextHtmlOptions } from '@b10cks/richtext'
 export { createB10cksNextApi, withB10cks } from './server'
 export type { CreateB10cksNextApiOptions } from './server'

@@ -31,6 +31,7 @@ export default defineConfig({
         'react-dom',
         '@b10cks/client',
         '@b10cks/react',
+        '@b10cks/richtext',
       ],
       output: {
         globals: {
@@ -38,6 +39,7 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
           '@b10cks/client': 'b10cksClient',
           '@b10cks/react': 'b10cksReact',
+          '@b10cks/richtext': 'b10cksRichtext',
         },
       },
     },

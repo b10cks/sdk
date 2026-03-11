@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/svelte",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Svelte SDK for integrating b10cks into Svelte applications",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
@@ -38,7 +38,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@b10cks/client": "workspace:^"
+    "@b10cks/client": "workspace:^",
+    "@b10cks/richtext": "workspace:^"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.1",

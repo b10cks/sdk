@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/next",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Next.js integration SDK for b10cks",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
@@ -47,7 +47,8 @@
   },
   "dependencies": {
     "@b10cks/client": "workspace:^",
-    "@b10cks/react": "workspace:^"
+    "@b10cks/react": "workspace:^",
+    "@b10cks/richtext": "workspace:^"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",

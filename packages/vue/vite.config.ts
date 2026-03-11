@@ -22,11 +22,12 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'js'}`,
     },
     rollupOptions: {
-      external: ['vue', '@b10cks/client'],
+      external: ['vue', '@b10cks/client', '@b10cks/richtext'],
       output: {
         globals: {
           vue: 'Vue',
           '@b10cks/client': 'b10cksClient',
+          '@b10cks/richtext': 'b10cksRichtext',
         },
       },
     },

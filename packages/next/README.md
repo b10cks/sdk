@@ -5,7 +5,7 @@ Next.js integration for b10cks built on top of `@b10cks/react`.
 ## Installation
 
 ```bash
-npm install @b10cks/next @b10cks/react @b10cks/client
+npm install @b10cks/next @b10cks/react @b10cks/client @b10cks/richtext
 ```
 
 ## Configure Next.js
@@ -51,6 +51,69 @@ const { dataApi } = createB10cksNextApi({
   fetchClient: fetch,
 })
 ```
+
+## Rich Text
+
+Use `B10cksRichText` to render a TipTap-based b10cks rich text document on the server or client.
+
+```tsx
+import { B10cksRichText } from '@b10cks/next'
+
+type PageProps = {
+  page: {
+    content: {
+      body?: {
+        type: 'doc'
+        content?: unknown[]
+      } | null
+    }
+  }
+}
+
+export function PageBody({ page }: PageProps) {
+  return (
+    <B10cksRichText
+      document={page.content.body}
+      className="prose"
+    />
+  )
+}
+```
+
+If you want to render the HTML string yourself first, use `renderRichTextHtml`:
+
+```tsx
+import { B10cksRichText, renderRichTextHtml } from '@b10cks/next'
+
+type RichTextDocument = {
+  type: 'doc'
+  content?: unknown[]
+}
+
+export function PageBody({ document }: { document: RichTextDocument | null | undefined }) {
+  const html = renderRichTextHtml(document)
+
+  return (
+    <B10cksRichText
+      document={document}
+      html={html}
+      className="prose"
+    />
+  )
+}
+```
+
+The default renderer is compatible with the following b10cks TipTap setup:
+
+- `StarterKit` with heading levels `1-6`
+- `Underline`
+- `Link`
+- `InternalLink`
+- `TextClass`
+- `Table`
+- `TableRow`
+- `TableHeader`
+- `TableCell`
 
 ## License
 

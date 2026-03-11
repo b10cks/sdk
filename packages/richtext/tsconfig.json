@@ -11,12 +11,12 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "types": ["svelte"],
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "paths": {
       "@b10cks/client": ["../client/src"],
-      "@b10cks/richtext": ["../richtext/src"],
-      "@b10cks/svelte": ["./src"]
+      "@b10cks/richtext": ["./src"]
     }
   },
   "$schema": "https://json.schemastore.org/tsconfig",

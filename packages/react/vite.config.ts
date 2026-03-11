@@ -20,12 +20,13 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'js'}`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@b10cks/client'],
+      external: ['react', 'react-dom', '@b10cks/client', '@b10cks/richtext'],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
           '@b10cks/client': 'b10cksClient',
+          '@b10cks/richtext': 'b10cksRichText',
         },
       },
     },
