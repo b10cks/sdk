@@ -13,14 +13,11 @@ npm install @b10cks/client
 ```typescript
 import { ApiClient, createB10cksDataApi } from '@b10cks/client'
 
-const client = new ApiClient(
-  {
-    baseUrl: 'https://api.b10cks.com/api',
-    token: 'your-access-token',
-    fetchClient: fetch,
-  },
-  new URL(window.location.href)
-)
+const client = new ApiClient({
+  baseUrl: 'https://api.b10cks.com/api',
+  token: 'your-access-token',
+  fetchClient: fetch,
+})
 
 const dataApi = createB10cksDataApi(client)
 
@@ -28,7 +25,10 @@ const dataApi = createB10cksDataApi(client)
 const blocks = await dataApi.getBlocks()
 
 // Fetch all contents with pagination
-const contents = await dataApi.getContents()
+const contents = await dataApi.getContents({ vid: 'published' })
+
+// Fetch a specific content entry
+const content = await dataApi.getContent('home', { vid: 'draft' })
 
 // Fetch specific datasource entries
 const entries = await dataApi.getDataEntries('my-datasource')
@@ -39,7 +39,7 @@ const entries = await dataApi.getDataEntries('my-datasource')
 - **Simple HTTP Client**: Type-safe API client for b10cks endpoints
 - **Framework-Agnostic Data API**: Shared `B10cksDataApi` used by all framework SDKs
 - **Pagination Support**: Automatic handling of paginated responses
-- **Revision Tracking**: Built-in support for revision (RV) and version (VID) parameters
+- **Revision Tracking**: Built-in support for revision (RV), with VID passed explicitly in request params
 - **Flexible Fetch**: Use browser fetch, Node fetch, or a custom fetch implementation
 
 ## API Methods
@@ -49,8 +49,8 @@ const entries = await dataApi.getDataEntries('my-datasource')
 
 ## Data API Methods
 
-- `getContent(fullSlug, params)`
-- `getContents(params)`
+- `getContent(fullSlug, params)` - pass `vid` in `params` when needed
+- `getContents(params)` - pass `vid` in `params` when needed
 - `getBlocks(params)`
 - `getDataEntries(source, params)`
 - `getDataSources(params)`

@@ -13,10 +13,10 @@ export interface B10cksApiClientRvOptions {
   setRv?: (value: string | number) => void
 }
 
-export * as types from './types'
-export type * from './types'
 export * from './data-api'
 export * from './preview-bridge'
+export type * from './types'
+export * as types from './types'
 
 let rv: string | number = 0
 
@@ -30,7 +30,7 @@ type ApiCollectionResponse<T> =
 export class ApiClient {
   private readonly baseUrl: string
   readonly token: string
-  private readonly vid: string | null
+  private readonly vid: string
   private readonly fetchClient: FetchClient
   private readonly getRvFn?: () => string | number
   private readonly setRvFn?: (value: string | number) => void
@@ -54,7 +54,7 @@ export class ApiClient {
     this.setRvFn = options.setRv
 
     const url = this.resolveRequestUrl(requestUrl)
-    this.vid = url?.searchParams.get('b10cks_vid') || options.version || 'published'
+    this.vid = options.version || 'published'
     this.setRv(url?.searchParams.get('b10cks_rv') || options.rv || rv)
   }
 
