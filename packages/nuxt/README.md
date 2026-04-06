@@ -27,12 +27,25 @@ export default defineNuxtConfig({
 ```typescript
 const { useContent, useRedirects, useB10cksConfig } = useB10cksApi()
 
-const page = useContent('home')
-const redirects = useRedirects()
+const page = await useContent('home')
+const redirects = await useRedirects()
 const { config } = await useB10cksConfig()
 ```
 
+The Nuxt helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched again during or after hydration.
+
+By default, each helper derives a stable async-data key from its input parameters, so SDK users do not need to provide a `key` manually.
+
 `B10cksComponent`, `v-editable`, and `v-editable-field` are available through the Vue integration.
+
+You can still pass `useAsyncData()` options when needed:
+
+```typescript
+const page = await useContent('home', { language: 'en' })
+const { config, pending, error, refresh } = await useB10cksConfig({ language: 'en' })
+```
+
+If you need to override Nuxt's cache identity behavior, you can still provide a custom `key` through the async-data options.
 
 ## Rich text usage
 
