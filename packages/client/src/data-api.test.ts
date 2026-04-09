@@ -125,6 +125,30 @@ describe('B10cksDataApi', () => {
     expect(client.getAll).toHaveBeenCalledWith('contents', { vid: 'published' })
   })
 
+  it('passes sitemap params through sitemap requests', async () => {
+    const client: DataApiClient = {
+      get: vi.fn(),
+      getAll: vi.fn().mockResolvedValue([]),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    await dataApi.getSitemap({
+      vid: 'published',
+      language_iso: 'en',
+      per_page: 100,
+      page: 1,
+    })
+
+    expect(client.getAll).toHaveBeenCalledWith('sitemap', {
+      vid: 'published',
+      language_iso: 'en',
+      per_page: 100,
+      page: 1,
+    })
+  })
+
   it('includes vid in config cache keys and forwards it to config requests', async () => {
     const client: DataApiClient = {
       get: vi

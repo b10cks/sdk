@@ -7,8 +7,9 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
-  RedirectMap,
+  IBSitemapEntry,
   IBSpace,
+  RedirectMap,
 } from '@b10cks/client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -114,6 +115,21 @@ export function useB10cksApi() {
     )
   }
 
+  const useSitemap = (
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBSitemapEntry[]>, 'params'> = {}
+  ): AsyncState<IBSitemapEntry[]> => {
+    const { immediate = false, transform } = options
+    return useAsyncTask(
+      async () => {
+        const value = await dataApi.getSitemap(params)
+        return transform ? transform(value) : value
+      },
+      [dataApi, params, transform],
+      immediate
+    )
+  }
+
   const useDataEntries = (
     source: string,
     params: QueryParams = {},
@@ -199,6 +215,7 @@ export function useB10cksApi() {
     useContent,
     useContents,
     useBlocks,
+    useSitemap,
     useDataEntries,
     useDataSources,
     useSpace,

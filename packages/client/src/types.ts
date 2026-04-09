@@ -10,6 +10,7 @@ export type Endpoint =
   | `datasources/${string}/entries`
   | 'datasources'
   | 'redirects'
+  | 'sitemap'
   | 'spaces/me'
 
 export interface IBResponse<T> {
@@ -43,6 +44,20 @@ export interface IBMeta {
   per_page: number
   to: number
   total: number
+}
+
+export interface IBSeoMeta {
+  robots: string | null
+  canonical: string | null
+}
+
+export interface IBSitemapEntry {
+  id: string
+  name: string
+  full_slug: string
+  language_iso: string
+  meta: IBSeoMeta
+  published_at: string | null
 }
 
 export interface IBContentRelation {

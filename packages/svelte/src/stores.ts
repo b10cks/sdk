@@ -8,6 +8,7 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
+  IBSitemapEntry,
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
@@ -92,6 +93,17 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
     }, immediate)
   }
 
+  const useSitemap = (
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBSitemapEntry[]>, 'params'> = {}
+  ): AsyncStore<IBSitemapEntry[]> => {
+    const { immediate = false, transform } = options
+    return createAsyncStore(async () => {
+      const value = await dataApi.getSitemap(params)
+      return transform ? transform(value) : value
+    }, immediate)
+  }
+
   const useDataEntries = (
     source: string,
     params: QueryParams = {},
@@ -148,6 +160,7 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
     useContent,
     useContents,
     useBlocks,
+    useSitemap,
     useDataEntries,
     useDataSources,
     useSpace,

@@ -7,6 +7,7 @@ import type {
   IBDataEntry,
   IBDataSource,
   IBRedirect,
+  IBSitemapEntry,
   IBSpace,
 } from './types'
 
@@ -59,6 +60,10 @@ export class B10cksDataApi {
 
   async getBlocks(params: ApiQueryParams = {}): Promise<IBBlock[]> {
     return this.getCollection<IBBlock>('blocks', params)
+  }
+
+  async getSitemap(params: Omit<IBContentQueryParams, 'token'> = {}): Promise<IBSitemapEntry[]> {
+    return this.getCollection<IBSitemapEntry>('sitemap', params)
   }
 
   async getDataEntries(source: string, params: ApiQueryParams = {}): Promise<IBDataEntry[]> {

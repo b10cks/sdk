@@ -8,8 +8,9 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
-  RedirectMap,
+  IBSitemapEntry,
   IBSpace,
+  RedirectMap,
 } from '@b10cks/client'
 
 import { computed, inject, ref, type Ref } from 'vue'
@@ -100,6 +101,17 @@ export function useB10cksApi() {
     }, immediate)
   }
 
+  const useSitemap = (
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: Omit<UseB10cksApiOptions<IBSitemapEntry[]>, 'params'> = {}
+  ): AsyncState<IBSitemapEntry[]> => {
+    const { immediate = false, transform } = options
+    return createAsyncState(async () => {
+      const value = await dataApi.getSitemap(params)
+      return transform ? transform(value) : value
+    }, immediate)
+  }
+
   const useBlocks = (
     params: QueryParams = {},
     options: Omit<UseB10cksApiOptions<IBBlock[]>, 'params'> = {}
@@ -171,6 +183,7 @@ export function useB10cksApi() {
     useApiCollection,
     useContent,
     useContents,
+    useSitemap,
     useBlocks,
     useDataEntries,
     useDataSources,

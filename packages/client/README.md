@@ -32,6 +32,9 @@ const content = await dataApi.getContent('home', { vid: 'draft' })
 
 // Fetch specific datasource entries
 const entries = await dataApi.getDataEntries('my-datasource')
+
+// Fetch sitemap entries
+const sitemap = await dataApi.getSitemap({ vid: 'published' })
 ```
 
 ## Features
@@ -54,6 +57,7 @@ const entries = await dataApi.getDataEntries('my-datasource')
 - `getBlocks(params)`
 - `getDataEntries(source, params)`
 - `getDataSources(params)`
+- `getSitemap(params)` - pass `vid` in `params` when needed
 - `getSpace(params)`
 - `getRedirects(params, forceRefresh)`
 - `getConfig(options)`
@@ -66,6 +70,7 @@ const entries = await dataApi.getDataEntries('my-datasource')
 - `contents/{id}` - Specific content
 - `datasources` - Data sources
 - `datasources/{id}/entries` - Datasource entries
+- `sitemap` - Sitemap entries
 - `spaces/me` - Current space info
 
 ## License

@@ -7,6 +7,7 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
+  IBSitemapEntry,
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
@@ -81,6 +82,7 @@ export type NuxtB10cksApi = Omit<
   | 'useBlocks'
   | 'useDataEntries'
   | 'useDataSources'
+  | 'useSitemap'
   | 'useSpace'
   | 'useRedirects'
   | 'useB10cksConfig'
@@ -114,6 +116,10 @@ export type NuxtB10cksApi = Omit<
   useDataSources: (
     options?: UseNuxtB10cksCollectionOptions<IBDataSource>
   ) => Promise<AwaitedCollectionAsyncData<IBDataSource>>
+  useSitemap: (
+    params?: Omit<IBContentQueryParams, 'token'>,
+    options?: AsyncDataCollectionConfig<IBSitemapEntry>
+  ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
   useSpace: (options?: UseNuxtB10cksApiOptions<IBSpace>) => Promise<AwaitedAsyncData<IBSpace>>
   useRedirects: (options?: UseNuxtB10cksRedirectsOptions) => Promise<AwaitedAsyncData<RedirectMap>>
   useB10cksConfig: <T = Record<string, unknown>>(
@@ -236,6 +242,19 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     )
   }
 
+  const useSitemap = async (
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: AsyncDataCollectionConfig<IBSitemapEntry> = {}
+  ): Promise<AwaitedCollectionAsyncData<IBSitemapEntry>> => {
+    const { key, ...asyncDataOptions } = options
+
+    return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
+      key ?? createAsyncDataKey('sitemap', { params }),
+      () => api.dataApi.getSitemap(params),
+      asyncDataOptions
+    )
+  }
+
   const useSpace = async (
     options: UseNuxtB10cksApiOptions<IBSpace> = {}
   ): Promise<AwaitedAsyncData<IBSpace>> => {
@@ -293,6 +312,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     useDataEntries,
     useDataSources,
     useSpace,
+    useSitemap,
     useRedirects,
     useB10cksConfig,
     client: api.client,
