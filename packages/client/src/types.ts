@@ -58,14 +58,16 @@ export interface IBContentRelation {
 
 export interface IBContent<Content = IBContentBlock<string> & { [index: string]: unknown }> {
   id: string
-  slug: string
   name: string
-  content: Content
-  type: string
+  slug: string
+  block: string
   parent_id: string | null
   full_slug: string
+  content: Content
   language_iso: string
+  translations: IBContentRelation[]
   published_at: string | null
+  first_published_at: string | null
   created_at: string
   updated_at: string
 }
@@ -73,7 +75,6 @@ export interface IBContent<Content = IBContentBlock<string> & { [index: string]:
 export interface IBContentBlock<T extends string> {
   id?: string
   block?: T
-  _editable?: string
 }
 
 export interface IBDataEntry {
@@ -135,14 +136,14 @@ export interface IBContentQueryParams extends IBBaseQueryParams {
   full_slug?: string
   language_iso?: string
   type?: string
-  parent_id?: string
+  parent_id?: string | string[]
 }
 
 export interface B10cksApiClientOptions {
   baseUrl: string
   token: string
   rv?: string | number
-  version?: 'draft' | 'published'
+  version?: string | 'draft' | 'published'
   fetchClient?: FetchClient
   getRv?: () => string | number
   setRv?: (value: string | number) => void
