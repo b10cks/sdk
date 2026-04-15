@@ -55,6 +55,7 @@ export type UseNuxtB10cksCollectionOptions<
   T,
   P extends QueryParams = QueryParams,
 > = AsyncDataCollectionConfig<T> & {
+  allPages?: boolean
   params?: P
   transform?: (value: T[]) => T[]
 }
@@ -63,11 +64,13 @@ export type UseNuxtB10cksContentOptions<T> = AsyncDataConfig<IBContent<T>> & {
   transform?: (value: IBContent<T>) => IBContent<T>
 }
 
-export type UseNuxtB10cksContentsOptions<T> = AsyncDataCollectionConfig<IBContent<T>> & {
-  transform?: (value: IBContent<T>[]) => IBContent<T>[]
-}
+export type UseNuxtB10cksContentsOptions<T> = UseNuxtB10cksCollectionOptions<
+  IBContent<T>,
+  Omit<IBContentQueryParams, 'token'>
+>
 
 export type UseNuxtB10cksRedirectsOptions = AsyncDataConfig<RedirectMap> & {
+  allPages?: boolean
   params?: QueryParams
   transform?: (value: RedirectMap) => RedirectMap
   forceRefresh?: boolean
@@ -106,19 +109,19 @@ export type NuxtB10cksApi = Omit<
   ) => Promise<AwaitedContentsAsyncData<T>>
   useBlocks: (
     params?: QueryParams,
-    options?: AsyncDataCollectionConfig<IBBlock>
+    options?: UseNuxtB10cksCollectionOptions<IBBlock>
   ) => Promise<AwaitedCollectionAsyncData<IBBlock>>
   useDataEntries: (
     source: string,
     params?: QueryParams,
-    options?: AsyncDataCollectionConfig<IBDataEntry>
+    options?: UseNuxtB10cksCollectionOptions<IBDataEntry>
   ) => Promise<AwaitedCollectionAsyncData<IBDataEntry>>
   useDataSources: (
     options?: UseNuxtB10cksCollectionOptions<IBDataSource>
   ) => Promise<AwaitedCollectionAsyncData<IBDataSource>>
   useSitemap: (
     params?: Omit<IBContentQueryParams, 'token'>,
-    options?: AsyncDataCollectionConfig<IBSitemapEntry>
+    options?: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>>
   ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
   useSpace: (options?: UseNuxtB10cksApiOptions<IBSpace>) => Promise<AwaitedAsyncData<IBSpace>>
   useRedirects: (options?: UseNuxtB10cksRedirectsOptions) => Promise<AwaitedAsyncData<RedirectMap>>
@@ -155,12 +158,12 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     endpoint: Endpoint,
     options: UseNuxtB10cksCollectionOptions<T> = {}
   ): Promise<AwaitedCollectionAsyncData<T>> => {
-    const { key, params = {}, transform, ...asyncDataOptions } = options
+    const { allPages = false, key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<T[] | undefined, Error>(
-      key ?? createAsyncDataKey('collection', { endpoint, params }),
+      key ?? createAsyncDataKey('collection', { allPages, endpoint, params }),
       async () => {
-        const value = await api.dataApi.getCollection<T>(endpoint, params)
+        const value = await api.dataApi.getCollection<T>(endpoint, params, { allPages })
         return transform ? transform(value) : value
       },
       asyncDataOptions
@@ -188,12 +191,12 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     params: Omit<IBContentQueryParams, 'token'> = {},
     options: UseNuxtB10cksContentsOptions<T> = {}
   ): Promise<AwaitedContentsAsyncData<T>> => {
-    const { key, transform, ...asyncDataOptions } = options
+    const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBContent<T>[] | undefined, Error>(
-      key ?? createAsyncDataKey('contents', { params }),
+      key ?? createAsyncDataKey('contents', { allPages, params }),
       async () => {
-        const value = await api.dataApi.getContents<T>(params)
+        const value = await api.dataApi.getContents<T>(params, { allPages })
         return transform ? transform(value) : value
       },
       asyncDataOptions
@@ -202,13 +205,13 @@ export const useB10cksApi = (): NuxtB10cksApi => {
 
   const useBlocks = async (
     params: QueryParams = {},
-    options: AsyncDataCollectionConfig<IBBlock> = {}
+    options: UseNuxtB10cksCollectionOptions<IBBlock> = {}
   ): Promise<AwaitedCollectionAsyncData<IBBlock>> => {
-    const { key, ...asyncDataOptions } = options
+    const { allPages = false, key, ...asyncDataOptions } = options
 
     return await useAsyncData<IBBlock[] | undefined, Error>(
-      key ?? createAsyncDataKey('blocks', { params }),
-      () => api.dataApi.getBlocks(params),
+      key ?? createAsyncDataKey('blocks', { allPages, params }),
+      () => api.dataApi.getBlocks(params, { allPages }),
       asyncDataOptions
     )
   }
@@ -216,13 +219,13 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   const useDataEntries = async (
     source: string,
     params: QueryParams = {},
-    options: AsyncDataCollectionConfig<IBDataEntry> = {}
+    options: UseNuxtB10cksCollectionOptions<IBDataEntry> = {}
   ): Promise<AwaitedCollectionAsyncData<IBDataEntry>> => {
-    const { key, ...asyncDataOptions } = options
+    const { allPages = false, key, ...asyncDataOptions } = options
 
     return await useAsyncData<IBDataEntry[] | undefined, Error>(
-      key ?? createAsyncDataKey('data-entries', { source, params }),
-      () => api.dataApi.getDataEntries(source, params),
+      key ?? createAsyncDataKey('data-entries', { allPages, source, params }),
+      () => api.dataApi.getDataEntries(source, params, { allPages }),
       asyncDataOptions
     )
   }
@@ -230,12 +233,12 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   const useDataSources = async (
     options: UseNuxtB10cksCollectionOptions<IBDataSource> = {}
   ): Promise<AwaitedCollectionAsyncData<IBDataSource>> => {
-    const { key, params = {}, transform, ...asyncDataOptions } = options
+    const { allPages = false, key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBDataSource[] | undefined, Error>(
-      key ?? createAsyncDataKey('data-sources', { params }),
+      key ?? createAsyncDataKey('data-sources', { allPages, params }),
       async () => {
-        const value = await api.dataApi.getDataSources(params)
+        const value = await api.dataApi.getDataSources(params, { allPages })
         return transform ? transform(value) : value
       },
       asyncDataOptions
@@ -244,13 +247,13 @@ export const useB10cksApi = (): NuxtB10cksApi => {
 
   const useSitemap = async (
     params: Omit<IBContentQueryParams, 'token'> = {},
-    options: AsyncDataCollectionConfig<IBSitemapEntry> = {}
+    options: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>> = {}
   ): Promise<AwaitedCollectionAsyncData<IBSitemapEntry>> => {
-    const { key, ...asyncDataOptions } = options
+    const { allPages = false, key, ...asyncDataOptions } = options
 
     return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
-      key ?? createAsyncDataKey('sitemap', { params }),
-      () => api.dataApi.getSitemap(params),
+      key ?? createAsyncDataKey('sitemap', { allPages, params }),
+      () => api.dataApi.getSitemap(params, { allPages }),
       asyncDataOptions
     )
   }
@@ -273,12 +276,19 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   const useRedirects = async (
     options: UseNuxtB10cksRedirectsOptions = {}
   ): Promise<AwaitedAsyncData<RedirectMap>> => {
-    const { key, params = {}, transform, forceRefresh = false, ...asyncDataOptions } = options
+    const {
+      allPages = false,
+      key,
+      params = {},
+      transform,
+      forceRefresh = false,
+      ...asyncDataOptions
+    } = options
 
     return await useAsyncData<RedirectMap | undefined, Error>(
-      key ?? createAsyncDataKey('redirects', { params, forceRefresh }),
+      key ?? createAsyncDataKey('redirects', { allPages, params, forceRefresh }),
       async () => {
-        const value = await api.dataApi.getRedirects(params, forceRefresh)
+        const value = await api.dataApi.getRedirects(params, { allPages, forceRefresh })
         return transform ? transform(value) : value
       },
       asyncDataOptions

@@ -9,6 +9,11 @@ export type { B10cksContextValue, CreateB10cksContextOptions } from './context'
 export { previewBridge } from './preview-bridge'
 export * from './rich-text'
 export { createB10cksStores } from './stores'
-export type { AsyncState, AsyncStore, UseB10cksApiOptions } from './stores'
+export type {
+  AsyncState,
+  AsyncStore,
+  UseB10cksApiOptions,
+  UseB10cksCollectionOptions,
+} from './stores'
 
 export { B10cksComponent, B10cksFallback, B10cksRichText }

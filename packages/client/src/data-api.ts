@@ -1,4 +1,5 @@
 import type {
+  IBCollectionResponse,
   Endpoint,
   IBBaseQueryParams,
   IBBlock,
@@ -12,6 +13,22 @@ import type {
 } from './types'
 
 type ApiQueryParams = Omit<IBBaseQueryParams, 'token'>
+type ApiCollectionResponse<T> =
+  | T[]
+  | IBCollectionResponse<T>
+  | { data: T[]; rv?: string | number }
+  | { data: IBCollectionResponse<T>; rv?: string | number }
+type ApiCollectionResult<T> =
+  | ApiCollectionResponse<T>
+  | { data: ApiCollectionResponse<T>; rv?: string | number }
+
+export interface CollectionFetchOptions {
+  allPages?: boolean
+}
+
+export interface RedirectFetchOptions extends CollectionFetchOptions {
+  forceRefresh?: boolean
+}
 
 export interface DataApiClient {
   get<T>(
@@ -41,8 +58,17 @@ export class B10cksDataApi {
     return this.unwrapResource(response)
   }
 
-  async getCollection<T>(endpoint: Endpoint, params: ApiQueryParams = {}): Promise<T[]> {
-    return this.client.getAll<T>(endpoint, params)
+  async getCollection<T>(
+    endpoint: Endpoint,
+    params: ApiQueryParams = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<T[]> {
+    if (options.allPages) {
+      return this.client.getAll<T>(endpoint, params)
+    }
+
+    const response = await this.client.get<ApiCollectionResponse<T>>(endpoint, params)
+    return this.unwrapCollection(response)
   }
 
   async getContent<T = Record<string, unknown>>(
@@ -53,41 +79,66 @@ export class B10cksDataApi {
   }
 
   async getContents<T = Record<string, unknown>>(
-    params: Omit<IBContentQueryParams, 'token'> = {}
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: CollectionFetchOptions = {}
   ): Promise<IBContent<T>[]> {
-    return this.getCollection<IBContent<T>>('contents', params)
+    return this.getCollection<IBContent<T>>('contents', params, options)
   }
 
-  async getBlocks(params: ApiQueryParams = {}): Promise<IBBlock[]> {
-    return this.getCollection<IBBlock>('blocks', params)
+  async getBlocks(params: ApiQueryParams = {}, options: CollectionFetchOptions = {}): Promise<IBBlock[]> {
+    return this.getCollection<IBBlock>('blocks', params, options)
   }
 
-  async getSitemap(params: Omit<IBContentQueryParams, 'token'> = {}): Promise<IBSitemapEntry[]> {
-    return this.getCollection<IBSitemapEntry>('sitemap', params)
+  async getSitemap(
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<IBSitemapEntry[]> {
+    return this.getCollection<IBSitemapEntry>('sitemap', params, options)
   }
 
-  async getDataEntries(source: string, params: ApiQueryParams = {}): Promise<IBDataEntry[]> {
-    return this.getCollection<IBDataEntry>(`datasources/${source}/entries`, params)
+  async getDataEntries(
+    source: string,
+    params: ApiQueryParams = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<IBDataEntry[]> {
+    return this.getCollection<IBDataEntry>(`datasources/${source}/entries`, params, options)
   }
 
-  async getDataSources(params: ApiQueryParams = {}): Promise<IBDataSource[]> {
-    return this.getCollection<IBDataSource>('datasources', params)
+  async getDataSources(
+    params: ApiQueryParams = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<IBDataSource[]> {
+    return this.getCollection<IBDataSource>('datasources', params, options)
   }
 
   async getSpace(params: ApiQueryParams = {}): Promise<IBSpace> {
     return this.getResource<IBSpace>('spaces/me', params)
   }
 
-  async getRedirects(params: ApiQueryParams = {}, forceRefresh = false): Promise<RedirectMap> {
-    if (this.redirectsCache && !forceRefresh) {
+  async getRedirects(params?: ApiQueryParams, forceRefresh?: boolean): Promise<RedirectMap>
+  async getRedirects(params?: ApiQueryParams, options?: RedirectFetchOptions): Promise<RedirectMap>
+  async getRedirects(
+    params: ApiQueryParams = {},
+    forceRefreshOrOptions: boolean | RedirectFetchOptions = false
+  ): Promise<RedirectMap> {
+    const { allPages = false, forceRefresh = false } =
+      typeof forceRefreshOrOptions === 'boolean'
+        ? { allPages: true, forceRefresh: forceRefreshOrOptions }
+        : forceRefreshOrOptions
+
+    if (allPages && this.redirectsCache && !forceRefresh) {
       return this.redirectsCache
     }
 
-    const redirects = await this.getCollection<IBRedirect>('redirects', params)
+    const redirects = await this.getCollection<IBRedirect>('redirects', params, { allPages })
     const map = Object.fromEntries(
       redirects.map(({ source, target, status_code }) => [source, { target, status_code }])
     )
-    this.redirectsCache = map
+
+    if (allPages) {
+      this.redirectsCache = map
+    }
+
     return map
   }
 
@@ -135,6 +186,29 @@ export class B10cksDataApi {
     }
 
     return response
+  }
+
+  private unwrapCollection<T>(response: ApiCollectionResult<T>): T[] {
+    if (Array.isArray(response)) {
+      return response
+    }
+
+    if (typeof response === 'object' && response !== null && 'data' in response) {
+      if (Array.isArray(response.data)) {
+        return response.data
+      }
+
+      if (
+        typeof response.data === 'object' &&
+        response.data !== null &&
+        'data' in response.data &&
+        Array.isArray(response.data.data)
+      ) {
+        return response.data.data
+      }
+    }
+
+    return []
   }
 }
 

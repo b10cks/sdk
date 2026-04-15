@@ -61,6 +61,20 @@ describe('ApiClient', () => {
 })
 
 describe('B10cksDataApi', () => {
+  const buildContent = (id: string, theme = id) => ({
+    id,
+    slug: id,
+    name: id,
+    content: { theme },
+    type: 'page',
+    parent_id: null,
+    full_slug: id,
+    language_iso: 'en',
+    published_at: null,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+  })
+
   it('caches redirects until force refresh is requested', async () => {
     const client: DataApiClient = {
       get: vi.fn(),
@@ -73,8 +87,8 @@ describe('B10cksDataApi', () => {
 
     const dataApi = new B10cksDataApi(client)
 
-    const first = await dataApi.getRedirects()
-    const second = await dataApi.getRedirects()
+    const first = await dataApi.getRedirects({}, { allPages: true })
+    const second = await dataApi.getRedirects({}, { allPages: true })
     const third = await dataApi.getRedirects({}, true)
 
     expect(first).toEqual({ '/old': { target: '/new', status_code: 301 } })
@@ -83,22 +97,57 @@ describe('B10cksDataApi', () => {
     expect(client.getAll).toHaveBeenCalledTimes(2)
   })
 
+  it('can fetch only the first page for collection requests', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({
+        data: [buildContent('content-1')],
+        meta: { last_page: 3 },
+      }),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+    const contents = await dataApi.getContents({ vid: 'published' }, { allPages: false })
+
+    expect(contents).toEqual([buildContent('content-1')])
+    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' })
+    expect(client.getAll).not.toHaveBeenCalled()
+  })
+
+  it('does not cache partial redirect pages as the full redirect map', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({
+        data: [{ source: '/old', target: '/new', status_code: 301 }],
+        meta: { last_page: 2 },
+      }),
+      getAll: vi
+        .fn()
+        .mockResolvedValueOnce([
+          { source: '/old', target: '/new', status_code: 301 },
+          { source: '/old-2', target: '/new-2', status_code: 302 },
+        ]),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    const partial = await dataApi.getRedirects({}, { allPages: false })
+    const full = await dataApi.getRedirects()
+
+    expect(partial).toEqual({ '/old': { target: '/new', status_code: 301 } })
+    expect(full).toEqual({
+      '/old': { target: '/new', status_code: 301 },
+      '/old-2': { target: '/new-2', status_code: 302 },
+    })
+    expect(client.get).toHaveBeenCalledWith('redirects', {})
+    expect(client.getAll).toHaveBeenCalledTimes(1)
+  })
+
   it('passes an explicitly provided vid through content requests', async () => {
     const client: DataApiClient = {
       get: vi.fn().mockResolvedValue({
-        data: {
-          id: 'content-1',
-          slug: 'home',
-          name: 'Home',
-          content: {},
-          type: 'page',
-          parent_id: null,
-          full_slug: 'home',
-          language_iso: 'en',
-          published_at: null,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
+        data: buildContent('content-1', 'content-1'),
       }),
       getAll: vi.fn(),
       setRv: vi.fn(),
@@ -113,7 +162,7 @@ describe('B10cksDataApi', () => {
 
   it('passes an explicitly provided vid through collection requests', async () => {
     const client: DataApiClient = {
-      get: vi.fn(),
+      get: vi.fn().mockResolvedValue({ data: [] }),
       getAll: vi.fn().mockResolvedValue([]),
       setRv: vi.fn(),
     }
@@ -122,12 +171,27 @@ describe('B10cksDataApi', () => {
 
     await dataApi.getContents({ vid: 'published' })
 
+    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' })
+    expect(client.getAll).not.toHaveBeenCalled()
+  })
+
+  it('fetches all pages only when explicitly requested', async () => {
+    const client: DataApiClient = {
+      get: vi.fn(),
+      getAll: vi.fn().mockResolvedValue([]),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    await dataApi.getContents({ vid: 'published' }, { allPages: true })
+
     expect(client.getAll).toHaveBeenCalledWith('contents', { vid: 'published' })
   })
 
   it('passes sitemap params through sitemap requests', async () => {
     const client: DataApiClient = {
-      get: vi.fn(),
+      get: vi.fn().mockResolvedValue({ data: [] }),
       getAll: vi.fn().mockResolvedValue([]),
       setRv: vi.fn(),
     }
@@ -141,12 +205,13 @@ describe('B10cksDataApi', () => {
       page: 1,
     })
 
-    expect(client.getAll).toHaveBeenCalledWith('sitemap', {
+    expect(client.get).toHaveBeenCalledWith('sitemap', {
       vid: 'published',
       language_iso: 'en',
       per_page: 100,
       page: 1,
     })
+    expect(client.getAll).not.toHaveBeenCalled()
   })
 
   it('includes vid in config cache keys and forwards it to config requests', async () => {
@@ -154,34 +219,10 @@ describe('B10cksDataApi', () => {
       get: vi
         .fn()
         .mockResolvedValueOnce({
-          data: {
-            id: 'config-1',
-            slug: '_config',
-            name: 'Config',
-            content: { theme: 'draft' },
-            type: 'config',
-            parent_id: null,
-            full_slug: '_config',
-            language_iso: 'en',
-            published_at: null,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
+          data: buildContent('config-1', 'draft'),
         })
         .mockResolvedValueOnce({
-          data: {
-            id: 'config-2',
-            slug: '_config',
-            name: 'Config',
-            content: { theme: 'published' },
-            type: 'config',
-            parent_id: null,
-            full_slug: '_config',
-            language_iso: 'en',
-            published_at: null,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
+          data: buildContent('config-2', 'published'),
         }),
       getAll: vi.fn(),
       setRv: vi.fn(),

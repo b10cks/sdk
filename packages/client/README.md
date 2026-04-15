@@ -24,8 +24,11 @@ const dataApi = createB10cksDataApi(client)
 // Fetch blocks
 const blocks = await dataApi.getBlocks()
 
-// Fetch all contents with pagination
-const contents = await dataApi.getContents({ vid: 'published' })
+// Fetch the first page of contents
+const contents = await dataApi.getContents({ vid: 'published', page: 1, per_page: 20 })
+
+// Fetch all contents across all pages
+const allContents = await dataApi.getContents({ vid: 'published', per_page: 100 }, { allPages: true })
 
 // Fetch a specific content entry
 const content = await dataApi.getContent('home', { vid: 'draft' })
@@ -41,7 +44,7 @@ const sitemap = await dataApi.getSitemap({ vid: 'published' })
 
 - **Simple HTTP Client**: Type-safe API client for b10cks endpoints
 - **Framework-Agnostic Data API**: Shared `B10cksDataApi` used by all framework SDKs
-- **Pagination Support**: Automatic handling of paginated responses
+- **Pagination Support**: Fetch a specific page by default, or opt into fetching all pages
 - **Revision Tracking**: Built-in support for revision (RV), with VID passed explicitly in request params
 - **Flexible Fetch**: Use browser fetch, Node fetch, or a custom fetch implementation
 
@@ -53,13 +56,13 @@ const sitemap = await dataApi.getSitemap({ vid: 'published' })
 ## Data API Methods
 
 - `getContent(fullSlug, params)` - pass `vid` in `params` when needed
-- `getContents(params)` - pass `vid` in `params` when needed
-- `getBlocks(params)`
-- `getDataEntries(source, params)`
-- `getDataSources(params)`
-- `getSitemap(params)` - pass `vid` in `params` when needed
+- `getContents(params, options)` - `params` supports `page` and `per_page`; set `options.allPages` to `true` to fetch every page
+- `getBlocks(params, options)` - `params` supports `page` and `per_page`
+- `getDataEntries(source, params, options)` - `params` supports `page` and `per_page`
+- `getDataSources(params, options)` - `params` supports `page` and `per_page`
+- `getSitemap(params, options)` - pass `vid` in `params`; `params` also supports `page` and `per_page`
 - `getSpace(params)`
-- `getRedirects(params, forceRefresh)`
+- `getRedirects(params, forceRefresh | { forceRefresh?, allPages? })` - `params` supports `page` and `per_page`
 - `getConfig(options)`
 - `syncRevision(fallbackRv)`
 

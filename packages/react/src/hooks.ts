@@ -1,4 +1,5 @@
 import type {
+  CollectionFetchOptions,
   Endpoint,
   GetConfigOptions,
   IBBaseQueryParams,
@@ -23,6 +24,10 @@ export interface UseB10cksApiOptions<T, P extends QueryParams = QueryParams> {
   params?: P
   transform?: (value: T) => T
 }
+
+export interface UseB10cksCollectionOptions<T, P extends QueryParams = QueryParams>
+  extends UseB10cksApiOptions<T, P>,
+    CollectionFetchOptions {}
 
 export interface AsyncState<T> {
   data: T | null
@@ -56,15 +61,15 @@ export function useB10cksApi() {
 
   const useApiCollection = <T>(
     endpoint: Endpoint,
-    options: UseB10cksApiOptions<T[], QueryParams> = {}
+    options: UseB10cksCollectionOptions<T[], QueryParams> = {}
   ): AsyncState<T[]> => {
-    const { immediate = false, params = {}, transform } = options
+    const { allPages = false, immediate = false, params = {}, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getCollection<T>(endpoint, params)
+        const value = await dataApi.getCollection<T>(endpoint, params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, endpoint, params, transform],
+      [allPages, dataApi, endpoint, params, transform],
       immediate
     )
   }
@@ -87,45 +92,45 @@ export function useB10cksApi() {
 
   const useContents = <T = Record<string, unknown>>(
     params: Omit<IBContentQueryParams, 'token'> = {},
-    options: Omit<UseB10cksApiOptions<IBContent<T>[]>, 'params'> = {}
+    options: Omit<UseB10cksCollectionOptions<IBContent<T>[]>, 'params'> = {}
   ): AsyncState<IBContent<T>[]> => {
-    const { immediate = false, transform } = options
+    const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getContents<T>(params)
+        const value = await dataApi.getContents<T>(params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform],
+      [allPages, dataApi, params, transform],
       immediate
     )
   }
 
   const useBlocks = (
     params: QueryParams = {},
-    options: Omit<UseB10cksApiOptions<IBBlock[]>, 'params'> = {}
+    options: Omit<UseB10cksCollectionOptions<IBBlock[]>, 'params'> = {}
   ): AsyncState<IBBlock[]> => {
-    const { immediate = false, transform } = options
+    const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getBlocks(params)
+        const value = await dataApi.getBlocks(params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform],
+      [allPages, dataApi, params, transform],
       immediate
     )
   }
 
   const useSitemap = (
     params: Omit<IBContentQueryParams, 'token'> = {},
-    options: Omit<UseB10cksApiOptions<IBSitemapEntry[]>, 'params'> = {}
+    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[]>, 'params'> = {}
   ): AsyncState<IBSitemapEntry[]> => {
-    const { immediate = false, transform } = options
+    const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getSitemap(params)
+        const value = await dataApi.getSitemap(params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform],
+      [allPages, dataApi, params, transform],
       immediate
     )
   }
@@ -133,29 +138,29 @@ export function useB10cksApi() {
   const useDataEntries = (
     source: string,
     params: QueryParams = {},
-    options: Omit<UseB10cksApiOptions<IBDataEntry[]>, 'params'> = {}
+    options: Omit<UseB10cksCollectionOptions<IBDataEntry[]>, 'params'> = {}
   ): AsyncState<IBDataEntry[]> => {
-    const { immediate = false, transform } = options
+    const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getDataEntries(source, params)
+        const value = await dataApi.getDataEntries(source, params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, source, params, transform],
+      [allPages, dataApi, params, source, transform],
       immediate
     )
   }
 
   const useDataSources = (
-    options: UseB10cksApiOptions<IBDataSource[]> = {}
+    options: UseB10cksCollectionOptions<IBDataSource[]> = {}
   ): AsyncState<IBDataSource[]> => {
-    const { immediate = false, params = {}, transform } = options
+    const { allPages = false, immediate = false, params = {}, transform } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getDataSources(params)
+        const value = await dataApi.getDataSources(params, { allPages })
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform],
+      [allPages, dataApi, params, transform],
       immediate
     )
   }
@@ -173,15 +178,15 @@ export function useB10cksApi() {
   }
 
   const useRedirects = (
-    options: UseB10cksApiOptions<RedirectMap> & { forceRefresh?: boolean } = {}
+    options: UseB10cksApiOptions<RedirectMap> & CollectionFetchOptions & { forceRefresh?: boolean } = {}
   ): AsyncState<RedirectMap> => {
-    const { immediate = true, params = {}, transform, forceRefresh = false } = options
+    const { allPages = false, immediate = true, params = {}, transform, forceRefresh = false } = options
     return useAsyncTask(
       async () => {
-        const value = await dataApi.getRedirects(params, forceRefresh)
+        const value = await dataApi.getRedirects(params, { allPages, forceRefresh })
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform, forceRefresh],
+      [allPages, dataApi, forceRefresh, params, transform],
       immediate
     )
   }

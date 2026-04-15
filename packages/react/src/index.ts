@@ -4,7 +4,12 @@ export type { B10cksComponentProps } from './components/B10cksComponent'
 export { B10cksFallback } from './components/B10cksFallback'
 export type { B10cksFallbackProps } from './components/B10cksFallback'
 export { useB10cksApi } from './hooks'
-export type { AsyncState, UseB10cksApiOptions, UseB10cksConfigResult } from './hooks'
+export type {
+  AsyncState,
+  UseB10cksApiOptions,
+  UseB10cksCollectionOptions,
+  UseB10cksConfigResult,
+} from './hooks'
 export { previewBridge } from './preview-bridge'
 export {
   B10cksProvider,
