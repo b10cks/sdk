@@ -2,10 +2,23 @@ import type { HttpClient } from '../http-client'
 import type {
   Content,
   ContentVersion,
+  CreateContentParams,
   GetContentsParams,
   PaginatedResponse,
+  PublishContentParams,
   RequestOptions,
+  UpdateContentParams,
 } from '../types'
+
+const isRequestOptions = (
+  value: PublishContentParams | RequestOptions | undefined
+): value is RequestOptions => {
+  if (!value || typeof value !== 'object') return false
+
+  const keys = Object.keys(value)
+
+  return keys.length === 0 || keys.every((key) => key === 'headers')
+}
 
 export class ContentsResource {
   constructor(private readonly client: HttpClient) {}
@@ -24,7 +37,7 @@ export class ContentsResource {
 
   async create(
     spaceId: string,
-    payload: Partial<Content>,
+    payload: CreateContentParams,
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.post<Content>(
@@ -45,7 +58,7 @@ export class ContentsResource {
   async update(
     spaceId: string,
     contentId: string,
-    payload: Partial<Content>,
+    payload: UpdateContentParams,
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.put<Content>(
@@ -62,11 +75,26 @@ export class ContentsResource {
     )
   }
 
-  async publish(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content> {
+  async publish(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content>
+  async publish(
+    spaceId: string,
+    contentId: string,
+    payload: PublishContentParams,
+    options?: RequestOptions
+  ): Promise<Content>
+  async publish(
+    spaceId: string,
+    contentId: string,
+    payloadOrOptions?: PublishContentParams | RequestOptions,
+    options?: RequestOptions
+  ): Promise<Content> {
+    const payload = isRequestOptions(payloadOrOptions) ? undefined : payloadOrOptions
+    const requestOptions = isRequestOptions(payloadOrOptions) ? payloadOrOptions : options
+
     return this.client.post<Content>(
       `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/publish`,
-      undefined,
-      options?.headers
+      payload,
+      requestOptions?.headers
     )
   }
 

@@ -212,6 +212,45 @@ export interface Content {
   updated_at: string
 }
 
+export interface ContentTranslationMutationParams {
+  id?: string
+  external_id?: string | null
+  name?: string
+  slug?: string
+  block_id?: string
+  parent_id?: string | null
+  i18n_parent_id?: string | null
+  language_iso?: string
+  content?: Record<string, unknown>
+  settings?: Record<string, unknown> | null
+  force?: boolean
+  message?: string
+  published_at?: string | null
+}
+
+export interface CreateContentParams {
+  external_id?: string | null
+  name: string
+  slug: string
+  block_id: string
+  parent_id?: string | null
+  i18n_parent_id?: string | null
+  language_iso?: string
+  content?: Record<string, unknown>
+  settings?: Record<string, unknown> | null
+  force?: boolean
+  translations?: ContentTranslationMutationParams[]
+}
+
+export interface UpdateContentParams extends Partial<Omit<CreateContentParams, 'translations'>> {
+  message?: string
+  translations?: ContentTranslationMutationParams[]
+}
+
+export interface PublishContentParams extends UpdateContentParams {
+  published_at?: string | null
+}
+
 export interface GetContentsParams extends PaginationParams {
   created_after?: string
   updated_after?: string

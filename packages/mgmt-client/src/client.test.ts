@@ -173,6 +173,77 @@ describe('ManagementClient', () => {
       expect(space.slug).toBe(createParams.slug)
     })
 
+    it('should create content with translations payload', async () => {
+      const createParams = {
+        name: 'Home',
+        slug: 'home',
+        block_id: 'page-block',
+        language_iso: 'en',
+        content: {
+          title: 'Home',
+        },
+        translations: [
+          {
+            name: 'Startseite',
+            slug: 'startseite',
+            language_iso: 'de',
+            content: {
+              title: 'Startseite',
+            },
+          },
+        ],
+      }
+
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: async () => ({ id: 'content-1', ...createParams }),
+      })
+
+      const client = new ManagementClient(mockConfig)
+      await client.contents.create('space-1', createParams)
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/mgmt/v1/spaces/space-1/contents'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(createParams),
+        })
+      )
+    })
+
+    it('should publish content with payload', async () => {
+      const publishParams = {
+        published_at: '2024-05-01T12:30:00Z',
+        translations: [
+          {
+            id: 'translation-1',
+            content: {
+              title: 'Startseite',
+            },
+            published_at: '2024-05-01T12:30:00Z',
+          },
+        ],
+      }
+
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'content-1', published_at: publishParams.published_at }),
+      })
+
+      const client = new ManagementClient(mockConfig)
+      await client.contents.publish('space-1', 'content-1', publishParams)
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/mgmt/v1/spaces/space-1/contents/content-1/publish'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(publishParams),
+        })
+      )
+    })
+
     it('should delete space', async () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,

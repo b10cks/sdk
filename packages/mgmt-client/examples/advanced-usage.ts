@@ -115,13 +115,38 @@ async function setupBlocksAndContent(client: ManagementClient, spaceId: string):
   })
   console.log(`✓ Listed ${blocks.data.length} blocks`)
 
-  const content = await client.contents.create(spaceId)
+  const content = await client.contents.create(spaceId, {
+    name: 'Home',
+    slug: 'home',
+    block_id: 'page-block-id',
+    language_iso: 'en',
+    content: {
+      title: 'Home',
+    },
+    translations: [
+      {
+        name: 'Startseite',
+        slug: 'startseite',
+        language_iso: 'de',
+        content: {
+          title: 'Startseite',
+        },
+      },
+    ],
+  })
   console.log('✓ Created content entry')
 
-  await client.contents.update(spaceId, content.id)
+  await client.contents.update(spaceId, content.id, {
+    name: 'Homepage',
+    content: {
+      title: 'Homepage',
+    },
+  })
   console.log('✓ Updated content entry')
 
-  await client.contents.publish(spaceId, content.id)
+  await client.contents.publish(spaceId, content.id, {
+    published_at: '2024-05-01T12:30:00Z',
+  })
   console.log('✓ Published content')
 
   const publishedContents = await client.contents.list(spaceId, {

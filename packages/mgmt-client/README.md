@@ -231,20 +231,54 @@ const contents = await client.contents.list('space-id', {
   published: true,
 })
 
-// Create content
-const content = await client.contents.create('space-id')
+// Create content with default language + translations in one pass
+const content = await client.contents.create('space-id', {
+  name: 'Home',
+  slug: 'home',
+  block_id: 'page-block-id',
+  language_iso: 'en',
+  content: {
+    title: 'Home',
+  },
+  translations: [
+    {
+      name: 'Startseite',
+      slug: 'startseite',
+      language_iso: 'de',
+      content: {
+        title: 'Startseite',
+      },
+    },
+  ],
+})
 
 // Get content
 const content = await client.contents.get('space-id', 'content-id')
 
 // Update content
-await client.contents.update('space-id', 'content-id')
+await client.contents.update('space-id', 'content-id', {
+  name: 'Homepage',
+  content: {
+    title: 'Homepage',
+  },
+})
 
 // Delete content
 await client.contents.delete('space-id', 'content-id')
 
-// Publish content
-await client.contents.publish('space-id', 'content-id')
+// Publish content with an explicit publish date and translations in one pass
+await client.contents.publish('space-id', 'content-id', {
+  published_at: '2024-05-01T12:30:00Z',
+  translations: [
+    {
+      id: 'translation-content-id',
+      content: {
+        title: 'Startseite',
+      },
+      published_at: '2024-05-01T12:30:00Z',
+    },
+  ],
+})
 
 // Unpublish content
 await client.contents.unpublish('space-id', 'content-id')
