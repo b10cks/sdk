@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import type { IBContent } from '@b10cks/client'
-import {
-  computed,
-  defineAsyncComponent,
-  inject,
-  resolveDynamicComponent,
-  useTemplateRef,
-} from 'vue'
+import { computed, defineAsyncComponent, inject, resolveDynamicComponent } from 'vue'
 
 import { B10cksComponentResolverKey } from '../types'
 import B10cksFallback from './B10cksFallback.vue'
@@ -14,9 +8,6 @@ import B10cksFallback from './B10cksFallback.vue'
 const props = defineProps<{
   block: IBContent<string> & Record<string, never>
 }>()
-
-const blockRef = useTemplateRef('blockRef')
-defineExpose({ value: blockRef })
 
 const customResolver = inject(B10cksComponentResolverKey, null)
 
@@ -72,7 +63,6 @@ const componentName = computed(() => props.block?.block || null)
   <component
     :is="resolvedComponent"
     v-if="resolvedComponent"
-    ref="blockRef"
     v-bind="{ ...$props, ...$attrs }"
   />
 </template>
