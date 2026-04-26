@@ -25,6 +25,7 @@
       "@b10cks/react": ["./packages/react/src"],
       "@b10cks/svelte": ["./packages/svelte/src"],
       "@b10cks/nuxt": ["./packages/nuxt/src"],
+      "@b10cks/mcp-server": ["./packages/mcp-server/src"],
       "@b10cks/next": ["./packages/next/src"]
     }
   }
