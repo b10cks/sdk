@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/next",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Next.js integration SDK for b10cks",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",

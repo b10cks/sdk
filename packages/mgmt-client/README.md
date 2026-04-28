@@ -1,6 +1,6 @@
 # @b10cks/mgmt-client
 
-Management API client for b10cks - A TypeScript client for managing your b10cks resources.
+TypeScript client for the b10cks Management API. [b10cks](https://www.b10cks.com) is an open-source headless CMS with a composable block-based content model, available as SaaS or self-hosted.
 
 ## Installation
 

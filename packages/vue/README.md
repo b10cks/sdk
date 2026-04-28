@@ -1,6 +1,6 @@
 # @b10cks/vue
 
-Vue 3 SDK for integrating b10cks into Vue applications.
+Vue 3 SDK for integrating [b10cks](https://www.b10cks.com), an open-source headless CMS with a composable block-based content API, into Vue applications.
 
 ## Installation
 

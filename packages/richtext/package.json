@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/richtext",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-agnostic rich text rendering for b10cks Rich text",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",

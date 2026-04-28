@@ -1,6 +1,6 @@
 # @b10cks/react
 
-React SDK for integrating b10cks into React applications.
+React SDK for integrating [b10cks](https://www.b10cks.com), the open-source headless CMS with a composable block-based content API, into React applications.
 
 ## Installation
 

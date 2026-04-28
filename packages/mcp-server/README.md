@@ -1,6 +1,6 @@
 # @b10cks/mcp-server
 
-MCP server for interacting with the b10cks Management API.
+MCP server for interacting with the [b10cks](https://www.b10cks.com) Management API, the open-source headless CMS.
 
 ## Installation
 

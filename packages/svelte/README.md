@@ -1,6 +1,6 @@
 # @b10cks/svelte
 
-Svelte SDK for integrating b10cks into Svelte applications.
+Svelte SDK for integrating [b10cks](https://www.b10cks.com), the open-source headless CMS, into Svelte applications.
 
 ## Installation
 

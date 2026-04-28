@@ -1,6 +1,6 @@
 # @b10cks/richtext
 
-Framework-agnostic rich text rendering for b10cks RichText documents using [`@tiptap/html`](https://tiptap.dev/).
+Framework-agnostic rich text rendering for [b10cks](https://www.b10cks.com), the open-source headless CMS, using [`@tiptap/html`](https://tiptap.dev/).
 
 This package provides the shared, SSR-friendly HTML rendering layer used by the b10cks framework integrations for:
 

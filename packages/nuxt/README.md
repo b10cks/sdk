@@ -1,6 +1,6 @@
 # @b10cks/nuxt
 
-Nuxt 4 module for integrating b10cks into Nuxt applications.
+Nuxt 4 module for integrating [b10cks](https://www.b10cks.com), the open-source headless CMS with a composable block-based content API.
 
 ## Installation
 

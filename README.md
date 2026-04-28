@@ -8,7 +8,7 @@ This monorepo contains multiple packages that enable seamless integration of b10
 
 ### [@b10cks/client](./packages/client)
 
-**Framework-agnostic core** for communicating with the b10cks Data API.
+Framework-agnostic core for the [b10cks](https://www.b10cks.com) Data API.
 
 - Type-safe HTTP client
 - Shared `B10cksDataApi` abstraction
@@ -22,7 +22,7 @@ npm install @b10cks/client
 
 ### [@b10cks/vue](./packages/vue)
 
-**Vue 3 integration** for building interactive content management experiences.
+Vue 3 integration for [b10cks](https://www.b10cks.com) content experiences.
 
 - Vue 3 plugin with global directives
 - Data composables built on `@b10cks/client`
@@ -36,7 +36,7 @@ npm install @b10cks/vue @b10cks/client
 
 ### [@b10cks/nuxt](./packages/nuxt)
 
-**Nuxt 4 module** for zero-config integration with Nuxt applications.
+Nuxt 4 module for [b10cks](https://www.b10cks.com) integration.
 
 - Auto-configured b10cks integration
 - Shared composables via `@b10cks/vue`
@@ -49,7 +49,7 @@ npm install @b10cks/nuxt
 
 ### [@b10cks/react](./packages/react)
 
-**React integration** with provider, hooks, and block rendering.
+React integration for [b10cks](https://www.b10cks.com) with hooks and rendering helpers.
 
 - `B10cksProvider` context for client/data API
 - Typed hooks (`useB10cksApi`)
@@ -61,7 +61,7 @@ npm install @b10cks/react @b10cks/client
 
 ### [@b10cks/svelte](./packages/svelte)
 
-**Svelte integration** with context, stores, and actions.
+Svelte integration for [b10cks](https://www.b10cks.com) with context, stores, and actions.
 
 - Svelte context setup (`createB10cksContext`)
 - Typed async stores (`createB10cksStores`)
@@ -73,7 +73,7 @@ npm install @b10cks/svelte @b10cks/client
 
 ### [@b10cks/next](./packages/next)
 
-**Next.js integration layer** on top of the React SDK.
+Next.js integration layer for [b10cks](https://www.b10cks.com) on top of the React SDK.
 
 - Next-friendly provider (`B10cksNextProvider`)
 - Server helper (`createB10cksNextApi`)

@@ -1,6 +1,6 @@
 # @b10cks/client
 
-Core API client for b10cks, a headless CMS and content management platform.
+Core API client for [b10cks](https://www.b10cks.com), the open-source headless CMS with a composable block-based content API.
 
 ## Installation
 
@@ -28,7 +28,10 @@ const blocks = await dataApi.getBlocks()
 const contents = await dataApi.getContents({ vid: 'published', page: 1, per_page: 20 })
 
 // Fetch all contents across all pages
-const allContents = await dataApi.getContents({ vid: 'published', per_page: 100 }, { allPages: true })
+const allContents = await dataApi.getContents(
+  { vid: 'published', per_page: 100 },
+  { allPages: true }
+)
 
 // Fetch a specific content entry
 const content = await dataApi.getContent('home', { vid: 'draft' })

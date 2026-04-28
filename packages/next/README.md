@@ -1,6 +1,6 @@
 # @b10cks/next
 
-Next.js integration for b10cks built on top of `@b10cks/react`.
+Next.js integration for [b10cks](https://www.b10cks.com), the open-source headless CMS, built on top of `@b10cks/react`.
 
 ## Installation
 
