@@ -247,7 +247,10 @@ export const useB10cksApi = (): NuxtB10cksApi => {
 
   const useSitemap = async (
     params: Omit<IBContentQueryParams, 'token'> = {},
-    options: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>> = {}
+    options: UseNuxtB10cksCollectionOptions<
+      IBSitemapEntry,
+      Omit<IBContentQueryParams, 'token'>
+    > = {}
   ): Promise<AwaitedCollectionAsyncData<IBSitemapEntry>> => {
     const { allPages = false, key, ...asyncDataOptions } = options
 
@@ -301,10 +304,21 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   ): Promise<UseNuxtB10cksConfigResult<T>> => {
     const { key, ...asyncDataOptions } = options
 
+    const resolvedParams = computed(() => toValue(params))
+
     const asyncData = await useAsyncData<T | undefined, Error>(
-      key ?? createAsyncDataKey('config', { params }),
-      () => api.dataApi.getConfig<T>(params),
+      key ?? createAsyncDataKey('config', { params: resolvedParams.value }),
+      () => api.dataApi.getConfig<T>(resolvedParams.value),
       asyncDataOptions
+    )
+
+    watch(
+      () => resolvedParams.value.language,
+      (language, previousLanguage) => {
+        if (language !== previousLanguage) {
+          void asyncData.refresh()
+        }
+      }
     )
 
     return Object.assign(asyncData, {

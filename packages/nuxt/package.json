@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/nuxt",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "b10cks Nuxt client SDK",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
