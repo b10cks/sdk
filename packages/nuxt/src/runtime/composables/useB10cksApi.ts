@@ -15,7 +15,7 @@ import type { AsyncDataOptions } from 'nuxt/app'
 
 import { callOnce, useAsyncData } from '#app'
 import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
-import { computed } from 'vue'
+import { computed, toValue } from 'vue'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 type QueryParams = Omit<IBBaseQueryParams, 'token'>
