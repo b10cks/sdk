@@ -55,12 +55,14 @@ Use `B10cksComponent` to render block-specific Vue components dynamically:
 
 ### Rich Text
 
+Rich text exports live in the `@b10cks/vue/rich-text` sub-path. Importing from this path keeps the TipTap and ProseMirror runtime out of your entry bundle on pages that do not render rich text.
+
 Use `B10cksRichText` to render a b10cks TipTap `RichTextDocument` as HTML with an SSR-friendly renderer powered by `@tiptap/html`.
 
 ```vue
 <script setup lang="ts">
-import type { RichTextDocument } from '@b10cks/vue'
-import { B10cksRichText } from '@b10cks/vue'
+import type { RichTextDocument } from '@b10cks/vue/rich-text'
+import { B10cksRichText } from '@b10cks/vue/rich-text'
 
 const document: RichTextDocument = {
   type: 'doc',
@@ -89,8 +91,8 @@ const document: RichTextDocument = {
 You can also render rich text to an HTML string manually:
 
 ```typescript
-import type { RichTextDocument } from '@b10cks/vue'
-import { renderRichText } from '@b10cks/vue'
+import type { RichTextDocument } from '@b10cks/vue/rich-text'
+import { renderRichText } from '@b10cks/vue/rich-text'
 
 const document: RichTextDocument = {
   type: 'doc',
@@ -114,7 +116,7 @@ If you need to override the default b10cks TipTap extension set, pass custom `ex
 
 ```vue
 <script setup lang="ts">
-import { B10cksRichText } from '@b10cks/vue'
+import { B10cksRichText } from '@b10cks/vue/rich-text'
 import { createB10cksRichTextExtensions, type RichTextDocument } from '@b10cks/richtext'
 
 const document: RichTextDocument = {
@@ -132,6 +134,8 @@ const extensions = createB10cksRichTextExtensions()
   />
 </template>
 ```
+
+> **Migrating from v1:** `renderRichText` and `B10cksRichText` were previously exported from `@b10cks/vue`. Update all imports to `@b10cks/vue/rich-text`.
 
 ## License
 

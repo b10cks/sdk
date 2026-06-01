@@ -69,4 +69,3 @@ export const B10cksRichText = defineComponent({
   },
 })
 
-export default B10cksRichText

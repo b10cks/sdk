@@ -76,6 +76,8 @@ import { renderRichText } from '@b10cks/nuxt'
 const html = renderRichText(document)
 ```
 
+> **Migrating from v2:** `renderRichText` and `B10cksRichText` are re-exported from `@b10cks/vue/rich-text` via `@b10cks/nuxt`. Imports from `@b10cks/nuxt` continue to work — no import path change required for Nuxt consumers.
+
 ## License
 
 MIT

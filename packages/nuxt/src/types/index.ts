@@ -10,4 +10,4 @@ export {
   type B10cksRichTextProps,
   type RichTextDocument,
   type RichTextRenderOptions,
-} from '@b10cks/vue'
+} from '@b10cks/vue/rich-text'

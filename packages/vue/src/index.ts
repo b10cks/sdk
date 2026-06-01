@@ -12,7 +12,11 @@ import { B10cksClientKey, B10cksDataApiKey } from './types'
 
 export { previewBridge } from '@b10cks/client'
 export * from './api'
-export * from './rich-text'
+export type {
+  B10cksRichTextProps,
+  RichTextDocument,
+  RichTextRenderOptions,
+} from './rich-text'
 export {
   B10cksClientKey,
   B10cksComponentResolverKey,
