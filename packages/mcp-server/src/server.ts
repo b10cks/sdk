@@ -74,6 +74,18 @@ export const createServer = (client: ManagementClient): Server => {
             dataSourceId: { type: 'string' },
             entryId: { type: 'string' },
             version: { type: 'number' },
+            versionId: { type: 'string', description: 'Version ID (string).' },
+            automationId: { type: 'string' },
+            actionId: { type: 'string' },
+            executionId: { type: 'string' },
+            releaseId: { type: 'string' },
+            commentId: { type: 'string' },
+            templateId: { type: 'string' },
+            configId: { type: 'string' },
+            backupId: { type: 'string' },
+            migrationId: { type: 'string' },
+            inviteId: { type: 'string' },
+            noteId: { type: 'string' },
             params: {
               type: 'object',
               description: 'Query parameters for list/search operations.',
@@ -153,7 +165,17 @@ export const createServer = (client: ManagementClient): Server => {
 }
 
 export const runStdioServer = async (config: ServerConfig): Promise<void> => {
-  const server = createServer(createManagementClient(config))
+  const client = createManagementClient(config)
+
+  // Verify credentials before accepting any tool calls
+  try {
+    await client.system.health()
+  } catch (error) {
+    const message = error instanceof ManagementApiError ? error.message : String(error)
+    throw new Error(`b10cks Management API unreachable (${config.baseUrl}): ${message}`)
+  }
+
+  const server = createServer(client)
   const transport = new StdioServerTransport()
 
   await server.connect(transport)

@@ -1,4 +1,4 @@
-export { loadConfigFromEnv } from './config'
+export { loadConfig, loadConfigFromEnv } from './config'
 export { createManagementClient, createServer, runStdioServer } from './server'
 export { operationMap, operations } from './operations'
 export type { MgmtToolArguments, OperationDefinition } from './operations'

@@ -1,4 +1,4 @@
-import { loadConfigFromEnv } from './config'
+import { loadConfig } from './config'
 import { runStdioServer } from './server'
 
 declare const process: {
@@ -6,7 +6,7 @@ declare const process: {
 }
 
 const main = async (): Promise<void> => {
-  await runStdioServer(loadConfigFromEnv())
+  await runStdioServer(loadConfig())
 }
 
 main().catch((error) => {

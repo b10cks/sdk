@@ -1,9 +1,29 @@
 {
   "name": "@b10cks/mcp-server",
-  "version": "0.1.2",
-  "description": "MCP server for the b10cks Management API",
+  "version": "0.9.0",
+  "description": "MCP server for the b10cks headless CMS Management API — block definitions, content, redirects, data sources, releases, automations and more",
+  "keywords": [
+    "ai",
+    "b10cks",
+    "claude",
+    "cms",
+    "content-management",
+    "cursor",
+    "headless-cms",
+    "mcp",
+    "mcp-server",
+    "model-context-protocol"
+  ],
+  "homepage": "https://www.b10cks.com",
+  "bugs": {
+    "url": "https://github.com/b10cks/sdk/issues"
+  },
   "license": "MIT",
-  "author": "Michael Wallner @ Coder's Cantina",
+  "author": {
+    "name": "Michael Wallner",
+    "email": "m.wallner@coderscantina.com",
+    "url": "https://github.com/b10cks"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
@@ -13,7 +33,9 @@
     "b10cks-mcp-server": "./dist/cli.mjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "sideEffects": false,
@@ -49,5 +71,8 @@
     "branches": [
       "main"
     ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
