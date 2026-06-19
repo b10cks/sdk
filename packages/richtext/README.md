@@ -1,14 +1,12 @@
 # @b10cks/richtext
 
-Framework-agnostic rich text rendering for [b10cks](https://www.b10cks.com), the open-source headless CMS, using [`@tiptap/html`](https://tiptap.dev/).
+Framework-agnostic rich text rendering for [b10cks](https://www.b10cks.com), the open-source headless CMS.
 
-This package provides the shared, SSR-friendly HTML rendering layer used by the b10cks framework integrations for:
+Converts the ProseMirror JSON documents produced by the b10cks editor into HTML or plain text — with zero dependencies, full SSR support, and a tiny bundle (5.5 kB ESM · 1.8 kB gzip · 1.6 kB Brotli).
 
-- `@b10cks/react`
-- `@b10cks/vue`
-- `@b10cks/svelte`
-- `@b10cks/next`
-- `@b10cks/nuxt`
+Used internally by the b10cks framework integrations:
+
+- `@b10cks/react` · `@b10cks/vue` · `@b10cks/svelte` · `@b10cks/next` · `@b10cks/nuxt`
 
 ## Installation
 
@@ -16,29 +14,9 @@ This package provides the shared, SSR-friendly HTML rendering layer used by the 
 npm install @b10cks/richtext
 ```
 
-You will also need the TipTap packages used by the default renderer:
+No peer dependencies required.
 
-```bash
-npm install @tiptap/core @tiptap/html @tiptap/starter-kit @tiptap/extension-link @tiptap/extension-underline @tiptap/extension-table @tiptap/extension-table-row @tiptap/extension-table-header @tiptap/extension-table-cell
-```
-
-## What it does
-
-`@b10cks/richtext` converts a TipTap-based `RichTextDocument` from b10cks into an HTML string or plain text on the server or client without needing a browser-only editor instance.
-
-It ships with a default extension set compatible with this b10cks editor configuration:
-
-- `StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } })`
-- `Underline`
-- `Link.configure({ openOnClick: false, autolink: true })`
-- `InternalLink`
-- `TextClass`
-- `Table.configure({ resizable: true, handleWidth: 4, cellMinWidth: 50, lastColumnResizable: true, allowTableNodeSelection: true })`
-- `TableRow`
-- `TableHeader`
-- `TableCell`
-
-## Basic usage
+## Quick start
 
 ```ts
 import { renderRichText } from '@b10cks/richtext'
@@ -46,194 +24,163 @@ import { renderRichText } from '@b10cks/richtext'
 const html = renderRichText(document)
 ```
 
-## API
+`document` is the JSON value stored by b10cks for a rich text field. `null` and `undefined` are accepted and render as an empty string.
 
-### `renderRichText(document, options?)`
+## HTML rendering
 
-Renders a b10cks rich text document to HTML.
+### `renderRichText(document, options?)` · `renderRichTextHtml`
 
 ```ts
 import { renderRichText } from '@b10cks/richtext'
 
-const html = renderRichText(document)
+const html = renderRichText(document, {
+  internalLinkHandler: (attrs) => `/blog/${attrs.content}`,
+  placeholderHandler:  (key)   => values[key] ?? null,
+})
 ```
 
-If `document` is `null` or `undefined`, an empty TipTap document is rendered.
+### `createRichTextRenderer(options?)` · `createRichTextHtmlRenderer`
 
-### `renderRichTextHtml(document, options?)`
-
-Alias for `renderRichText`.
-
-```ts
-import { renderRichTextHtml } from '@b10cks/richtext'
-
-const html = renderRichTextHtml(document)
-```
-
-### `createRichTextRenderer(options?)`
-
-Creates a reusable renderer object.
+Creates a reusable renderer — useful when options are constant across many documents:
 
 ```ts
 import { createRichTextRenderer } from '@b10cks/richtext'
 
-const renderer = createRichTextRenderer()
+const renderer = createRichTextRenderer({
+  internalLinkHandler: (attrs) => `/blog/${attrs.content}`,
+})
 
 const html = renderer.render(document)
 ```
 
-### `createRichTextHtmlRenderer(options?)`
+## Plain text rendering
 
-Alias for `createRichTextRenderer`.
+Strips all markup. Useful for search indexing, meta descriptions, and Open Graph previews.
 
 ### `renderRichTextAsText(document, options?)`
-
-Renders a b10cks rich text document to a plain text string. Useful for search indexing, meta descriptions, or any context where HTML is not appropriate.
 
 ```ts
 import { renderRichTextAsText } from '@b10cks/richtext'
 
 const text = renderRichTextAsText(document)
-```
 
-An optional `blockSeparator` controls the string inserted between block-level nodes (defaults to a newline):
-
-```ts
-const text = renderRichTextAsText(document, { blockSeparator: ' ' })
+// Custom block separator (default: '\n\n')
+const oneLiner = renderRichTextAsText(document, { blockSeparator: ' ' })
 ```
 
 ### `createRichTextTextRenderer(options?)`
 
-Creates a reusable plain text renderer object.
-
 ```ts
 import { createRichTextTextRenderer } from '@b10cks/richtext'
 
-const renderer = createRichTextTextRenderer()
-
+const renderer = createRichTextTextRenderer({ blockSeparator: ' ' })
 const text = renderer.render(document)
 ```
 
-### `createB10cksRichTextExtensions(options?)`
+## Internal links
 
-Returns the default TipTap extensions used by b10cks-richtext rendering. Accepts the same `internalLinkHandler` option as `renderRichText`.
-
-```ts
-import { createB10cksRichTextExtensions } from '@b10cks/richtext'
-
-const extensions = createB10cksRichTextExtensions()
-```
-
-## Internal link handler
-
-b10cks internal links have this JSON shape in a rich text document:
+The b10cks editor stores internal links as marks with a `content` ID and an optional `anchor`:
 
 ```json
 {
   "type": "internalLink",
   "attrs": {
-    "url": "/datenschutz",
-    "title": "Datenschutz",
-    "anchor": null,
-    "content": "01ksarpy7hd99pwbfe26rc04jb"
+    "content": "01ksarpy7hd99pwbfe26rc04jb",
+    "anchor": null
   }
 }
 ```
 
-By default the `url` attribute is used as the `href`. Pass an `internalLinkHandler` to customise link generation — for example to prepend a locale prefix or map content IDs to your router:
+Without a handler the link renders with `href="#"`. Pass `internalLinkHandler` to resolve the ID to a real URL:
 
 ```ts
-import { renderRichText } from '@b10cks/richtext'
-
-const html = renderRichText(document, {
-  internalLinkHandler: (attrs) => `/app${attrs.url}`,
+renderRichText(document, {
+  internalLinkHandler: (attrs) => {
+    // attrs.content — the content record ID
+    // attrs.anchor  — optional anchor fragment
+    const slug = slugMap[attrs.content ?? '']
+    return slug ? `/${slug}${attrs.anchor ? `#${attrs.anchor}` : ''}` : null
+  },
 })
 ```
 
-Return `null` or `undefined` from the handler to fall back to the default `url`/`href` value.
+Returning `null` or `undefined` falls back to `href="#"`.
 
-You can also wire the handler into a reusable extension set:
+The rendered element carries both `data-type="internal"` (matching the CMS output) and `data-b10cks-internal-link` so client-side router handlers can target either attribute.
+
+## Placeholder tokens
+
+The b10cks editor supports inline placeholder tokens — variables like `{companyName}` that are stored as atomic nodes:
+
+```json
+{ "type": "placeholderToken", "attrs": { "key": "companyName", "label": "{companyName}" } }
+```
+
+Pass `placeholderHandler` to substitute real values at render time:
 
 ```ts
-import { createB10cksRichTextExtensions } from '@b10cks/richtext'
+const values = { companyName: 'Google Inc', productName: 'Workspace' }
 
-const extensions = createB10cksRichTextExtensions({
-  internalLinkHandler: (attrs) => `/app${attrs.url}`,
+renderRichText(document, {
+  placeholderHandler: (key, label) => values[key] ?? null,
 })
+// → "Welcome to Google Inc" instead of "Welcome to {companyName}"
 ```
 
-## Custom extensions
+The handler receives:
+- `key` — the variable name (e.g. `"companyName"`)
+- `label` — the display hint shown in the editor (e.g. `"{companyName}"`)
 
-If you want to override the default extension list, pass your own `extensions` array.
+Returning `null` or `undefined` leaves the token as a `<span data-type="placeholder-token" data-key="…" data-label="…">` so it can be replaced client-side instead. This works identically in `renderRichTextAsText` — resolved values are injected as plain text, unresolved tokens emit nothing.
 
-```ts
-import { renderRichText } from '@b10cks/richtext'
-import Link from '@tiptap/extension-link'
-import Table from '@tiptap/extension-table'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-import TableRow from '@tiptap/extension-table-row'
-import Underline from '@tiptap/extension-underline'
-import StarterKit from '@tiptap/starter-kit'
+## Supported node and mark types
 
-const html = renderRichText(document, {
-  extensions: [
-    StarterKit.configure({
-      heading: {
-        levels: [1, 2, 3, 4, 5, 6],
-      },
-    }),
-    Underline,
-    Link.configure({
-      openOnClick: false,
-      autolink: true,
-    }),
-    Table.configure({
-      resizable: true,
-      handleWidth: 4,
-      cellMinWidth: 50,
-      lastColumnResizable: true,
-      allowTableNodeSelection: true,
-    }),
-    TableRow,
-    TableHeader,
-    TableCell,
-  ],
-})
-```
+| Node | HTML output |
+|---|---|
+| `paragraph` | `<p>` |
+| `heading` | `<h1>` – `<h6>` |
+| `blockquote` | `<blockquote>` |
+| `codeBlock` | `<pre><code>` |
+| `bulletList` | `<ul>` |
+| `orderedList` | `<ol>` |
+| `listItem` | `<li>` |
+| `hardBreak` | `<br>` |
+| `horizontalRule` | `<hr>` |
+| `image` | `<img>` |
+| `table` / `tableRow` / `tableHeader` / `tableCell` | `<table>` / `<tr>` / `<th>` / `<td>` |
+| `placeholderToken` | resolved value or `<span data-type="placeholder-token">` |
 
-## Example with server-side rendering
-
-```ts
-import { renderRichText } from '@b10cks/richtext'
-
-export function renderArticle(body: unknown) {
-  return renderRichText(body as never)
-}
-```
+| Mark | HTML output |
+|---|---|
+| `bold` | `<strong>` |
+| `italic` | `<em>` |
+| `strike` | `<s>` |
+| `underline` | `<u>` |
+| `code` | `<code>` |
+| `link` | `<a href="…">` |
+| `internalLink` | `<a href="…" data-type="internal" data-b10cks-internal-link>` |
+| `textClass` | `<span class="…">` |
 
 ## Types
 
-The package exports these main types:
+```ts
+import type {
+  RichTextDocument,
+  RichTextHtmlOptions,
+  RichTextTextOptions,
+  RichTextInternalLinkAttrs,
+  RichTextInternalLinkHandler,
+  RichTextPlaceholderHandler,
+  RichTextRenderer,
+  RichTextTextRenderer,
+} from '@b10cks/richtext'
+```
 
-- `RichTextDocument`
-- `RichTextExtensionOptions`
-- `RichTextHtmlOptions`
-- `RichTextTextOptions`
-- `RichTextInternalLinkAttrs`
-- `RichTextInternalLinkHandler`
-- `RichTextRenderer`
-- `RichTextTextRenderer`
+## Framework components
 
-## Framework wrappers
+For a framework-specific component that handles the HTML rendering for you, use the matching wrapper package:
 
-If you want a framework-specific component instead of plain HTML rendering, use one of the wrapper packages:
-
-- `@b10cks/react`
-- `@b10cks/vue`
-- `@b10cks/svelte`
-- `@b10cks/next`
-- `@b10cks/nuxt`
+- [`@b10cks/react`](../react) · [`@b10cks/vue`](../vue) · [`@b10cks/svelte`](../svelte) · [`@b10cks/next`](../next) · [`@b10cks/nuxt`](../nuxt)
 
 ## License
 

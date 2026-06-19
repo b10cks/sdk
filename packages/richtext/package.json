@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/richtext",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Framework-agnostic rich text rendering for b10cks Rich text",
   "license": "MIT",
   "author": "Michael Wallner @ Coder's Cantina",
@@ -35,17 +35,7 @@
     "lint": "biome lint --write .",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "@tiptap/core": "^2.26.1",
-    "@tiptap/extension-link": "^2.26.1",
-    "@tiptap/extension-table": "^2.26.1",
-    "@tiptap/extension-table-cell": "^2.26.1",
-    "@tiptap/extension-table-header": "^2.26.1",
-    "@tiptap/extension-table-row": "^2.26.1",
-    "@tiptap/extension-underline": "^2.26.1",
-    "@tiptap/html": "^2.26.1",
-    "@tiptap/starter-kit": "^2.26.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
