@@ -4,11 +4,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ErrorCode,
+  ListResourcesRequestSchema,
   ListToolsRequestSchema,
   McpError,
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 
 import { operationMap, operations, type MgmtToolArguments } from './operations'
+import { CONTENT_MODEL_GUIDE, readResource, RESOURCES } from './resources'
 
 export interface ServerConfig {
   baseUrl: string
@@ -23,7 +26,7 @@ export const createManagementClient = (config: ServerConfig): ManagementClient =
     timeout: config.timeout,
   })
 
-export const createServer = (client: ManagementClient): Server => {
+export const createServer = (client: ManagementClient | Error): Server => {
   const server = new Server(
     {
       name: '@b10cks/mcp-server',
@@ -32,9 +35,27 @@ export const createServer = (client: ManagementClient): Server => {
     {
       capabilities: {
         tools: {},
+        resources: {},
       },
     }
   )
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: RESOURCES,
+  }))
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const { uri } = request.params
+    const content = readResource(uri)
+
+    if (!content) {
+      throw new McpError(ErrorCode.InvalidParams, `Unknown resource: ${uri}`)
+    }
+
+    return {
+      contents: [{ uri, mimeType: 'text/plain', text: content }],
+    }
+  })
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -48,8 +69,18 @@ export const createServer = (client: ManagementClient): Server => {
         },
       },
       {
+        name: 'b10cks_content_model_guide',
+        description:
+          'Return the b10cks content modeling guide: block types (root/nestable/single), atomic design tag hierarchy (Atom/Molecule/Organism/Navigation/FormField/Drawer/Listable), all field types with configuration options, editor layout patterns, and canonical block examples derived from a production project. Read this before designing or creating blocks.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {},
+        },
+      },
+      {
         name: 'b10cks_mgmt_call',
-        description: 'Execute a b10cks Management API operation.',
+        description: 'Execute a b10cks Management API operation. Before creating or updating blocks, call b10cks_content_model_guide to understand best practices for block types, field types, tag hierarchy, and editor layout.',
         inputSchema: {
           type: 'object',
           additionalProperties: false,
@@ -120,8 +151,16 @@ export const createServer = (client: ManagementClient): Server => {
       }
     }
 
+    if (name === 'b10cks_content_model_guide') {
+      return { content: [{ type: 'text', text: CONTENT_MODEL_GUIDE }] }
+    }
+
     if (name !== 'b10cks_mgmt_call') {
       throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`)
+    }
+
+    if (client instanceof Error) {
+      throw new McpError(ErrorCode.InternalError, `b10cks MCP server misconfigured: ${client.message}`)
     }
 
     const args = toolArguments as unknown as MgmtToolArguments
@@ -164,17 +203,10 @@ export const createServer = (client: ManagementClient): Server => {
   return server
 }
 
-export const runStdioServer = async (config: ServerConfig): Promise<void> => {
-  const client = createManagementClient(config)
-
-  // Verify credentials before accepting any tool calls
-  try {
-    await client.system.health()
-  } catch (error) {
-    const message = error instanceof ManagementApiError ? error.message : String(error)
-    throw new Error(`b10cks Management API unreachable (${config.baseUrl}): ${message}`)
-  }
-
+export const runStdioServer = async (configOrError: ServerConfig | Error): Promise<void> => {
+  const client = configOrError instanceof Error
+    ? configOrError
+    : createManagementClient(configOrError)
   const server = createServer(client)
   const transport = new StdioServerTransport()
 

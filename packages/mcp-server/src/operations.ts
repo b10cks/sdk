@@ -478,7 +478,7 @@ export const operations: OperationDefinition[] = [
   },
   {
     name: 'blocks.create',
-    description: 'Create a block definition.',
+    description: 'Create a block definition. Payload fields: name (string), slug (string, unique), type ("root"|"nestable"|"single"), schema (object mapping field keys to field definitions), editor (array of {header, items} tab groups), tags (string[]), icon (string), color (hex string), preview_template (mustache string). Call b10cks_content_model_guide first for field type options, tag hierarchy, and canonical patterns.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
     handler: (client, args) => client.blocks.create(spaceId(args), payload(args) as never),
@@ -492,7 +492,7 @@ export const operations: OperationDefinition[] = [
   },
   {
     name: 'blocks.update',
-    description: 'Update a block definition.',
+    description: 'Update a block definition. Same payload structure as blocks.create — only include fields to change. Schema field keys are stable identifiers; renaming a key creates a new field and loses existing data.',
     required: ['spaceId', 'id', 'payload'],
     accepts: ['spaceId', 'id', 'blockId', 'payload'],
     handler: (client, args) =>

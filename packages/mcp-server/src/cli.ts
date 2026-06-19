@@ -6,7 +6,14 @@ declare const process: {
 }
 
 const main = async (): Promise<void> => {
-  await runStdioServer(loadConfig())
+  let configOrError: ReturnType<typeof loadConfig> | Error
+  try {
+    configOrError = loadConfig()
+  } catch (e) {
+    configOrError = e instanceof Error ? e : new Error(String(e))
+  }
+
+  await runStdioServer(configOrError)
 }
 
 main().catch((error) => {
