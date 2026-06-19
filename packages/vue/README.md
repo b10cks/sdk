@@ -34,11 +34,27 @@ app.mount('#app')
 ```typescript
 import { useB10cksApi } from '@b10cks/vue'
 
-const { useContent, useBlocks } = useB10cksApi()
+const { useContent, useContents, useBlocks } = useB10cksApi()
 
-const content = useContent('home', {}, { immediate: true })
+// Single content entry by slug
+const content = useContent('home', { vid: 'published' }, { immediate: true })
+
+// List of content entries — params accepts a typed filter object
+const { data: items } = useContents(
+  {
+    language_iso: 'en',
+    vid: 'published',
+    filter: {
+      canonical_id: { in: [someId] },
+    },
+  },
+  { immediate: Boolean(someId) }
+)
+
 const blocks = useBlocks({}, { immediate: true })
 ```
+
+The `immediate` option controls whether the request fires on composable setup (`true`) or must be triggered manually (`false`). Pass `immediate: false` to defer requests that depend on reactive values not yet available.
 
 ### Directives
 
@@ -139,6 +155,7 @@ b10cks internal links carry a `url`, `title`, `anchor`, and `content` (block ID)
 ```vue
 <script setup lang="ts">
 import { B10cksRichText } from '@b10cks/vue/rich-text'
+import type { RichTextInternalLinkAttrs } from '@b10cks/vue/rich-text'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -147,7 +164,7 @@ const router = useRouter()
 <template>
   <B10cksRichText
     :document="document"
-    :internal-link-handler="(attrs) => router.resolve(attrs.url ?? '/').href"
+    :internal-link-handler="(attrs: RichTextInternalLinkAttrs) => router.resolve(attrs.url ?? '/').href"
   />
 </template>
 ```

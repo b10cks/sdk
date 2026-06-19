@@ -7,17 +7,7 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
-  IBSitemapEntry,
-  IBSpace,
-  RedirectMap,
-  Endpoint,
-  GetConfigOptions,
-  IBBaseQueryParams,
-  IBBlock,
-  IBContent,
-  IBContentQueryParams,
-  IBDataEntry,
-  IBDataSource,
+  IBGetContentsParams,
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
@@ -77,7 +67,7 @@ export type UseNuxtB10cksContentOptions<T> = AsyncDataConfig<IBContent<T>> & {
 
 export type UseNuxtB10cksContentsOptions<T> = UseNuxtB10cksCollectionOptions<
   IBContent<T>,
-  Omit<IBContentQueryParams, 'token'>
+  IBGetContentsParams
 >
 
 export type UseNuxtB10cksRedirectsOptions = AsyncDataConfig<RedirectMap> & {
@@ -115,7 +105,7 @@ export type NuxtB10cksApi = Omit<
     options?: UseNuxtB10cksContentOptions<T>
   ) => Promise<AwaitedContentAsyncData<T>>
   useContents: <T = Record<string, unknown>>(
-    params?: Omit<IBContentQueryParams, 'token'>,
+    params?: IBGetContentsParams,
     options?: UseNuxtB10cksContentsOptions<T>
   ) => Promise<AwaitedContentsAsyncData<T>>
   useBlocks: (
@@ -199,7 +189,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   }
 
   const useContents = async <T = Record<string, unknown>>(
-    params: Omit<IBContentQueryParams, 'token'> = {},
+    params: IBGetContentsParams = {},
     options: UseNuxtB10cksContentsOptions<T> = {}
   ): Promise<AwaitedContentsAsyncData<T>> => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options

@@ -156,6 +156,38 @@ export interface IBContentQueryParams extends IBBaseQueryParams {
   parent_id?: string | string[]
 }
 
+// ─── Content Model Types ───────────────────────────────────────────────────
+
+export type B10cksLink =
+  | {
+      type: 'url'
+      url: string
+      anchor?: string
+      target?: '_self' | '_blank' | '_parent' | '_top'
+      rel?: string
+    }
+  | {
+      type: 'email'
+      email: string
+      subject?: string
+      body?: string
+      cc?: string
+      bcc?: string
+    }
+  | {
+      type: 'internal'
+      url: string
+      title: string
+      content: string
+      params?: string
+      anchor?: string
+      target?: '_self' | '_blank' | '_parent' | '_top'
+    }
+  | {
+      type: 'asset'
+      id: string
+    }
+
 export interface B10cksApiClientOptions {
   baseUrl: string
   token: string

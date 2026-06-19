@@ -13,8 +13,10 @@ export interface B10cksApiClientRvOptions {
   setRv?: (value: string | number) => void
 }
 
+export * from './content'
 export * from './data-api'
 export * from './preview-bridge'
+export * from './sitemap'
 export type * from './types'
 export * as types from './types'
 
@@ -64,8 +66,8 @@ export class ApiClient {
   ): Promise<ApiResourceResponse<T>> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
-      ...params,
       rv: this.getRv(),
+      ...params,
       token: this.token,
     })
 
@@ -86,8 +88,8 @@ export class ApiClient {
   ): Promise<T> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
-      ...params,
       rv: this.getRv(),
+      ...params,
       token: this.token,
     })
 

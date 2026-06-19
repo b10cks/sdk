@@ -24,28 +24,98 @@ export default defineNuxtConfig({
 
 ## Usage
 
-```typescript
-const { useContent, useRedirects, useB10cksConfig } = useB10cksApi()
+Each composable returns the same object as Nuxt's `useAsyncData()` — destructure `data`, `pending`, `error`, and `refresh` as needed.
 
-const page = await useContent('home')
+```typescript
+// Single content entry by slug
+const { useContent } = useB10cksApi()
+const { data: page, error } = await useContent('home')
+if (error.value) throw error.value
+
+// With query params (language, vid, etc.)
+const { data: page } = await useContent('home', {
+  language_iso: 'de',
+  vid: 'published', // or 'draft'
+})
+```
+
+```typescript
+// List of content entries — params accepts the same filter object as dataApi.getContents()
+const { useContents } = useB10cksApi()
+
+// Plain params
+const { data: items } = await useContents({ language_iso: 'en', vid: 'published' })
+
+// Typed filter object (no wire-format string hacks needed)
+const { data: people } = await useContents({
+  language_iso: 'en',
+  vid: 'published',
+  filter: {
+    canonical_id: { in: ['id-1', 'id-2'] },
+  },
+})
+```
+
+```typescript
+// Redirects and config
+const { useRedirects, useB10cksConfig } = useB10cksApi()
 const redirects = await useRedirects()
-const { config } = await useB10cksConfig()
+const { data: config, pending, error, refresh } = await useB10cksConfig()
 ```
 
-The Nuxt helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched again during or after hydration.
+The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched during hydration. Each helper derives a stable async-data key from its inputs — no manual `key` needed.
 
-By default, each helper derives a stable async-data key from its input parameters, so SDK users do not need to provide a `key` manually.
+### `B10cksComponent` and directives
 
-`B10cksComponent`, `v-editable`, and `v-editable-field` are available through the Vue integration.
+`B10cksComponent`, `v-editable`, and `v-editable-field` are available globally after registering the module. `componentsDir` in the config tells the module where your block components live; it auto-registers them by block name.
 
-You can still pass `useAsyncData()` options when needed:
-
-```typescript
-const page = await useContent('home', { language: 'en' })
-const { config, pending, error, refresh } = await useB10cksConfig({ language: 'en' })
+```vue
+<template>
+  <!-- Renders the component matching content.block from componentsDir -->
+  <B10cksComponent
+    v-if="content"
+    :block="{ id: content.id, block: content.block, ...content.content }"
+    :content="content"
+  />
+</template>
 ```
 
-If you need to override Nuxt's cache identity behavior, you can still provide a custom `key` through the async-data options.
+```vue
+<!-- Mark a block as selectable in the b10cks visual editor -->
+<div v-editable="block">…</div>
+
+<!-- Mark a specific field as inline-editable -->
+<h1 v-editable-field="{ id: block.id, field: 'header' }">{{ block.header }}</h1>
+```
+
+If you need to override Nuxt's cache identity behavior, pass a custom `key` as a third argument to any composable.
+
+## Page translations
+
+`usePageTranslations` maintains a reactive `locale → path` map built from an `IBContent` entry and its `translations` array. Use it to drive language-switcher links without any extra API calls.
+
+```vue
+<script setup lang="ts">
+const { useContent } = useB10cksApi()
+const { translations, setFromContent, clear } = usePageTranslations()
+
+const { data: content } = await useContent(slug, { language_iso: locale })
+if (content.value) setFromContent(content.value)
+
+onBeforeRouteLeave(() => clear())
+</script>
+
+<template>
+  <!-- translations.value: { en: '/en/about', de: '/de/ueber-uns' } -->
+  <NuxtLink
+    v-for="(path, lang) in translations"
+    :key="lang"
+    :to="path"
+  >{{ lang }}</NuxtLink>
+</template>
+```
+
+`setFromContent` uses `buildLocalizedPath` from `@b10cks/client` internally, so paths are always correctly normalized and locale-prefixed. `setTranslations` lets you set the map manually when you need full control.
 
 ## Rich text usage
 
@@ -54,15 +124,15 @@ Use `B10cksRichText` to render a TipTap-based rich text document from b10cks on 
 ```vue
 <script setup lang="ts">
 const { useContent } = useB10cksApi()
-const page = useContent<{ body?: Record<string, unknown> }>('home')
+const { data: page, pending } = await useContent<{ body?: Record<string, unknown> }>('home')
 </script>
 
 <template>
-  <div v-if="page.pending">Loading...</div>
+  <div v-if="pending">Loading…</div>
 
   <B10cksRichText
     v-else
-    :document="page.data?.body"
+    :document="page?.content?.body"
     class="prose"
   />
 </template>

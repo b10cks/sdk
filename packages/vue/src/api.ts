@@ -9,6 +9,7 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
+  IBGetContentsParams,
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
@@ -96,7 +97,7 @@ export function useB10cksApi() {
   }
 
   const useContents = <T = Record<string, unknown>>(
-    params: Omit<IBContentQueryParams, 'token'> = {},
+    params: IBGetContentsParams = {},
     options: Omit<UseB10cksCollectionOptions<IBContent<T>[]>, 'params'> = {}
   ): AsyncState<IBContent<T>[]> => {
     const { allPages = false, immediate = false, transform } = options

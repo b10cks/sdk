@@ -40,11 +40,18 @@ export default defineNuxtModule<ModuleOptions>({
 
     addPlugin(resolver.resolve('./runtime/plugin'))
 
-    addImports({
-      name: 'useB10cksApi',
-      as: 'useB10cksApi',
-      from: resolver.resolve('./runtime/composables/useB10cksApi'),
-    })
+    addImports([
+      {
+        name: 'useB10cksApi',
+        as: 'useB10cksApi',
+        from: resolver.resolve('./runtime/composables/useB10cksApi'),
+      },
+      {
+        name: 'usePageTranslations',
+        as: 'usePageTranslations',
+        from: resolver.resolve('./runtime/composables/usePageTranslations'),
+      },
+    ])
 
     nuxt.options.typescript.hoist.push('@b10cks/vue')
   },
