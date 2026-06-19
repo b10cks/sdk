@@ -10,19 +10,25 @@ import figlet from 'figlet'
 import updateNotifier from 'update-notifier'
 
 import {
-  BlocksListCommand,
-  ContentsListCommand,
-  DataSourcesEntriesCreateCommand,
-  GenerateTypesCommand,
-  LoginCommand,
-  LogoutCommand,
-  ReleasesListCommand,
-  SpacesCreateCommand,
-  SpacesHierarchyCommand,
-  SpacesListCommand,
-  TeamsCreateCommand,
-  TeamsHierarchyCommand,
-  TeamsListCommand,
+  AiCommand,
+  AssetsCommand,
+  AutomationsCommand,
+  BlockFoldersCommand,
+  BlockTagsCommand,
+  BlocksCommand,
+  CommentsCommand,
+  ContentsCommand,
+  DataSourcesCommand,
+  GenerateCommand,
+  ProviderCommand,
+  RedirectsCommand,
+  ReleasesCommand,
+  SpacesCommand,
+  SystemCommand,
+  TeamsCommand,
+  TokensCommand,
+  UsersCommand,
+  registerAuthCommands,
 } from './commands/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -37,22 +43,29 @@ program
   .configureHelp({ sortSubcommands: true })
   .version(pkg.version)
 
-const commands = [
-  new LoginCommand(),
-  new LogoutCommand(),
-  new SpacesListCommand(),
-  new SpacesCreateCommand(),
-  new SpacesHierarchyCommand(),
-  new TeamsListCommand(),
-  new TeamsCreateCommand(),
-  new TeamsHierarchyCommand(),
-  new BlocksListCommand(),
-  new ContentsListCommand(),
-  new ReleasesListCommand(),
-  new DataSourcesEntriesCreateCommand(),
-  new GenerateTypesCommand(),
+registerAuthCommands(program)
+
+const namespaceCommands = [
+  new AiCommand(),
+  new AssetsCommand(),
+  new AutomationsCommand(),
+  new BlockFoldersCommand(),
+  new BlockTagsCommand(),
+  new BlocksCommand(),
+  new CommentsCommand(),
+  new ContentsCommand(),
+  new DataSourcesCommand(),
+  new GenerateCommand(),
+  new ProviderCommand(),
+  new RedirectsCommand(),
+  new ReleasesCommand(),
+  new SpacesCommand(),
+  new SystemCommand(),
+  new TeamsCommand(),
+  new TokensCommand(),
+  new UsersCommand(),
 ]
 
-commands.forEach((command) => command.register(program))
+namespaceCommands.forEach((cmd) => cmd.register(program))
 
 program.parse(process.argv)
