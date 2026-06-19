@@ -21,11 +21,16 @@ export class AutomationsCommand extends BaseCommand {
     ns.command('list')
       .description('list automations in a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.automations.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.automations.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No automations found')
           console.log(`\n${chalk.bold('Automations:')}`)
@@ -97,11 +102,16 @@ export class AutomationsCommand extends BaseCommand {
     actions.command('list')
       .description('list automation actions')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.automations.listActions(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.automations.listActions(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No automation actions found')
           console.log(`\n${chalk.bold('Automation Actions:')}`)
@@ -152,12 +162,14 @@ export class AutomationsCommand extends BaseCommand {
       .argument('<spaceId>', 'space ID')
       .option('--automation-id <id>', 'filter by automation ID')
       .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
           const params: any = {}
           if (options.automationId) params.automation_id = options.automationId
+          if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.automations.listExecutions(spaceId, params)
           if (options.json) return this.outputJson(res)

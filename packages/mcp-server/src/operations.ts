@@ -120,7 +120,8 @@ export const operations: OperationDefinition[] = [
   {
     name: 'teams.list',
     description: 'List teams.',
-    handler: (client) => client.teams.list(),
+    accepts: ['params'],
+    handler: (client, args) => client.teams.list(params(args) as never),
   },
   {
     name: 'teams.create',
@@ -177,7 +178,8 @@ export const operations: OperationDefinition[] = [
   {
     name: 'spaces.list',
     description: 'List spaces.',
-    handler: (client) => client.spaces.list(),
+    accepts: ['params'],
+    handler: (client, args) => client.spaces.list(params(args) as never),
   },
   {
     name: 'spaces.create',
@@ -247,8 +249,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listMembers',
     description: 'List members of a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listMembers(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listMembers(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.updateMember',
@@ -275,8 +277,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listInvites',
     description: 'List pending invites for a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listInvites(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listInvites(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.createInvite',
@@ -319,8 +321,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listSubscriptions',
     description: 'List subscription plans available for a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listSubscriptions(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listSubscriptions(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.getCurrentSubscription',
@@ -372,8 +374,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listAiConfigs',
     description: 'List AI configurations for a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listAiConfigs(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listAiConfigs(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.createAiConfig',
@@ -417,8 +419,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listBackups',
     description: 'List backups for a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listBackups(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listBackups(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.createBackup',
@@ -454,8 +456,8 @@ export const operations: OperationDefinition[] = [
     name: 'spaces.listMigrations',
     description: 'List migrations for a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.spaces.listMigrations(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.spaces.listMigrations(spaceId(args), params(args) as never),
   },
   {
     name: 'spaces.createMigration',
@@ -508,8 +510,8 @@ export const operations: OperationDefinition[] = [
     name: 'blocks.listTemplates',
     description: 'List templates for a block definition.',
     required: ['spaceId', 'blockId'],
-    accepts: ['spaceId', 'blockId'],
-    handler: (client, args) => client.blocks.listTemplates(spaceId(args), blockId(args)),
+    accepts: ['spaceId', 'blockId', 'params'],
+    handler: (client, args) => client.blocks.listTemplates(spaceId(args), blockId(args), params(args) as never),
   },
   {
     name: 'blocks.createTemplate',
@@ -553,8 +555,8 @@ export const operations: OperationDefinition[] = [
     name: 'blocks.listVersions',
     description: 'List versions of a block definition.',
     required: ['spaceId', 'blockId'],
-    accepts: ['spaceId', 'blockId'],
-    handler: (client, args) => client.blocks.listVersions(spaceId(args), blockId(args)),
+    accepts: ['spaceId', 'blockId', 'params'],
+    handler: (client, args) => client.blocks.listVersions(spaceId(args), blockId(args), params(args) as never),
   },
   {
     name: 'blocks.getVersion',
@@ -683,8 +685,8 @@ export const operations: OperationDefinition[] = [
     name: 'contents.listVersions',
     description: 'List versions of a content entry.',
     required: ['spaceId', 'id'],
-    accepts: ['spaceId', 'id', 'contentId'],
-    handler: (client, args) => client.contents.listVersions(spaceId(args), contentId(args)),
+    accepts: ['spaceId', 'id', 'contentId', 'params'],
+    handler: (client, args) => client.contents.listVersions(spaceId(args), contentId(args), params(args) as never),
   },
   {
     name: 'contents.getVersion',
@@ -729,8 +731,8 @@ export const operations: OperationDefinition[] = [
     name: 'comments.list',
     description: 'List comments on a content entry.',
     required: ['spaceId', 'contentId'],
-    accepts: ['spaceId', 'contentId'],
-    handler: (client, args) => client.comments.list(spaceId(args), contentId(args)),
+    accepts: ['spaceId', 'contentId', 'params'],
+    handler: (client, args) => client.comments.list(spaceId(args), contentId(args), params(args) as never),
   },
   {
     name: 'comments.create',
@@ -789,9 +791,9 @@ export const operations: OperationDefinition[] = [
     name: 'comments.listReactions',
     description: 'List reactions on a comment.',
     required: ['spaceId', 'contentId', 'commentId'],
-    accepts: ['spaceId', 'contentId', 'commentId'],
+    accepts: ['spaceId', 'contentId', 'commentId', 'params'],
     handler: (client, args) =>
-      client.comments.listReactions(spaceId(args), contentId(args), commentId(args)),
+      client.comments.listReactions(spaceId(args), contentId(args), commentId(args), params(args) as never),
   },
   {
     name: 'comments.addReaction',
@@ -867,8 +869,8 @@ export const operations: OperationDefinition[] = [
     name: 'automations.listActions',
     description: 'List automation actions in a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.automations.listActions(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.automations.listActions(spaceId(args), params(args) as never),
   },
   {
     name: 'automations.createAction',
@@ -912,8 +914,8 @@ export const operations: OperationDefinition[] = [
     name: 'automations.list',
     description: 'List automations in a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.automations.list(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.automations.list(spaceId(args), params(args) as never),
   },
   {
     name: 'automations.create',
@@ -1009,8 +1011,8 @@ export const operations: OperationDefinition[] = [
     name: 'releases.list',
     description: 'List releases in a space.',
     required: ['spaceId'],
-    accepts: ['spaceId'],
-    handler: (client, args) => client.releases.list(spaceId(args)),
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.releases.list(spaceId(args), params(args) as never),
   },
   {
     name: 'releases.create',
@@ -1110,7 +1112,8 @@ export const operations: OperationDefinition[] = [
   {
     name: 'provider.listNotes',
     description: 'List provider notes.',
-    handler: (client) => client.provider.listNotes(),
+    accepts: ['params'],
+    handler: (client, args) => client.provider.listNotes(params(args) as never),
   },
   {
     name: 'provider.createNote',
@@ -1204,6 +1207,13 @@ operations.push(
     handler: (client, args) => client.redirects.reset(spaceId(args), redirectId(args)),
   },
   {
+    name: 'tokens.list',
+    description: 'List access tokens for a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.tokens.list(spaceId(args), params(args) as never),
+  },
+  {
     name: 'tokens.create',
     description: 'Create a space token.',
     required: ['spaceId', 'payload'],
@@ -1221,8 +1231,8 @@ operations.push(
     name: 'dataSources.entries.list',
     description: 'List entries in a data source.',
     required: ['spaceId', 'dataSourceId'],
-    accepts: ['spaceId', 'dataSourceId'],
-    handler: (client, args) => client.dataSources.listEntries(spaceId(args), dataSourceId(args)),
+    accepts: ['spaceId', 'dataSourceId', 'params'],
+    handler: (client, args) => client.dataSources.listEntries(spaceId(args), dataSourceId(args), params(args) as never),
   },
   {
     name: 'dataSources.entries.create',

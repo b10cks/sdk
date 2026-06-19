@@ -22,11 +22,16 @@ export class AssetsCommand extends BaseCommand {
     ns.command('list')
       .description('list assets in a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.assets.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.assets.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No assets found')
           console.log(`\n${chalk.bold('Assets:')}`)
@@ -125,11 +130,16 @@ export class AssetsCommand extends BaseCommand {
     folders.command('list')
       .description('list asset folders')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.assetFolders.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.assetFolders.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No folders found')
           console.log(`\n${chalk.bold('Asset Folders:')}`)
@@ -196,11 +206,16 @@ export class AssetsCommand extends BaseCommand {
     tags.command('list')
       .description('list asset tags')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.assetTags.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.assetTags.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No tags found')
           console.log(`\n${chalk.bold('Asset Tags:')}`)

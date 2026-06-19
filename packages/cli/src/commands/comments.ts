@@ -13,11 +13,16 @@ export class CommentsCommand extends BaseCommand {
       .description('list comments on a content entry')
       .argument('<spaceId>', 'space ID')
       .argument('<contentId>', 'content ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.comments.list(spaceId, contentId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.comments.list(spaceId, contentId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No comments found')
           console.log(`\n${chalk.bold('Comments:')}`)
@@ -143,11 +148,16 @@ export class CommentsCommand extends BaseCommand {
       .argument('<spaceId>', 'space ID')
       .argument('<contentId>', 'content ID')
       .argument('<commentId>', 'comment ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, contentId, commentId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.comments.listReactions(spaceId, contentId, commentId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.comments.listReactions(spaceId, contentId, commentId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No reactions')
           console.log(`\n${chalk.bold('Reactions:')}`)

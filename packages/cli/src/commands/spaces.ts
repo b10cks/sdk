@@ -36,11 +36,16 @@ export class SpacesCommand extends BaseCommand {
   private registerList(ns: Command): void {
     ns.command('list')
       .description('list all spaces')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const response = await this.client.spaces.list()
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const response = await this.client.spaces.list(params)
           if (options.json) return this.outputJson(response)
           if (!response.data?.length) return console.log('No spaces found')
           console.log(`\n${chalk.bold('Spaces:')}`)
@@ -181,11 +186,16 @@ export class SpacesCommand extends BaseCommand {
     members.command('list')
       .description('list members of a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listMembers(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listMembers(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No members found')
           console.log(`\n${chalk.bold('Members:')}`)
@@ -237,11 +247,16 @@ export class SpacesCommand extends BaseCommand {
     invites.command('list')
       .description('list pending invites for a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listInvites(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listInvites(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)
@@ -307,11 +322,16 @@ export class SpacesCommand extends BaseCommand {
     roles.command('list')
       .description('list space roles')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listSpaceRoles(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listSpaceRoles(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No roles found')
           console.log(`\n${chalk.bold('Roles:')}`)
@@ -325,11 +345,16 @@ export class SpacesCommand extends BaseCommand {
     backups.command('list')
       .description('list backups')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listBackups(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listBackups(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No backups found')
           console.log(`\n${chalk.bold('Backups:')}`)
@@ -391,11 +416,16 @@ export class SpacesCommand extends BaseCommand {
     mig.command('list')
       .description('list migrations')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listMigrations(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listMigrations(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No migrations found')
           console.log(`\n${chalk.bold('Migrations:')}`)
@@ -458,11 +488,16 @@ export class SpacesCommand extends BaseCommand {
     subs.command('list')
       .description('list subscriptions')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listSubscriptions(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listSubscriptions(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No subscriptions found')
           console.log(`\n${chalk.bold('Subscriptions:')}`)
@@ -541,12 +576,15 @@ export class SpacesCommand extends BaseCommand {
       .description('list audit log entries for a space')
       .argument('<spaceId>', 'space ID')
       .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params = options.page ? { page: Number(options.page) } : undefined
-          const res = await this.client.spaces.getAuditLogs(spaceId, params)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.getAuditLogs(spaceId, Object.keys(params).length ? params : undefined)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No audit log entries')
           console.log(`\n${chalk.bold('Audit Logs:')}`)
@@ -656,11 +694,16 @@ export class SpacesCommand extends BaseCommand {
     configs.command('list')
       .description('list AI configurations')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.spaces.listAiConfigs(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.spaces.listAiConfigs(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No AI configs found')
           console.log(`\n${chalk.bold('AI Configs:')}`)

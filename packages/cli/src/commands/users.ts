@@ -62,11 +62,16 @@ export class UsersCommand extends BaseCommand {
 
     tokens.command('list')
       .description('list your personal access tokens')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.users.listTokens()
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.users.listTokens(params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No personal access tokens found')
           console.log(`\n${chalk.bold('Personal Access Tokens:')}`)
@@ -131,11 +136,16 @@ export class UsersCommand extends BaseCommand {
 
     invites.command('list')
       .description('list your pending invites')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.users.listInvites()
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.users.listInvites(params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)

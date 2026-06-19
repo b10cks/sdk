@@ -22,12 +22,15 @@ export class BlocksCommand extends BaseCommand {
     ns.command('list')
       .description('list all block definitions in a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
       .option('--per-page <n>', 'results per page', '100')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.blocks.list(spaceId, { per_page: Number(options.perPage) })
+          const params: any = { per_page: Number(options.perPage) }
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.blocks.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No blocks found')
           console.log(`\n${chalk.bold('Block Definitions:')}`)
@@ -145,11 +148,16 @@ export class BlocksCommand extends BaseCommand {
       .description('list templates for a block')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, blockId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.blocks.listTemplates(spaceId, blockId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.blocks.listTemplates(spaceId, blockId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No templates found')
           console.log(`\n${chalk.bold('Templates:')}`)
@@ -201,11 +209,16 @@ export class BlocksCommand extends BaseCommand {
       .description('list versions of a block')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, blockId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.blocks.listVersions(spaceId, blockId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.blocks.listVersions(spaceId, blockId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No versions found')
           console.log(`\n${chalk.bold('Versions:')}`)

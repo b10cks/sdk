@@ -12,11 +12,16 @@ export class BlockFoldersCommand extends BaseCommand {
     ns.command('list')
       .description('list block folders in a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.blockFolders.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.blockFolders.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No block folders found')
           console.log(`\n${chalk.bold('Block Folders:')}`)

@@ -26,11 +26,16 @@ export class TeamsCommand extends BaseCommand {
   private registerList(ns: Command): void {
     ns.command('list')
       .description('list all teams')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.teams.list()
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.teams.list(params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No teams found')
           console.log(`\n${chalk.bold('Teams:')}`)
@@ -144,11 +149,16 @@ export class TeamsCommand extends BaseCommand {
     members.command('list')
       .description('list members of a team')
       .argument('<teamId>', 'team ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.teams.listMembers(teamId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.teams.listMembers(teamId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No members found')
           console.log(`\n${chalk.bold('Members:')}`)
@@ -210,11 +220,16 @@ export class TeamsCommand extends BaseCommand {
     invites.command('list')
       .description('list pending invites')
       .argument('<teamId>', 'team ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.teams.listInvites(teamId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.teams.listInvites(teamId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)
@@ -278,11 +293,16 @@ export class TeamsCommand extends BaseCommand {
     bp.command('list')
       .description('list blueprints')
       .argument('<teamId>', 'team ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.teams.listBlueprints(teamId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.teams.listBlueprints(teamId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No blueprints found')
           console.log(`\n${chalk.bold('Blueprints:')}`)
@@ -330,11 +350,16 @@ export class TeamsCommand extends BaseCommand {
     roles.command('list')
       .description('list space roles for a team')
       .argument('<teamId>', 'team ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.teams.listSpaceRoles(teamId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.teams.listSpaceRoles(teamId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No roles found')
           console.log(`\n${chalk.bold('Space Roles:')}`)

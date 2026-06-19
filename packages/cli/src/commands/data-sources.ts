@@ -21,11 +21,16 @@ export class DataSourcesCommand extends BaseCommand {
     ns.command('list')
       .description('list data sources in a space')
       .argument('<spaceId>', 'space ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.dataSources.list(spaceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.dataSources.list(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No data sources found')
           console.log(`\n${chalk.bold('Data Sources:')}`)
@@ -136,11 +141,16 @@ export class DataSourcesCommand extends BaseCommand {
       .description('list entries in a data source')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
+      .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, dataSourceId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.dataSources.listEntries(spaceId, dataSourceId)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.dataSources.listEntries(spaceId, dataSourceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No entries found')
           console.log(`\n${chalk.bold('Data Source Entries:')}`)

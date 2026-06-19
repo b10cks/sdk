@@ -13,12 +13,15 @@ export class RedirectsCommand extends BaseCommand {
       .description('list redirects in a space')
       .argument('<spaceId>', 'space ID')
       .option('-p, --page <page>', 'page number')
+      .option('--per-page <n>', 'results per page')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params = options.page ? { page: Number(options.page) } : undefined
-          const res = await this.client.redirects.list(spaceId, params)
+          const params: any = {}
+          if (options.perPage) params.per_page = Number(options.perPage)
+          if (options.page) params.page = Number(options.page)
+          const res = await this.client.redirects.list(spaceId, Object.keys(params).length ? params : undefined)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No redirects found')
           console.log(`\n${chalk.bold('Redirects:')}`)
