@@ -112,7 +112,61 @@ const document: RichTextDocument = {
 const html = renderRichText(document)
 ```
 
-If you need to override the default b10cks TipTap extension set, pass custom `extensions`:
+To extract plain text (useful for search indexing or meta descriptions), use `renderRichTextAsText`:
+
+```typescript
+import type { RichTextDocument } from '@b10cks/vue/rich-text'
+import { renderRichTextAsText } from '@b10cks/vue/rich-text'
+
+const text = renderRichTextAsText(document)
+// or with a custom block separator:
+const inline = renderRichTextAsText(document, { blockSeparator: ' ' })
+```
+
+For repeated rendering, use the factory:
+
+```typescript
+import { createRichTextTextRenderer } from '@b10cks/vue/rich-text'
+
+const renderer = createRichTextTextRenderer()
+const text = renderer.render(document)
+```
+
+#### Internal link handler
+
+b10cks internal links carry a `url`, `title`, `anchor`, and `content` (block ID) in their attrs. Pass an `internalLinkHandler` to customise how the `href` is generated — for example to prepend a route prefix or resolve content IDs via Vue Router:
+
+```vue
+<script setup lang="ts">
+import { B10cksRichText } from '@b10cks/vue/rich-text'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+</script>
+
+<template>
+  <B10cksRichText
+    :document="document"
+    :internal-link-handler="(attrs) => router.resolve(attrs.url ?? '/').href"
+  />
+</template>
+```
+
+Or when rendering to a string:
+
+```typescript
+import { renderRichText } from '@b10cks/vue/rich-text'
+
+const html = renderRichText(document, {
+  internalLinkHandler: (attrs) => `/app${attrs.url}`,
+})
+```
+
+Return `null` or `undefined` from the handler to fall back to the default `url`/`href` attribute value.
+
+#### Custom extensions
+
+If you need to override the default b10cks TipTap extension set entirely, pass custom `extensions`:
 
 ```vue
 <script setup lang="ts">

@@ -103,6 +103,17 @@ export function PageBody({ document }: { document: RichTextDocument | null | und
 }
 ```
 
+To extract plain text (useful for `og:description`, search indexing, or previews), use `renderRichTextAsText`:
+
+```tsx
+import { renderRichTextAsText } from '@b10cks/next'
+import type { RichTextDocument } from '@b10cks/next'
+
+export function getMetaDescription(document: RichTextDocument | null | undefined): string {
+  return renderRichTextAsText(document, { blockSeparator: ' ' })
+}
+```
+
 The default renderer is compatible with the following b10cks TipTap setup:
 
 - `StarterKit` with heading levels `1-6`

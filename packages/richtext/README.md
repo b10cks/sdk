@@ -24,7 +24,7 @@ npm install @tiptap/core @tiptap/html @tiptap/starter-kit @tiptap/extension-link
 
 ## What it does
 
-`@b10cks/richtext` converts a TipTap-based `RichTextDocument` from b10cks into an HTML string on the server or client without needing a browser-only editor instance.
+`@b10cks/richtext` converts a TipTap-based `RichTextDocument` from b10cks into an HTML string or plain text on the server or client without needing a browser-only editor instance.
 
 It ships with a default extension set compatible with this b10cks editor configuration:
 
@@ -86,14 +86,80 @@ const html = renderer.render(document)
 
 Alias for `createRichTextRenderer`.
 
-### `createB10cksRichTextExtensions()`
+### `renderRichTextAsText(document, options?)`
 
-Returns the default TipTap extensions used by b10cks-richtext rendering.
+Renders a b10cks rich text document to a plain text string. Useful for search indexing, meta descriptions, or any context where HTML is not appropriate.
+
+```ts
+import { renderRichTextAsText } from '@b10cks/richtext'
+
+const text = renderRichTextAsText(document)
+```
+
+An optional `blockSeparator` controls the string inserted between block-level nodes (defaults to a newline):
+
+```ts
+const text = renderRichTextAsText(document, { blockSeparator: ' ' })
+```
+
+### `createRichTextTextRenderer(options?)`
+
+Creates a reusable plain text renderer object.
+
+```ts
+import { createRichTextTextRenderer } from '@b10cks/richtext'
+
+const renderer = createRichTextTextRenderer()
+
+const text = renderer.render(document)
+```
+
+### `createB10cksRichTextExtensions(options?)`
+
+Returns the default TipTap extensions used by b10cks-richtext rendering. Accepts the same `internalLinkHandler` option as `renderRichText`.
 
 ```ts
 import { createB10cksRichTextExtensions } from '@b10cks/richtext'
 
 const extensions = createB10cksRichTextExtensions()
+```
+
+## Internal link handler
+
+b10cks internal links have this JSON shape in a rich text document:
+
+```json
+{
+  "type": "internalLink",
+  "attrs": {
+    "url": "/datenschutz",
+    "title": "Datenschutz",
+    "anchor": null,
+    "content": "01ksarpy7hd99pwbfe26rc04jb"
+  }
+}
+```
+
+By default the `url` attribute is used as the `href`. Pass an `internalLinkHandler` to customise link generation — for example to prepend a locale prefix or map content IDs to your router:
+
+```ts
+import { renderRichText } from '@b10cks/richtext'
+
+const html = renderRichText(document, {
+  internalLinkHandler: (attrs) => `/app${attrs.url}`,
+})
+```
+
+Return `null` or `undefined` from the handler to fall back to the default `url`/`href` value.
+
+You can also wire the handler into a reusable extension set:
+
+```ts
+import { createB10cksRichTextExtensions } from '@b10cks/richtext'
+
+const extensions = createB10cksRichTextExtensions({
+  internalLinkHandler: (attrs) => `/app${attrs.url}`,
+})
 ```
 
 ## Custom extensions
@@ -153,8 +219,11 @@ The package exports these main types:
 - `RichTextDocument`
 - `RichTextExtensionOptions`
 - `RichTextHtmlOptions`
-- `RichTextLinkAttrs`
+- `RichTextTextOptions`
+- `RichTextInternalLinkAttrs`
+- `RichTextInternalLinkHandler`
 - `RichTextRenderer`
+- `RichTextTextRenderer`
 
 ## Framework wrappers
 

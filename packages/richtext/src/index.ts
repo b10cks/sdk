@@ -1,6 +1,6 @@
 import type { Extensions, JSONContent } from '@tiptap/core'
 
-import { Mark, mergeAttributes } from '@tiptap/core'
+import { generateText, Mark, mergeAttributes } from '@tiptap/core'
 import Link from '@tiptap/extension-link'
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
@@ -20,11 +20,14 @@ export interface RichTextExtensionOptions {
   extensions?: Extensions
 }
 
-export interface RichTextLinkAttrs {
+export interface RichTextInternalLinkAttrs {
+  url?: string | null
   href?: string | null
+  title?: string | null
   target?: string | null
   rel?: string | null
   anchor?: string | null
+  content?: string | null
   cached_url?: string | null
   linktype?: string | null
   uuid?: string | null
@@ -32,9 +35,31 @@ export interface RichTextLinkAttrs {
   [key: string]: unknown
 }
 
-export interface RichTextHtmlOptions extends RichTextExtensionOptions {}
+/** @deprecated Use RichTextInternalLinkAttrs */
+export type RichTextLinkAttrs = RichTextInternalLinkAttrs
+
+export type RichTextInternalLinkHandler = (
+  attrs: RichTextInternalLinkAttrs
+) => string | null | undefined
+
+export interface RichTextHtmlOptions extends RichTextExtensionOptions {
+  /**
+   * Handler for resolving internal link hrefs. Receives the link's attrs and
+   * should return the href string to use, or null/undefined to fall back to
+   * the default (the `url` or `href` attribute value).
+   */
+  internalLinkHandler?: RichTextInternalLinkHandler
+}
+
+export interface RichTextTextOptions extends RichTextExtensionOptions {
+  blockSeparator?: string
+}
 
 export interface RichTextRenderer {
+  render: (document: RichTextDocument | null | undefined) => string
+}
+
+export interface RichTextTextRenderer {
   render: (document: RichTextDocument | null | undefined) => string
 }
 
@@ -48,7 +73,8 @@ type RichTextMarkRenderContext<TAttributes extends Record<string, unknown>> = {
 }
 
 const InternalLink = Mark.create<{
-  HTMLAttributes: RichTextLinkAttrs
+  HTMLAttributes: RichTextInternalLinkAttrs
+  internalLinkHandler?: RichTextInternalLinkHandler
 }>({
   name: 'internalLink',
 
@@ -56,49 +82,38 @@ const InternalLink = Mark.create<{
 
   addAttributes() {
     return {
-      href: {
-        default: null,
-      },
-      target: {
-        default: null,
-      },
-      rel: {
-        default: null,
-      },
-      anchor: {
-        default: null,
-      },
-      cached_url: {
-        default: null,
-      },
-      linktype: {
-        default: null,
-      },
-      uuid: {
-        default: null,
-      },
-      id: {
-        default: null,
-      },
+      url: { default: null },
+      href: { default: null },
+      title: { default: null },
+      target: { default: null },
+      rel: { default: null },
+      anchor: { default: null },
+      content: { default: null },
+      cached_url: { default: null },
+      linktype: { default: null },
+      uuid: { default: null },
+      id: { default: null },
     }
   },
 
   parseHTML() {
     return [
-      {
-        tag: 'a[data-b10cks-internal-link]',
-      },
-      {
-        tag: 'a[data-type="internal-link"]',
-      },
+      { tag: 'a[data-b10cks-internal-link]' },
+      { tag: 'a[data-type="internal-link"]' },
     ]
   },
 
-  renderHTML({ HTMLAttributes }: RichTextMarkRenderContext<RichTextLinkAttrs>) {
-    const href =
-      typeof HTMLAttributes.href === 'string' && HTMLAttributes.href.length > 0
-        ? HTMLAttributes.href
-        : '#'
+  renderHTML({ HTMLAttributes }: RichTextMarkRenderContext<RichTextInternalLinkAttrs>) {
+    const attrs = HTMLAttributes as RichTextInternalLinkAttrs
+    const defaultHref =
+      (typeof attrs.url === 'string' && attrs.url.length > 0)
+        ? attrs.url
+        : (typeof attrs.href === 'string' && attrs.href.length > 0)
+          ? attrs.href
+          : '#'
+
+    const handler = this.options.internalLinkHandler
+    const href = handler ? (handler(attrs) ?? defaultHref) : defaultHref
 
     return [
       'a',
@@ -136,7 +151,9 @@ const TextClass = Mark.create({
   },
 })
 
-export function createB10cksRichTextExtensions(): Extensions {
+export function createB10cksRichTextExtensions(
+  options: Pick<RichTextHtmlOptions, 'internalLinkHandler'> = {}
+): Extensions {
   return [
     StarterKit.configure({
       heading: {
@@ -148,7 +165,9 @@ export function createB10cksRichTextExtensions(): Extensions {
       openOnClick: false,
       autolink: true,
     }),
-    InternalLink,
+    options.internalLinkHandler
+      ? InternalLink.configure({ internalLinkHandler: options.internalLinkHandler })
+      : InternalLink,
     TextClass,
     Table.configure({
       resizable: true,
@@ -167,7 +186,8 @@ export function renderRichText(
   document: RichTextDocument | null | undefined,
   options: RichTextHtmlOptions = {}
 ): string {
-  const extensions = options.extensions ?? createB10cksRichTextExtensions()
+  const extensions =
+    options.extensions ?? createB10cksRichTextExtensions({ internalLinkHandler: options.internalLinkHandler })
   return generateHTML(document ?? EMPTY_DOCUMENT, extensions)
 }
 
@@ -182,3 +202,21 @@ export function createRichTextRenderer(options: RichTextHtmlOptions = {}): RichT
 }
 
 export const createRichTextHtmlRenderer = createRichTextRenderer
+
+export function renderRichTextAsText(
+  document: RichTextDocument | null | undefined,
+  options: RichTextTextOptions = {}
+): string {
+  const extensions = options.extensions ?? createB10cksRichTextExtensions()
+  return generateText(document ?? EMPTY_DOCUMENT, extensions, {
+    blockSeparator: options.blockSeparator,
+  })
+}
+
+export function createRichTextTextRenderer(options: RichTextTextOptions = {}): RichTextTextRenderer {
+  return {
+    render(document) {
+      return renderRichTextAsText(document, options)
+    },
+  }
+}

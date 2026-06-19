@@ -53,7 +53,16 @@ Use `B10cksRichText` to render a b10cks TipTap-based rich text document with the
 {/if}
 ```
 
-If you need to render rich text to an HTML string yourself, use the shared renderer from `@b10cks/richtext`.
+If you need to render rich text to an HTML string or plain text yourself, use the shared renderers from `@b10cks/richtext`:
+
+```ts
+import { renderRichText, renderRichTextAsText } from '@b10cks/richtext'
+
+const html = renderRichText(document)
+const text = renderRichTextAsText(document)
+// or with a custom block separator (e.g. for meta descriptions):
+const inline = renderRichTextAsText(document, { blockSeparator: ' ' })
+```
 
 ## License
 

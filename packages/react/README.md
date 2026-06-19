@@ -67,6 +67,16 @@ import { renderRichTextHtml } from '@b10cks/react'
 const html = renderRichTextHtml(block.body)
 ```
 
+To extract plain text (useful for search indexing, meta descriptions, or `og:description`), use `renderRichTextAsText`:
+
+```tsx
+import { renderRichTextAsText } from '@b10cks/react'
+
+const text = renderRichTextAsText(block.body)
+// or with a custom block separator:
+const inline = renderRichTextAsText(block.body, { blockSeparator: ' ' })
+```
+
 If you want to override the default TipTap extensions, pass `options.extensions`:
 
 ```tsx

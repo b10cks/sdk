@@ -10,12 +10,23 @@ import type {
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
+  Endpoint,
+  GetConfigOptions,
+  IBBaseQueryParams,
+  IBBlock,
+  IBContent,
+  IBContentQueryParams,
+  IBDataEntry,
+  IBDataSource,
+  IBSitemapEntry,
+  IBSpace,
+  RedirectMap,
 } from '@b10cks/client'
 import type { AsyncDataOptions } from 'nuxt/app'
 
 import { callOnce, useAsyncData } from '#app'
 import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
-import { computed, toValue } from 'vue'
+import { computed, toValue, watch } from 'vue'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 type QueryParams = Omit<IBBaseQueryParams, 'token'>

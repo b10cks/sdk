@@ -15,6 +15,8 @@ export * from './api'
 export type {
   B10cksRichTextProps,
   RichTextDocument,
+  RichTextInternalLinkAttrs,
+  RichTextInternalLinkHandler,
   RichTextRenderOptions,
 } from './rich-text'
 export {

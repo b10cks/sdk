@@ -1,12 +1,19 @@
 import {
   renderRichText as renderBaseRichText,
+  renderRichTextAsText as renderBaseRichTextAsText,
+  createRichTextTextRenderer,
   type RichTextDocument,
-  type RichTextExtensionOptions,
+  type RichTextHtmlOptions,
+  type RichTextInternalLinkAttrs,
+  type RichTextInternalLinkHandler,
+  type RichTextTextOptions,
+  type RichTextTextRenderer,
 } from '@b10cks/richtext'
 import { computed, defineComponent, h, type PropType } from 'vue'
 
-export type RichTextRenderOptions = RichTextExtensionOptions
-export type { RichTextDocument }
+export type RichTextRenderOptions = RichTextHtmlOptions
+export type { RichTextDocument, RichTextInternalLinkAttrs, RichTextInternalLinkHandler, RichTextTextOptions, RichTextTextRenderer }
+export { createRichTextTextRenderer }
 
 export interface B10cksRichTextProps extends RichTextRenderOptions {
   document: RichTextDocument | null | undefined
@@ -20,6 +27,13 @@ export function renderRichText(
   options: RichTextRenderOptions = {}
 ): string {
   return renderBaseRichText(document as RichTextDocument | null | undefined, options)
+}
+
+export function renderRichTextAsText(
+  document: RichTextDocument | null | undefined,
+  options: RichTextTextOptions = {}
+): string {
+  return renderBaseRichTextAsText(document, options)
 }
 
 export const B10cksRichText = defineComponent({
@@ -50,6 +64,11 @@ export const B10cksRichText = defineComponent({
       required: false,
       default: undefined,
     },
+    internalLinkHandler: {
+      type: Function as PropType<RichTextInternalLinkHandler>,
+      required: false,
+      default: undefined,
+    },
   },
   setup(props, { attrs }) {
     const html = computed(
@@ -57,6 +76,7 @@ export const B10cksRichText = defineComponent({
         props.html ??
         renderRichText(props.document, {
           extensions: props.extensions,
+          internalLinkHandler: props.internalLinkHandler,
         })
     )
 
