@@ -1,12 +1,17 @@
 import type { HttpClient } from '../http-client'
 import type {
   Content,
+  ContentTreeOperationsParams,
+  ContentTreeOperationsResult,
   ContentVersion,
+  ContentVersionListItem,
   CreateContentParams,
   GetContentsParams,
+  MoveContentParams,
   PaginatedResponse,
   PublishContentParams,
   RequestOptions,
+  ScheduleContentParams,
   UpdateContentParams,
 } from '../types'
 
@@ -75,6 +80,43 @@ export class ContentsResource {
     )
   }
 
+  async bulkCreate(
+    spaceId: string,
+    payload: { items: CreateContentParams[] },
+    options?: RequestOptions
+  ): Promise<{ data: Content[] }> {
+    return this.client.post<{ data: Content[] }>(
+      `/mgmt/v1/spaces/${spaceId}/contents/bulk-create`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async treeOperations(
+    spaceId: string,
+    payload: ContentTreeOperationsParams,
+    options?: RequestOptions
+  ): Promise<ContentTreeOperationsResult> {
+    return this.client.post<ContentTreeOperationsResult>(
+      `/mgmt/v1/spaces/${spaceId}/contents/tree-operations`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async move(
+    spaceId: string,
+    contentId: string,
+    payload: MoveContentParams,
+    options?: RequestOptions
+  ): Promise<Content> {
+    return this.client.post<Content>(
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/move`,
+      payload,
+      options?.headers
+    )
+  }
+
   async publish(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content>
   async publish(
     spaceId: string,
@@ -106,14 +148,41 @@ export class ContentsResource {
     )
   }
 
+  async schedule(
+    spaceId: string,
+    contentId: string,
+    payload: ScheduleContentParams,
+    options?: RequestOptions
+  ): Promise<Content> {
+    return this.client.post<Content>(
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/schedule`,
+      payload,
+      options?.headers
+    )
+  }
+
+  // ─── Versions ──────────────────────────────────────────────────────────────
+
+  async listVersions(
+    spaceId: string,
+    contentId: string,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<ContentVersionListItem>> {
+    return this.client.get<PaginatedResponse<ContentVersionListItem>>(
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions`,
+      undefined,
+      options?.headers
+    )
+  }
+
   async getVersion(
     spaceId: string,
     contentId: string,
-    version: number,
+    versionId: string,
     options?: RequestOptions
   ): Promise<ContentVersion> {
     return this.client.get<ContentVersion>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${version}`,
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
       undefined,
       options?.headers
     )
@@ -122,12 +191,12 @@ export class ContentsResource {
   async updateVersion(
     spaceId: string,
     contentId: string,
-    version: number,
-    payload: Partial<ContentVersion>,
+    versionId: string,
+    payload: { message?: string },
     options?: RequestOptions
-  ): Promise<ContentVersion> {
-    return this.client.patch<ContentVersion>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${version}`,
+  ): Promise<ContentVersionListItem> {
+    return this.client.patch<ContentVersionListItem>(
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
       payload,
       options?.headers
     )
@@ -136,11 +205,11 @@ export class ContentsResource {
   async publishVersion(
     spaceId: string,
     contentId: string,
-    version: number,
+    versionId: string,
     options?: RequestOptions
   ): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${version}/publish`,
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/publish`,
       undefined,
       options?.headers
     )
@@ -149,11 +218,11 @@ export class ContentsResource {
   async setVersionAsCurrent(
     spaceId: string,
     contentId: string,
-    version: number,
+    versionId: string,
     options?: RequestOptions
   ): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${version}/current`,
+      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/current`,
       undefined,
       options?.headers
     )

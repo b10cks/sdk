@@ -1,8 +1,16 @@
 import type { HttpClient } from '../http-client'
-import type { CreateSpaceTokenParams, RequestOptions, SpaceToken } from '../types'
+import type { CreateSpaceTokenParams, PaginatedResponse, RequestOptions, SpaceToken } from '../types'
 
 export class TokensResource {
   constructor(private readonly client: HttpClient) {}
+
+  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<SpaceToken>> {
+    return this.client.get<PaginatedResponse<SpaceToken>>(
+      `/mgmt/v1/spaces/${spaceId}/tokens`,
+      undefined,
+      options?.headers
+    )
+  }
 
   async create(
     spaceId: string,

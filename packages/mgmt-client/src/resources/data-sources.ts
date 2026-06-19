@@ -52,6 +52,8 @@ export class DataSourcesResource {
     )
   }
 
+  // ─── Entries ───────────────────────────────────────────────────────────────
+
   async listEntries(
     spaceId: string,
     dataSourceId: string,
@@ -112,6 +114,58 @@ export class DataSourcesResource {
   ): Promise<void> {
     return this.client.delete<void>(
       `/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/${entryId}`,
+      options?.headers
+    )
+  }
+
+  async exportEntries(
+    spaceId: string,
+    dataSourceId: string,
+    payload?: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/export`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async importEntries(
+    spaceId: string,
+    dataSourceId: string,
+    payload: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/import`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async translateMissingDimensions(
+    spaceId: string,
+    dataSourceId: string,
+    payload?: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/translate-missing-dimensions`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async translateMissingDimensionsStream(
+    spaceId: string,
+    dataSourceId: string,
+    payload?: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/translate-missing-dimensions/stream`,
+      payload,
       options?.headers
     )
   }

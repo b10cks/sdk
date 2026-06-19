@@ -1,11 +1,22 @@
 import type { HttpClient } from '../http-client'
 import type {
+  CreateInviteParams,
+  CreateRoleParams,
+  CreateSpaceBlueprintParams,
   CreateTeamParams,
+  Invite,
   PaginatedResponse,
   RequestOptions,
+  Role,
+  SpaceBlueprint,
   Team,
   TeamHierarchy,
+  TeamMember,
+  TeamSamlProvider,
+  UpdateRoleParams,
+  UpdateSpaceBlueprintParams,
   UpdateTeamParams,
+  UpsertTeamSamlProviderParams,
 } from '../types'
 
 export class TeamsResource {
@@ -35,6 +46,38 @@ export class TeamsResource {
     return this.client.get<TeamHierarchy>('/mgmt/v1/teams/hierarchy', undefined, options?.headers)
   }
 
+  // ─── Members ───────────────────────────────────────────────────────────────
+
+  async listMembers(
+    teamId: string,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<TeamMember>> {
+    return this.client.get<PaginatedResponse<TeamMember>>(
+      `/mgmt/v1/teams/${teamId}/members`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async updateMember(
+    teamId: string,
+    userId: string,
+    payload: { role: string },
+    options?: RequestOptions
+  ): Promise<TeamMember> {
+    return this.client.patch<TeamMember>(
+      `/mgmt/v1/teams/${teamId}/members/${userId}`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async removeMember(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/members/${userId}`, options?.headers)
+  }
+
+  // ─── Users (direct team membership management) ─────────────────────────────
+
   async addUser(
     teamId: string,
     payload: { user_id: string; role?: string },
@@ -58,5 +101,174 @@ export class TeamsResource {
 
   async removeUser(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/users/${userId}`, options?.headers)
+  }
+
+  // ─── Invites ───────────────────────────────────────────────────────────────
+
+  async listInvites(teamId: string, options?: RequestOptions): Promise<PaginatedResponse<Invite>> {
+    return this.client.get<PaginatedResponse<Invite>>(
+      `/mgmt/v1/teams/${teamId}/invites`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async createInvite(
+    teamId: string,
+    payload: CreateInviteParams,
+    options?: RequestOptions
+  ): Promise<Invite> {
+    return this.client.post<Invite>(
+      `/mgmt/v1/teams/${teamId}/invites`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async deleteInvite(teamId: string, inviteId: string, options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>(
+      `/mgmt/v1/teams/${teamId}/invites/${inviteId}`,
+      options?.headers
+    )
+  }
+
+  async resendInvite(teamId: string, inviteId: string, options?: RequestOptions): Promise<void> {
+    return this.client.post<void>(
+      `/mgmt/v1/teams/${teamId}/invites/${inviteId}/resend`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  // ─── SAML Provider ─────────────────────────────────────────────────────────
+
+  async getSamlProvider(
+    teamId: string,
+    options?: RequestOptions
+  ): Promise<{ data: TeamSamlProvider }> {
+    return this.client.get<{ data: TeamSamlProvider }>(
+      `/mgmt/v1/teams/${teamId}/saml-provider`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async upsertSamlProvider(
+    teamId: string,
+    payload: UpsertTeamSamlProviderParams,
+    options?: RequestOptions
+  ): Promise<{ data: TeamSamlProvider }> {
+    return this.client.put<{ data: TeamSamlProvider }>(
+      `/mgmt/v1/teams/${teamId}/saml-provider`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async deleteSamlProvider(teamId: string, options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/saml-provider`, options?.headers)
+  }
+
+  // ─── Space Blueprints ──────────────────────────────────────────────────────
+
+  async listBlueprints(
+    teamId: string,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<SpaceBlueprint>> {
+    return this.client.get<PaginatedResponse<SpaceBlueprint>>(
+      `/mgmt/v1/teams/${teamId}/blueprints`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async createBlueprint(
+    teamId: string,
+    payload: CreateSpaceBlueprintParams,
+    options?: RequestOptions
+  ): Promise<{ data: SpaceBlueprint }> {
+    return this.client.post<{ data: SpaceBlueprint }>(
+      `/mgmt/v1/teams/${teamId}/blueprints`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async getBlueprint(
+    teamId: string,
+    blueprintId: string,
+    options?: RequestOptions
+  ): Promise<{ data: SpaceBlueprint }> {
+    return this.client.get<{ data: SpaceBlueprint }>(
+      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async updateBlueprint(
+    teamId: string,
+    blueprintId: string,
+    payload: UpdateSpaceBlueprintParams,
+    options?: RequestOptions
+  ): Promise<{ data: SpaceBlueprint }> {
+    return this.client.put<{ data: SpaceBlueprint }>(
+      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async deleteBlueprint(
+    teamId: string,
+    blueprintId: string,
+    options?: RequestOptions
+  ): Promise<void> {
+    return this.client.delete<void>(
+      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      options?.headers
+    )
+  }
+
+  // ─── Space Roles ───────────────────────────────────────────────────────────
+
+  async listSpaceRoles(teamId: string, options?: RequestOptions): Promise<{ data: Role[] }> {
+    return this.client.get<{ data: Role[] }>(
+      `/mgmt/v1/teams/${teamId}/roles/space`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async createSpaceRole(
+    teamId: string,
+    payload: CreateRoleParams,
+    options?: RequestOptions
+  ): Promise<{ data: Role }> {
+    return this.client.post<{ data: Role }>(
+      `/mgmt/v1/teams/${teamId}/roles/space`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async updateSpaceRole(
+    teamId: string,
+    roleId: string,
+    payload: UpdateRoleParams,
+    options?: RequestOptions
+  ): Promise<{ data: Role }> {
+    return this.client.patch<{ data: Role }>(
+      `/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async deleteSpaceRole(teamId: string, roleId: string, options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>(
+      `/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
+      options?.headers
+    )
   }
 }

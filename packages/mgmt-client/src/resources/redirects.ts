@@ -63,4 +63,28 @@ export class RedirectsResource {
       options?.headers
     )
   }
+
+  async exportData(
+    spaceId: string,
+    payload?: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/redirects/export`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async importData(
+    spaceId: string,
+    payload: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/redirects/import`,
+      payload,
+      options?.headers
+    )
+  }
 }

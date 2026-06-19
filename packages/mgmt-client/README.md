@@ -6,13 +6,9 @@ TypeScript client for the b10cks Management API. [b10cks](https://www.b10cks.com
 
 ```bash
 npm install @b10cks/mgmt-client
-```
-
-```bash
+# or
 pnpm add @b10cks/mgmt-client
-```
-
-```bash
+# or
 yarn add @b10cks/mgmt-client
 ```
 
@@ -26,480 +22,446 @@ const client = new ManagementClient({
   token: 'your-bearer-token',
 })
 
-const user = await client.users.getMe()
-console.log(user)
+const { data: user } = await client.users.getMe()
+const spaces = await client.spaces.list()
+const blocks = await client.blocks.list('space-id', { search: 'article' })
 ```
 
 ## Configuration
 
-The client accepts the following configuration options:
-
 ```typescript
 interface ClientConfig {
-  baseUrl: string // Base URL of the b10cks API
-  token: string // Bearer token for authentication
-  timeout?: number // Request timeout in milliseconds (default: 30000)
+  baseUrl: string            // Base URL of the b10cks API
+  token: string              // Bearer token for authentication
+  timeout?: number           // Request timeout in ms (default: 30 000)
+  headers?: Record<string, string>  // Extra headers sent on every request
 }
 ```
 
-## API Resources
+## Resources
+
+| Resource | Property | Description |
+|---|---|---|
+| Users | `client.users` | Current user profile, settings, tokens, invites, social links |
+| Teams | `client.teams` | Teams, members, invites, SAML, blueprints, space roles |
+| Spaces | `client.spaces` | Spaces, members, invites, subscriptions, AI, backups, migrations |
+| Blocks | `client.blocks` | Block schemas, templates, versions |
+| Block Tags | `client.blockTags` | Tags for organizing blocks |
+| Block Folders | `client.blockFolders` | Folder hierarchy for blocks |
+| Contents | `client.contents` | Content entries, tree operations, versions, publishing |
+| Comments | `client.comments` | Comments, replies, reactions on content |
+| Assets | `client.assets` | Media assets with file upload support |
+| Asset Folders | `client.assetFolders` | Folder hierarchy for assets |
+| Asset Tags | `client.assetTags` | Tags for organizing assets |
+| Redirects | `client.redirects` | URL redirects with hit tracking |
+| Tokens | `client.tokens` | Space-scoped API tokens |
+| Data Sources | `client.dataSources` | External data sources and entries |
+| Automations | `client.automations` | Automation actions, triggers, executions, stats |
+| Releases | `client.releases` | Release management and publishing workflows |
+| AI | `client.ai` | AI models, translation, meta-tag generation, streaming |
+| System | `client.system` | Health, config, plans |
+| Provider | `client.provider` | Provider-level stats and notes |
+
+## API Reference
 
 ### Users
 
-Manage user account information.
-
 ```typescript
-// Get current user
-const user = await client.users.getMe()
+const { data: me } = await client.users.getMe()
+await client.users.updateMe({ firstname: 'Jane', lastname: 'Doe' })
+await client.users.updateSettings({ theme: 'dark' })
+await client.users.updateAvatar({ avatar: 'base64...' })
+await client.users.updatePassword({ old_password: '...', password: '...' })
 
-// Update current user
-await client.users.updateMe({
-  firstname: 'John',
-  lastname: 'Doe',
-})
+// Social links
+const { data: links } = await client.users.listSocialLinks()
+await client.users.deleteSocialLink('github')
 
-// Update user avatar
-await client.users.updateAvatar({
-  avatar: 'base64-encoded-image',
-})
+// Personal access tokens
+const tokens = await client.users.listTokens()
+const { data: token } = await client.users.createToken({ name: 'CI Token' })
+await client.users.deleteToken('token-id')
 
-// Update password
-await client.users.updatePassword({
-  old_password: 'current-password',
-  password: 'new-password',
-})
-
-// Update user settings
-await client.users.updateSettings()
+// Invites
+const invites = await client.users.listInvites()
+const { data: invite } = await client.users.getInvite('invite-id')
+await client.users.acceptInvite('invite-id')
 ```
 
 ### Teams
 
-Manage teams and team hierarchies.
-
 ```typescript
-// List all teams
 const teams = await client.teams.list()
-
-// Create a team
-const team = await client.teams.create({
-  name: 'Marketing Team',
-  color: '#FF5733',
-  description: 'Our marketing team',
-})
-
-// Get a specific team
-const team = await client.teams.get('team-id')
-
-// Update a team
-await client.teams.update('team-id', {
-  name: 'Updated Team Name',
-  color: '#00FF00',
-})
-
-// Delete a team
+const team = await client.teams.create({ name: 'Marketing', color: '#FF5733' })
+await client.teams.update('team-id', { name: 'Marketing & Growth' })
 await client.teams.delete('team-id')
-
-// Get team hierarchy
 const hierarchy = await client.teams.getHierarchy()
 
-// Manage team users
-await client.teams.addUser('team-id')
-await client.teams.updateUser('team-id', 'user-id')
-await client.teams.removeUser('team-id', 'user-id')
+// Members
+const members = await client.teams.listMembers('team-id')
+await client.teams.updateMember('team-id', 'user-id', { role: 'admin' })
+await client.teams.removeMember('team-id', 'user-id')
+
+// Invites
+const invites = await client.teams.listInvites('team-id')
+await client.teams.createInvite('team-id', { email: 'user@example.com', role: 'member' })
+await client.teams.deleteInvite('team-id', 'invite-id')
+await client.teams.resendInvite('team-id', 'invite-id')
+
+// SAML provider
+const { data: saml } = await client.teams.getSamlProvider('team-id')
+await client.teams.upsertSamlProvider('team-id', { enabled: true, sso_url: '...', idp_entity_id: '...' })
+await client.teams.deleteSamlProvider('team-id')
+
+// Space blueprints
+const blueprints = await client.teams.listBlueprints('team-id')
+await client.teams.createBlueprint('team-id', { name: 'Blog', data: { ... } })
+await client.teams.updateBlueprint('team-id', 'blueprint-id', { name: 'Blog v2' })
+await client.teams.deleteBlueprint('team-id', 'blueprint-id')
+
+// Space roles
+const roles = await client.teams.listSpaceRoles('team-id')
+await client.teams.createSpaceRole('team-id', { key: 'editor', name: 'Editor', abilities: ['content.create'] })
+await client.teams.updateSpaceRole('team-id', 'role-id', { name: 'Senior Editor' })
+await client.teams.deleteSpaceRole('team-id', 'role-id')
 ```
 
 ### Spaces
 
-Manage spaces within your organization.
-
 ```typescript
-// Create a space
-const space = await client.spaces.create({
-  name: 'My Space',
-  slug: 'my-space',
-  color: '#4A90E2',
-})
-
-// Get a space
-const space = await client.spaces.get('space-id')
-
-// Update a space
-await client.spaces.update('space-id', {
-  name: 'Updated Space',
-  slug: 'updated-space',
-  state: 'active',
-})
-
-// Delete a space
+const spaces = await client.spaces.list()
+const space = await client.spaces.create({ name: 'My Space', slug: 'my-space' })
+await client.spaces.update('space-id', { name: 'Updated', slug: 'updated' })
 await client.spaces.delete('space-id')
-
-// Update space icon
-await client.spaces.updateIcon('space-id', {
-  icon: 'base64-encoded-icon',
-})
-
-// Archive a space
 await client.spaces.archive('space-id')
-
-// Get space statistics
+await client.spaces.updateIcon('space-id', { icon: 'base64...' })
 const stats = await client.spaces.getStats('space-id')
+const menu = await client.spaces.getContentMenu('space-id')
 
-// Get AI usage for a space
-const aiUsage = await client.spaces.getAiUsage('space-id')
+// Members
+const members = await client.spaces.listMembers('space-id')
+await client.spaces.updateMember('space-id', 'user-id', { role: 'editor' })
+await client.spaces.removeMember('space-id', 'user-id')
+
+// Invites
+await client.spaces.createInvite('space-id', { email: 'user@example.com', role: 'viewer' })
+await client.spaces.resendInvite('space-id', 'invite-id')
+await client.spaces.deleteInvite('space-id', 'invite-id')
+
+// Search
+await client.spaces.updateSearch('space-id', { driver: 'meilisearch', ... })
+await client.spaces.reindexSearch('space-id')
+
+// Subscriptions
+const { data: current } = await client.spaces.getCurrentSubscription('space-id')
+const { checkout_url } = await client.spaces.checkoutSubscription('space-id', { plan_id: 'pro' })
+await client.spaces.cancelSubscription('space-id')
+
+// AI settings & configs
+const { data: aiSettings } = await client.spaces.getAiSettings('space-id')
+await client.spaces.updateAiSettings('space-id', { model: 'gpt-4o', enabled: true })
+const { data: aiConfigs } = await client.spaces.listAiConfigs('space-id')
+await client.spaces.createAiConfig('space-id', { name: 'Blog Writer', driver: 'openai', model: 'gpt-4o' })
+
+// Audit logs
+const logs = await client.spaces.getAuditLogs('space-id', { page: 1 })
+
+// Backups
+const backups = await client.spaces.listBackups('space-id')
+await client.spaces.createBackup('space-id', { name: 'Weekly backup' })
+
+// Migrations
+const migrations = await client.spaces.listMigrations('space-id')
+await client.spaces.createMigration('space-id', { source_space_id: 'other-space-id' })
+
+// Presence (real-time collaboration)
+await client.spaces.updateSpacePresence('space-id')
+await client.spaces.leaveSpacePresence('space-id')
+await client.spaces.updateContentPresence('space-id', 'content-id')
+await client.spaces.leaveContentPresence('space-id', 'content-id')
 ```
 
 ### Blocks
 
-Manage content blocks within spaces.
-
 ```typescript
-// List blocks in a space
 const blocks = await client.blocks.list('space-id', {
-  page: 1,
-  per_page: 20,
   search: 'blog',
   type: 'article',
   sort: '-created_at',
+  per_page: 25,
 })
-
-// Create a block
-const block = await client.blocks.create('space-id')
-
-// Get a block
-const block = await client.blocks.get('space-id', 'block-id')
-
-// Update a block
-await client.blocks.update('space-id', 'block-id')
-
-// Delete a block
+const block = await client.blocks.create('space-id', { name: 'Article', slug: 'article', schema: { ... } })
+await client.blocks.update('space-id', 'block-id', { name: 'Updated Article' })
 await client.blocks.delete('space-id', 'block-id')
-```
 
-### Block Tags
+// Templates
+const templates = await client.blocks.listTemplates('space-id', 'block-id')
+await client.blocks.createTemplate('space-id', 'block-id', { name: 'Featured Article', content: { ... } })
+await client.blocks.deleteTemplate('space-id', 'block-id', 'template-id')
 
-Organize blocks with tags.
-
-```typescript
-// List block tags
-const tags = await client.blockTags.list('space-id')
-
-// Create a tag
-const tag = await client.blockTags.create('space-id')
-
-// Get a tag
-const tag = await client.blockTags.get('space-id', 'tag-id')
-
-// Update a tag
-await client.blockTags.update('space-id', 'tag-id')
-
-// Delete a tag
-await client.blockTags.delete('space-id', 'tag-id')
-```
-
-### Block Folders
-
-Organize blocks in folder structures.
-
-```typescript
-// List folders
-const folders = await client.blockFolders.list('space-id')
-
-// Create a folder
-const folder = await client.blockFolders.create('space-id')
-
-// Get a folder
-const folder = await client.blockFolders.get('space-id', 'folder-id')
-
-// Update a folder
-await client.blockFolders.update('space-id', 'folder-id')
-
-// Delete a folder
-await client.blockFolders.delete('space-id', 'folder-id')
+// Versions
+const versions = await client.blocks.listVersions('space-id', 'block-id')
+await client.blocks.restoreVersion('space-id', 'block-id', 'version-id')
 ```
 
 ### Contents
 
-Manage content entries and their versions.
-
 ```typescript
-// List contents
 const contents = await client.contents.list('space-id', {
-  page: 1,
-  per_page: 20,
-  block_id: 'block-id',
+  block_id: 'article-block-id',
   published: true,
+  per_page: 20,
 })
 
-// Create content with default language + translations in one pass
+// Create content with translations in one pass
 const content = await client.contents.create('space-id', {
   name: 'Home',
   slug: 'home',
   block_id: 'page-block-id',
   language_iso: 'en',
-  content: {
-    title: 'Home',
-  },
+  content: { title: 'Home', hero: '...' },
   translations: [
-    {
-      name: 'Startseite',
-      slug: 'startseite',
-      language_iso: 'de',
-      content: {
-        title: 'Startseite',
-      },
-    },
+    { name: 'Startseite', slug: 'startseite', language_iso: 'de', content: { title: 'Startseite' } },
   ],
 })
 
-// Get content
-const content = await client.contents.get('space-id', 'content-id')
-
-// Update content
-await client.contents.update('space-id', 'content-id', {
-  name: 'Homepage',
-  content: {
-    title: 'Homepage',
-  },
-})
-
-// Delete content
+await client.contents.update('space-id', 'content-id', { name: 'Homepage', message: 'SEO update' })
 await client.contents.delete('space-id', 'content-id')
 
-// Publish content with an explicit publish date and translations in one pass
-await client.contents.publish('space-id', 'content-id', {
-  published_at: '2024-05-01T12:30:00Z',
-  translations: [
-    {
-      id: 'translation-content-id',
-      content: {
-        title: 'Startseite',
-      },
-      published_at: '2024-05-01T12:30:00Z',
-    },
+// Publishing
+await client.contents.publish('space-id', 'content-id')
+await client.contents.publish('space-id', 'content-id', { published_at: '2025-01-01T00:00:00Z' })
+await client.contents.unpublish('space-id', 'content-id')
+await client.contents.schedule('space-id', 'content-id', { scheduled_at: '2025-06-01T08:00:00Z' })
+
+// Tree operations (bulk create/move/delete/duplicate)
+await client.contents.treeOperations('space-id', {
+  operations: [
+    { type: 'create', temp_id: 'tmp-1', block_id: 'page-block-id', name: 'About' },
+    { type: 'move', ids: ['content-a', 'content-b'], parent_id: 'content-parent' },
+    { type: 'delete', ids: ['content-old'] },
   ],
 })
 
-// Unpublish content
-await client.contents.unpublish('space-id', 'content-id')
+await client.contents.move('space-id', 'content-id', { parent_id: 'new-parent-id', position: 2 })
+await client.contents.bulkCreate('space-id', { items: [{ name: 'Page 1', slug: 'page-1', block_id: '...' }] })
 
-// Get a specific version
-const version = await client.contents.getVersion('space-id', 'content-id', 1)
+// Versions
+const versions = await client.contents.listVersions('space-id', 'content-id')
+const version = await client.contents.getVersion('space-id', 'content-id', 'version-id')
+await client.contents.publishVersion('space-id', 'content-id', 'version-id')
+await client.contents.setVersionAsCurrent('space-id', 'content-id', 'version-id')
+```
 
-// Update a version
-await client.contents.updateVersion('space-id', 'content-id', 1)
+### Comments
 
-// Publish a specific version
-await client.contents.publishVersion('space-id', 'content-id', 1)
+```typescript
+const comments = await client.comments.list('space-id', 'content-id')
+await client.comments.create('space-id', 'content-id', { body: 'Looks great!', field: 'title' })
+await client.comments.update('space-id', 'content-id', 'comment-id', { body: 'Updated comment' })
+await client.comments.delete('space-id', 'content-id', 'comment-id')
+await client.comments.resolve('space-id', 'content-id', 'comment-id')
+await client.comments.unresolve('space-id', 'content-id', 'comment-id')
 
-// Set a version as current
-await client.contents.setVersionAsCurrent('space-id', 'content-id', 1)
+// Reactions
+await client.comments.addReaction('space-id', 'content-id', 'comment-id', { emoji: '👍' })
+await client.comments.removeReaction('space-id', 'content-id', 'comment-id')
 ```
 
 ### Assets
 
-Manage media assets with file upload support.
-
 ```typescript
-// List assets
 const assets = await client.assets.list('space-id')
 
-// Create an asset with file upload
+// Create (browser — File object)
+await client.assets.create('space-id', { file: fileInput.files[0], name: 'hero.jpg' })
 
-// In Browser (withconst asset = await client.assets.create('space-id')
+// Create (Node.js — Buffer)
+import { readFileSync } from 'fs'
+const buffer = readFileSync('./hero.jpg')
+await client.assets.create('space-id', { file: buffer, filename: 'hero.jpg', mime_type: 'image/jpeg' })
 
-// Get an asset
-const asset = await client.assets.get('space-id', 'asset-id')
-
-// Update an asset
-await client.assets.update('space-id', 'asset-id')
-
-// Delete an asset
+await client.assets.update('space-id', 'asset-id', { name: 'Updated name' })
 await client.assets.delete('space-id', 'asset-id')
-```
 
-### Asset Folders
-
-Organize assets in folders.
-
-```typescript
-// List asset folders
-const folders = await client.assetFolders.list('space-id')
-
-// Create a folder
-const folder = await client.assetFolders.create('space-id')
-
-// Get a folder
-const folder = await client.assetFolders.get('space-id', 'folder-id')
-
-// Update a folder
-await client.assetFolders.update('space-id', 'folder-id')
-
-// Delete a folder
-await client.assetFolders.delete('space-id', 'folder-id')
-```
-
-### Asset Tags
-
-Tag and organize assets.
-
-```typescript
-// List asset tags
-const tags = await client.assetTags.list('space-id')
-
-// Create a tag
-const tag = await client.assetTags.create('space-id')
-
-// Get a tag
-const tag = await client.assetTags.get('space-id', 'tag-id')
-
-// Update a tag
-await client.assetTags.update('space-id', 'tag-id')
-
-// Delete a tag
-await client.assetTags.delete('space-id', 'tag-id')
+const { data: contents } = await client.assets.getLinkedContents('space-id', 'asset-id')
+await client.assets.exportData('space-id')
+await client.assets.importData('space-id', { ... })
 ```
 
 ### Redirects
 
-Manage URL redirects.
-
 ```typescript
-// List redirects
-const redirects = await client.redirects.list('space-id', {
-  type: 'permanent',
-  sort: '-hits',
-})
-
-// Create a redirect
-const redirect = await client.redirects.create('space-id')
-
-// Get a redirect
-const redirect = await client.redirects.get('space-id', 'redirect-id')
-
-// Update a redirect
-await client.redirects.update('space-id', 'redirect-id')
-
-// Delete a redirect
+const redirects = await client.redirects.list('space-id', { type: 'permanent', sort: '-hits' })
+await client.redirects.create('space-id', { source: '/old-path', destination: '/new-path', type: 'permanent' })
+await client.redirects.update('space-id', 'redirect-id', { destination: '/updated-path' })
 await client.redirects.delete('space-id', 'redirect-id')
-
-// Reset redirect hit counter
-await client.redirects.reset('space-id', 'redirect-id')
+await client.redirects.reset('space-id', 'redirect-id')  // reset hit counter
+await client.redirects.exportData('space-id')
+await client.redirects.importData('space-id', { ... })
 ```
 
 ### Tokens
 
-Manage space access tokens.
-
 ```typescript
-// Create a token
+const tokens = await client.tokens.list('space-id')
 const token = await client.tokens.create('space-id', {
-  name: 'Production API Token',
-  expires_at: '2024-12-31T23:59:59Z',
-  execution_limit: 10000,
+  name: 'Production',
+  expires_at: '2025-12-31T23:59:59Z',
 })
-
-// Delete a token
 await client.tokens.delete('space-id', 'token-id')
 ```
 
 ### Data Sources
 
-Manage external data sources.
+```typescript
+const sources = await client.dataSources.list('space-id')
+const source = await client.dataSources.create('space-id', { name: 'Products', slug: 'products', type: 'json', schema: { ... } })
+
+// Entries
+const entries = await client.dataSources.listEntries('space-id', 'source-id')
+await client.dataSources.createEntry('space-id', 'source-id', { data: { name: 'Widget', price: 9.99 } })
+await client.dataSources.updateEntry('space-id', 'source-id', 'entry-id', { data: { price: 12.99 } })
+await client.dataSources.deleteEntry('space-id', 'source-id', 'entry-id')
+
+// Import / export
+await client.dataSources.exportEntries('space-id', 'source-id')
+await client.dataSources.importEntries('space-id', 'source-id', { ... })
+await client.dataSources.translateMissingDimensions('space-id', 'source-id')
+```
+
+### Automations
 
 ```typescript
-// List data sources
-const sources = await client.dataSources.list('space-id')
+// Actions (the "what to do")
+const actions = await client.automations.listActions('space-id')
+await client.automations.createAction('space-id', {
+  name: 'Slack Notify',
+  type: 'webhook',
+  config: { url: 'https://hooks.slack.com/...' },
+})
 
-// Create a data source
-const source = await client.dataSources.create('space-id')
+// Trigger catalog
+const catalog = await client.automations.getTriggerCatalog('space-id')
 
-// Get a data source
-const source = await client.dataSources.get('space-id', 'source-id')
+// Automations (the "when + what")
+const automations = await client.automations.list('space-id')
+await client.automations.create('space-id', {
+  name: 'Notify on publish',
+  action_id: 'action-id',
+  trigger_type: 'content.published',
+})
+await client.automations.trigger('space-id', 'automation-id')
 
-// Update a data source
-await client.dataSources.update('space-id', 'source-id')
+// Executions
+const executions = await client.automations.listExecutions('space-id', { automation_id: 'automation-id' })
+await client.automations.replayExecution('space-id', 'execution-id')
 
-// Delete a data source
-await client.dataSources.delete('space-id', 'source-id')
+// Stats
+const summary = await client.automations.getStatsSummary('space-id', 'automation-id')
+const trends = await client.automations.getStatsTrends('space-id', 'automation-id', { interval: 'day' })
+```
 
-// Manage data entries
-const entries = await client.dataSources.listEntries('space-id', 'source-id')
-const entry = await client.dataSources.createEntry('space-id', 'source-id')
-const entry = await client.dataSources.getEntry('space-id', 'source-id', 'entry-id')
-await client.dataSources.updateEntry('space-id', 'source-id', 'entry-id')
-await client.dataSources.deleteEntry('space-id', 'source-id', 'entry-id')
+### Releases
+
+```typescript
+const releases = await client.releases.list('space-id')
+const { data: release } = await client.releases.create('space-id', {
+  name: 'Q1 Launch',
+  description: 'Homepage refresh and blog posts',
+})
+
+// Add / remove content versions from the release
+await client.releases.assignVersion('space-id', 'release-id', { version_id: 'version-id' })
+await client.releases.removeVersion('space-id', 'release-id', { version_id: 'version-id' })
+
+// Lifecycle
+await client.releases.commit('space-id', 'release-id')   // lock for review
+await client.releases.publish('space-id', 'release-id')  // go live
+await client.releases.cancel('space-id', 'release-id')   // discard
 ```
 
 ### AI
 
-Access AI-powered features.
-
 ```typescript
-// Get available AI models
-const models = await client.ai.getAvailableModels({
-  provider: 'openai',
-  capability: 'text-generation',
-})
+const { data: models } = await client.ai.getModels()
+const { data: available } = await client.ai.getAvailableModels({ provider: 'openai' })
 
-// Generate meta tags
-const metaTags = await client.ai.generateMetaTags()
+const metaTags = await client.ai.generateMetaTags({ content: { title: 'My Article', body: '...' } })
+const translation = await client.ai.translate({ text: 'Hello', target_language: 'de' })
 
-// Translate content
-const translation = await client.ai.translate()
+// Streaming endpoints return the raw response for client-side SSE consumption
+await client.ai.translateStream({ text: 'Hello', target_language: 'fr' })
+await client.ai.contentInteractionStream({ content_id: 'content-id', prompt: 'Summarise this' })
 ```
 
 ### System
 
-System health and configuration.
+```typescript
+const health = await client.system.health()
+const config = await client.system.getConfig()
+const { data: plans } = await client.system.getPlans()
+```
+
+### Provider
 
 ```typescript
-// Check API health
-const health = await client.system.health()
-
-// Get system configuration
-const config = await client.system.getConfig()
+const stats = await client.provider.getStats()
+const notes = await client.provider.listNotes()
+await client.provider.createNote({ title: 'Maintenance window', content: 'Scheduled downtime on Sunday', is_pinned: true })
+await client.provider.updateNote('note-id', { is_pinned: false })
+await client.provider.deleteNote('note-id')
 ```
 
 ## Error Handling
-
-The client throws `ManagementApiError` for API errors:
 
 ```typescript
 import { ManagementApiError } from '@b10cks/mgmt-client'
 
 try {
-  const user = await client.users.getMe()
+  await client.contents.publish('space-id', 'content-id')
 } catch (error) {
   if (error instanceof ManagementApiError) {
-    console.error('API Error:', error.message)
-    console.error('Status Code:', error.statusCode)
-    console.error('Response:', error.response)
+    console.error(error.message)      // human-readable message
+    console.error(error.statusCode)   // HTTP status code
+    console.error(error.response)     // raw API response body
   }
 }
 ```
 
 ## Pagination
 
-List endpoints return paginated responses:
+All list endpoints return a `PaginatedResponse<T>`:
 
 ```typescript
-const result = await client.blocks.list('space-id', {
-  page: 1,
-  per_page: 20,
-})
+const result = await client.blocks.list('space-id', { page: 1, per_page: 25 })
 
-console.log(result.data) // Array of items
-console.log(result.meta.total) // Total number of items
-console.log(result.links.next) // URL for next page
+result.data          // T[]  — current page items
+result.meta.total    // total item count across all pages
+result.meta.last_page
+result.links.next    // URL for the next page, or null
+result.links.prev    // URL for the previous page, or null
 ```
 
-## TypeScript Support
+## TypeScript
 
-This package is written in TypeScript and includes full type definitions:
+All types are exported from the package root:
 
 ```typescript
-import type { User, Space, Block, Content, PaginatedResponse } from '@b10cks/mgmt-client'
+import type {
+  Automation, AutomationAction, AutomationExecution,
+  Backup, Block, BlockTemplate, BlockVersion,
+  Comment, CommentReaction,
+  Content, ContentVersion, ContentVersionListItem,
+  DataEntry, DataSource,
+  Invite, Migration,
+  PaginatedResponse, Plan,
+  Release, Redirect,
+  Space, SpaceAiConfig, SpaceBlueprint, SpaceMember,
+  SpaceToken, Subscription,
+  Team, TeamMember, TeamSamlProvider,
+  User, SimpleUser,
+} from '@b10cks/mgmt-client'
 ```
 
 ## License
@@ -508,4 +470,4 @@ MIT
 
 ## Support
 
-For issues and questions, please visit the [GitHub repository](https://github.com/b10cks/sdk).
+For issues and questions, visit the [GitHub repository](https://github.com/b10cks/sdk).

@@ -1,5 +1,5 @@
 import type { HttpClient } from '../http-client'
-import type { Asset, PaginatedResponse, RequestOptions } from '../types'
+import type { Asset, LinkedAssetContent, PaginatedResponse, RequestOptions } from '../types'
 
 export class AssetsResource {
   constructor(private readonly client: HttpClient) {}
@@ -40,6 +40,42 @@ export class AssetsResource {
   async delete(spaceId: string, assetId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
       `/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
+      options?.headers
+    )
+  }
+
+  async getLinkedContents(
+    spaceId: string,
+    assetId: string,
+    options?: RequestOptions
+  ): Promise<{ data: LinkedAssetContent[] }> {
+    return this.client.get<{ data: LinkedAssetContent[] }>(
+      `/mgmt/v1/spaces/${spaceId}/assets/${assetId}/linked-contents`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async exportData(
+    spaceId: string,
+    payload?: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/assets/export`,
+      payload,
+      options?.headers
+    )
+  }
+
+  async importData(
+    spaceId: string,
+    payload: Record<string, unknown>,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      `/mgmt/v1/spaces/${spaceId}/assets/import`,
+      payload,
       options?.headers
     )
   }

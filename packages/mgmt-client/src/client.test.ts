@@ -5,6 +5,13 @@ import { ManagementApiError } from './http-client'
 
 global.fetch = vi.fn()
 
+const mockJsonResponse = (body: unknown, status = 200) => ({
+  ok: true,
+  status,
+  headers: { get: (_: string) => 'application/json' },
+  json: async () => body,
+})
+
 describe('ManagementClient', () => {
   const mockConfig = {
     baseUrl: 'https://api.test.com',
@@ -49,11 +56,7 @@ describe('ManagementClient', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockUser,
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(mockUser))
 
       const client = new ManagementClient(mockConfig)
       const user = await client.users.getMe()
@@ -76,11 +79,7 @@ describe('ManagementClient', () => {
         lastname: 'Smith',
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ ...updateParams, id: '1' }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ ...updateParams, id: '1' }))
 
       const client = new ManagementClient(mockConfig)
       await client.users.updateMe(updateParams)
@@ -118,11 +117,7 @@ describe('ManagementClient', () => {
         },
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(mockResponse))
 
       const client = new ManagementClient(mockConfig)
       const teams = await client.teams.list()
@@ -138,11 +133,7 @@ describe('ManagementClient', () => {
         color: '#FF5733',
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ id: '1', ...createParams }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: '1', ...createParams }))
 
       const client = new ManagementClient(mockConfig)
       const team = await client.teams.create(createParams)
@@ -160,11 +151,7 @@ describe('ManagementClient', () => {
         color: '#4A90E2',
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ id: '1', ...createParams }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: '1', ...createParams }))
 
       const client = new ManagementClient(mockConfig)
       const space = await client.spaces.create(createParams)
@@ -194,11 +181,7 @@ describe('ManagementClient', () => {
         ],
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 201,
-        json: async () => ({ id: 'content-1', ...createParams }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: 'content-1', ...createParams }, 201))
 
       const client = new ManagementClient(mockConfig)
       await client.contents.create('space-1', createParams)
@@ -226,11 +209,7 @@ describe('ManagementClient', () => {
         ],
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ id: 'content-1', published_at: publishParams.published_at }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: 'content-1', published_at: publishParams.published_at }))
 
       const client = new ManagementClient(mockConfig)
       await client.contents.publish('space-1', 'content-1', publishParams)
@@ -273,6 +252,7 @@ describe('ManagementClient', () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 404,
+        headers: { get: (_: string) => 'application/json' },
         json: async () => errorResponse,
       })
 
@@ -310,11 +290,7 @@ describe('ManagementClient', () => {
         },
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(mockResponse))
 
       const client = new ManagementClient(mockConfig)
       const result = await client.blocks.list('space-1', {
@@ -330,11 +306,7 @@ describe('ManagementClient', () => {
 
   describe('Query parameters', () => {
     it('should properly encode query parameters', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [], meta: {}, links: {} }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [], meta: {}, links: {} }))
 
       const client = new ManagementClient(mockConfig)
       await client.blocks.list('space-1', {
@@ -343,25 +315,21 @@ describe('ManagementClient', () => {
         sort: '-created_at',
       })
 
-      const callUrl = (global.fetch as any).mock.calls[0][0]
+      const callUrl = (global.fetch as any).mock.lastCall[0]
       expect(callUrl).toContain('search=test+search')
       expect(callUrl).toContain('type=article')
       expect(callUrl).toContain('sort=-created_at')
     })
 
     it('should handle array query parameters', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ data: [], meta: {}, links: {} }),
-      })
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [], meta: {}, links: {} }))
 
       const client = new ManagementClient(mockConfig)
       await client.blocks.list('space-1', {
         type: ['article', 'page'],
       })
 
-      const callUrl = (global.fetch as any).mock.calls[0][0]
+      const callUrl = (global.fetch as any).mock.lastCall[0]
       expect(callUrl).toContain('type')
     })
   })
