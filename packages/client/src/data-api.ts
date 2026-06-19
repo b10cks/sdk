@@ -7,12 +7,19 @@ import type {
   IBContentQueryParams,
   IBDataEntry,
   IBDataSource,
+  IBGetBlocksParams,
+  IBGetContentsParams,
+  IBGetRedirectsParams,
   IBRedirect,
+  IBRedirectLookupResult,
+  IBSearchParams,
+  IBSearchResponse,
+  IBSearchResult,
   IBSitemapEntry,
   IBSpace,
 } from './types'
 
-type ApiQueryParams = Omit<IBBaseQueryParams, 'token'>
+type ApiQueryParams = Omit<IBBaseQueryParams, 'token'> & Record<string, unknown>
 type ApiCollectionResponse<T> =
   | T[]
   | IBCollectionResponse<T>
@@ -36,6 +43,7 @@ export interface DataApiClient {
     params?: ApiQueryParams
   ): Promise<T | { data: T; rv?: string | number }>
   getAll<T>(endpoint: Endpoint, params?: ApiQueryParams): Promise<T[]>
+  post?<T>(endpoint: string, body?: unknown, params?: ApiQueryParams): Promise<T>
   setRv(value: string | number): void
 }
 
@@ -45,6 +53,63 @@ export interface GetConfigOptions extends Omit<IBContentQueryParams, 'token' | '
   slug?: string
   language?: string
   bypassCache?: boolean
+}
+
+function serializeFilterValue(value: unknown): string | undefined {
+  if (value === null || value === undefined) return undefined
+  if (typeof value === 'boolean') return String(value)
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'string') return value
+
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>
+
+    if ('null' in obj) return 'null:'
+    if ('!null' in obj) return '!null:'
+    if ('between' in obj) {
+      const [from, to] = obj.between as [string, string]
+      return `${from}...${to}`
+    }
+
+    const ops = [
+      'eq', 'neq', 'like', '!like', '^like', 'like$',
+      'lt', 'gt', 'lte', 'gte', 'in', '!in', 'empty', '!empty',
+    ] as const
+    for (const op of ops) {
+      if (op in obj) {
+        const val = obj[op]
+        if (Array.isArray(val)) return `${op}:${val.join(',')}`
+        return `${op}:${String(val)}`
+      }
+    }
+  }
+
+  return undefined
+}
+
+export function serializeFilter(filter: Record<string, unknown>): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const [key, value] of Object.entries(filter)) {
+    const serialized = serializeFilterValue(value)
+    if (serialized !== undefined) {
+      result[key] = serialized
+    }
+  }
+  return result
+}
+
+function buildParamsWithFilter(
+  params: Record<string, unknown>,
+  filter: unknown,
+  sort: string | string[] | undefined
+): ApiQueryParams {
+  const filterParams =
+    filter && typeof filter === 'object'
+      ? serializeFilter(filter as Record<string, unknown>)
+      : {}
+  const sortParam =
+    Array.isArray(sort) ? { sort: sort.join(',') } : sort != null ? { sort } : {}
+  return { ...params, ...filterParams, ...sortParam }
 }
 
 export class B10cksDataApi {
@@ -79,14 +144,60 @@ export class B10cksDataApi {
   }
 
   async getContents<T = Record<string, unknown>>(
-    params: Omit<IBContentQueryParams, 'token'> = {},
+    params: IBGetContentsParams = {},
     options: CollectionFetchOptions = {}
   ): Promise<IBContent<T>[]> {
-    return this.getCollection<IBContent<T>>('contents', params, options)
+    const { filter, sort, ...rest } = params
+    return this.getCollection<IBContent<T>>(
+      'contents',
+      buildParamsWithFilter(rest, filter, sort),
+      options
+    )
   }
 
-  async getBlocks(params: ApiQueryParams = {}, options: CollectionFetchOptions = {}): Promise<IBBlock[]> {
-    return this.getCollection<IBBlock>('blocks', params, options)
+  async getBlock(blockId: string, params: ApiQueryParams = {}): Promise<IBBlock> {
+    return this.getResource<IBBlock>(`blocks/${blockId}`, params)
+  }
+
+  async getBlocks(
+    params: IBGetBlocksParams = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<IBBlock[]> {
+    const { filter, ...rest } = params
+    return this.getCollection<IBBlock>(
+      'blocks',
+      buildParamsWithFilter(rest, filter, undefined),
+      options
+    )
+  }
+
+  async search<T = Record<string, unknown>>(
+    params: IBSearchParams
+  ): Promise<IBSearchResponse<T>> {
+    const response = await this.client.get<IBSearchResponse<T>>(
+      'search',
+      params as unknown as ApiQueryParams
+    )
+    if (
+      typeof response === 'object' &&
+      response !== null &&
+      'data' in response &&
+      'meta' in (response as Record<string, unknown>)
+    ) {
+      return response as IBSearchResponse<T>
+    }
+    if (typeof response === 'object' && response !== null && 'data' in response) {
+      const inner = (response as { data: unknown }).data
+      if (
+        typeof inner === 'object' &&
+        inner !== null &&
+        'meta' in inner &&
+        'data' in inner
+      ) {
+        return inner as IBSearchResponse<T>
+      }
+    }
+    return response as unknown as IBSearchResponse<T>
   }
 
   async getSitemap(
@@ -115,10 +226,22 @@ export class B10cksDataApi {
     return this.getResource<IBSpace>('spaces/me', params)
   }
 
-  async getRedirects(params?: ApiQueryParams, forceRefresh?: boolean): Promise<RedirectMap>
-  async getRedirects(params?: ApiQueryParams, options?: RedirectFetchOptions): Promise<RedirectMap>
+  async lookupRedirect(source: string): Promise<IBRedirectLookupResult | false> {
+    if (!this.client.post) {
+      throw new Error(
+        'lookupRedirect requires a client that supports POST. Use ApiClient from @b10cks/client.'
+      )
+    }
+    return this.client.post<IBRedirectLookupResult | false>('redirects/lookup', { source })
+  }
+
+  async getRedirects(params?: IBGetRedirectsParams, forceRefresh?: boolean): Promise<RedirectMap>
   async getRedirects(
-    params: ApiQueryParams = {},
+    params?: IBGetRedirectsParams,
+    options?: RedirectFetchOptions
+  ): Promise<RedirectMap>
+  async getRedirects(
+    params: IBGetRedirectsParams = {},
     forceRefreshOrOptions: boolean | RedirectFetchOptions = false
   ): Promise<RedirectMap> {
     const { allPages = false, forceRefresh = false } =
@@ -130,7 +253,9 @@ export class B10cksDataApi {
       return this.redirectsCache
     }
 
-    const redirects = await this.getCollection<IBRedirect>('redirects', params, { allPages })
+    const { filter, ...rest } = params
+    const flatParams = buildParamsWithFilter(rest, filter, undefined)
+    const redirects = await this.getCollection<IBRedirect>('redirects', flatParams, { allPages })
     const map = Object.fromEntries(
       redirects.map(({ source, target, status_code }) => [source, { target, status_code }])
     )
@@ -182,7 +307,7 @@ export class B10cksDataApi {
 
   private unwrapResource<T>(response: T | { data: T }): T {
     if (typeof response === 'object' && response !== null && 'data' in response) {
-      return response.data
+      return (response as { data: T }).data
     }
 
     return response

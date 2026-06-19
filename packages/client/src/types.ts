@@ -5,11 +5,13 @@ export type FetchClient = (
 
 export type Endpoint =
   | 'blocks'
+  | `blocks/${string}`
   | 'contents'
   | `contents/${string}`
   | `datasources/${string}/entries`
   | 'datasources'
   | 'redirects'
+  | 'search'
   | 'sitemap'
   | 'spaces/me'
 
@@ -162,4 +164,115 @@ export interface B10cksApiClientOptions {
   fetchClient?: FetchClient
   getRv?: () => string | number
   setRv?: (value: string | number) => void
+}
+
+// ─── Advanced Filter Types ──────────────────────────────────────────────────
+
+export type StringFilter =
+  | string
+  | { eq: string }
+  | { neq: string }
+  | { in: string[] }
+  | { '!in': string[] }
+  | { like: string }
+  | { '!like': string }
+  | { '^like': string }
+  | { 'like$': string }
+  | { null: true }
+  | { '!null': true }
+
+export type IdFilter =
+  | string
+  | { eq: string }
+  | { neq: string }
+  | { in: string[] }
+  | { '!in': string[] }
+  | { null: true }
+  | { '!null': true }
+
+export type DateFilter =
+  | string
+  | { eq: string }
+  | { neq: string }
+  | { gte: string }
+  | { gt: string }
+  | { lte: string }
+  | { lt: string }
+  | { between: [string, string] }
+  | { null: true }
+  | { '!null': true }
+
+export interface IBContentFilter {
+  language?: string
+  language_iso?: string
+  content_type?: string
+  parent_id?: IdFilter
+  id?: IdFilter
+  canonical_id?: IdFilter
+  canonical_parent_id?: IdFilter
+  include_fallback?: boolean
+  published_at?: DateFilter
+  updated_at?: DateFilter
+  created_at?: DateFilter
+}
+
+export type ContentSortField = 'published_at' | 'updated_at' | 'created_at' | `content.${string}`
+export type ContentSortItem = ContentSortField | `-${ContentSortField}`
+
+export interface IBGetContentsParams extends Omit<IBContentQueryParams, 'token' | 'sort'> {
+  filter?: IBContentFilter
+  sort?: string | ContentSortItem[]
+}
+
+export interface IBBlockFilter {
+  name?: string
+  slug?: string
+  folder_id?: string
+  is_nestable?: boolean
+  is_root?: boolean
+  tags?: string | string[]
+  created_at?: DateFilter
+  updated_at?: DateFilter
+}
+
+export interface IBGetBlocksParams extends Omit<IBBaseQueryParams, 'token'> {
+  filter?: IBBlockFilter
+}
+
+export interface IBRedirectFilter {
+  source?: StringFilter
+  target?: StringFilter
+  status_code?: string | number
+  q?: string
+}
+
+export interface IBGetRedirectsParams extends Omit<IBBaseQueryParams, 'token'> {
+  filter?: IBRedirectFilter
+}
+
+export interface IBSearchResult<Content = IBContentBlock<string> & { [index: string]: unknown }>
+  extends IBContent<Content> {
+  relevance_score: number
+}
+
+export interface IBSearchParams {
+  q: string
+  limit?: number
+  offset?: number
+  language?: string
+}
+
+export interface IBSearchResponse<Content = IBContentBlock<string> & { [index: string]: unknown }> {
+  meta: {
+    query: string
+    total: number
+    limit: number
+    offset: number
+  }
+  data: IBSearchResult<Content>[]
+}
+
+export interface IBRedirectLookupResult {
+  target: string
+  status_code: number
 }

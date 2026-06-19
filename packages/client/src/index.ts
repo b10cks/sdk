@@ -60,7 +60,7 @@ export class ApiClient {
 
   async get<T>(
     endpoint: Endpoint,
-    params: Omit<IBBaseQueryParams, 'token'> = {}
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
   ): Promise<ApiResourceResponse<T>> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
@@ -79,7 +79,31 @@ export class ApiClient {
     return response
   }
 
-  async getAll<T>(endpoint: Endpoint, params: Omit<IBBaseQueryParams, 'token'> = {}): Promise<T[]> {
+  async post<T>(
+    endpoint: string,
+    body?: unknown,
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
+  ): Promise<T> {
+    const url = this.buildUrl(endpoint, {
+      vid: this.vid,
+      ...params,
+      rv: this.getRv(),
+      token: this.token,
+    })
+
+    const payload = await this.fetchClient(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+
+    return this.parseResponse<T>(payload)
+  }
+
+  async getAll<T>(
+    endpoint: Endpoint,
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
+  ): Promise<T[]> {
     const firstResponse = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(endpoint, {
       ...params,
       page: 1,
