@@ -3,6 +3,7 @@ import type { ClientConfig } from './types'
 import { HttpClient } from './http-client'
 import { AiResource } from './resources/ai'
 import { AssetFoldersResource } from './resources/asset-folders'
+import { IconsResource } from './resources/icons'
 import { AssetTagsResource } from './resources/asset-tags'
 import { AssetsResource } from './resources/assets'
 import { AutomationsResource } from './resources/automations'
@@ -43,6 +44,7 @@ export class ManagementClient {
   public readonly automations: AutomationsResource
   public readonly releases: ReleasesResource
   public readonly provider: ProviderResource
+  public readonly icons: IconsResource
 
   constructor(config: ClientConfig) {
     this.httpClient = new HttpClient(config)
@@ -66,5 +68,6 @@ export class ManagementClient {
     this.automations = new AutomationsResource(this.httpClient)
     this.releases = new ReleasesResource(this.httpClient)
     this.provider = new ProviderResource(this.httpClient)
+    this.icons = new IconsResource(this.httpClient)
   }
 }

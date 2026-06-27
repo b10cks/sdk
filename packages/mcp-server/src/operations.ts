@@ -28,6 +28,7 @@ export interface MgmtToolArguments {
   migrationId?: string
   inviteId?: string
   noteId?: string
+  iconId?: string
   params?: Record<string, unknown>
   payload?: Record<string, unknown>
 }
@@ -88,6 +89,7 @@ const backupId = (args: MgmtToolArguments): string => args.backupId ?? id(args)
 const migrationId = (args: MgmtToolArguments): string => args.migrationId ?? id(args)
 const inviteId = (args: MgmtToolArguments): string => args.inviteId ?? id(args)
 const noteId = (args: MgmtToolArguments): string => args.noteId ?? id(args)
+const iconId = (args: MgmtToolArguments): string => args.iconId ?? id(args)
 
 export const operations: OperationDefinition[] = [
   // ─── System ─────────────────────────────────────────────────────────────────
@@ -1153,6 +1155,7 @@ const crudResources = [
   ['assetTags', 'asset tag', 'assetTags', tagId],
   ['blockFolders', 'block folder', 'blockFolders', folderId],
   ['blockTags', 'block tag', 'blockTags', tagId],
+  ['icons', 'icon', 'icons', iconId],
   ['redirects', 'redirect', 'redirects', redirectId],
   ['dataSources', 'data source', 'dataSources', dataSourceId],
 ] as const
@@ -1199,6 +1202,13 @@ for (const [prefix, label, clientKey, getId] of crudResources) {
 }
 
 operations.push(
+  {
+    name: 'icons.tags',
+    description: 'List distinct tags used across icons in a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId'],
+    handler: (client, args) => client.icons.tags(spaceId(args)),
+  },
   {
     name: 'redirects.reset',
     description: 'Reset redirect hit counters.',

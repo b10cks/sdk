@@ -861,6 +861,55 @@ export interface GetRedirectsParams extends PaginationParams {
   [key: string]: unknown
 }
 
+// ─── Icons ───────────────────────────────────────────────────────────────────
+
+export interface Icon {
+  id: string
+  external_id: string | null
+  key: string
+  name: string
+  description: string | null
+  body: string
+  width: number
+  height: number
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateIconParams {
+  key: string
+  name: string
+  body: string
+  description?: string | null
+  external_id?: string | null
+  tags?: string[]
+  width?: number
+  height?: number
+}
+
+export interface UpdateIconParams {
+  key?: string
+  name?: string
+  body?: string
+  description?: string | null
+  external_id?: string | null
+  tags?: string[]
+  width?: number
+  height?: number
+}
+
+export interface GetIconsParams extends PaginationParams {
+  q?: string
+  key?: string
+  tags?: string | string[]
+  external_id?: string
+  created_at?: string
+  updated_at?: string
+  sort?: string
+  [key: string]: unknown
+}
+
 // ─── Assets ──────────────────────────────────────────────────────────────────
 
 export interface Asset {
