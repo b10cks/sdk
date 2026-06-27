@@ -36,6 +36,8 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.runtimeConfig.public.b10cks = {
       accessToken: options.accessToken,
       apiUrl: options.apiUrl,
+      scrollOffset: options.scrollOffset,
+      allowedOrigins: options.allowedOrigins,
     }
 
     addPlugin(resolver.resolve('./runtime/plugin'))
@@ -50,6 +52,11 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'usePageTranslations',
         as: 'usePageTranslations',
         from: resolver.resolve('./runtime/composables/usePageTranslations'),
+      },
+      {
+        name: 'usePreviewContent',
+        as: 'usePreviewContent',
+        from: '@b10cks/vue',
       },
     ])
 

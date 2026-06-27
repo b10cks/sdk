@@ -18,9 +18,16 @@ export default defineNuxtConfig({
     accessToken: 'your-access-token',
     apiUrl: 'https://api.b10cks.com/api',
     componentsDir: '~/b10cks',
+    // Optional: offset applied when a selected block is scrolled into view, so
+    // selection clears a fixed app header (number → px, or a string like '5rem').
+    scrollOffset: 80,
+    // Optional: restrict the preview bridge handshake to known editor origins.
+    allowedOrigins: ['https://app.b10cks.com'],
   },
 })
 ```
+
+`scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
 
 ## Usage
 
@@ -81,11 +88,31 @@ The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate 
 ```
 
 ```vue
-<!-- Mark a block as selectable in the b10cks visual editor -->
+<!-- Mark a block as selectable; it also live-updates in place while editing -->
 <div v-editable="block">…</div>
 
-<!-- Mark a specific field as inline-editable -->
+<!-- Inline-edit a simple string field -->
 <h1 v-editable-field="{ id: block.id, field: 'header' }">{{ block.header }}</h1>
+
+<!-- Rich text / complex fields: deep-select so the editor opens its own editor -->
+<B10cksRichText
+  :document="block.body"
+  v-editable-field="{ id: block.id, path: ['body'], mode: 'select' }"
+/>
+```
+
+For whole-tree reactive updates while editing — including nested and rich text fields — wrap your content in `usePreviewContent` (auto-imported by the module):
+
+```vue
+<script setup lang="ts">
+const { useContent } = useB10cksApi()
+const { data } = await useContent('home')
+const content = usePreviewContent(data.value.content)
+</script>
+
+<template>
+  <B10cksComponent :block="content" />
+</template>
 ```
 
 If you need to override Nuxt's cache identity behavior, pass a custom `key` as a third argument to any composable.
@@ -119,7 +146,7 @@ onBeforeRouteLeave(() => clear())
 
 ## Rich text usage
 
-Use `B10cksRichText` to render a TipTap-based rich text document from b10cks on the server and client.
+Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) on the server and client with a dependency-free renderer.
 
 ```vue
 <script setup lang="ts">

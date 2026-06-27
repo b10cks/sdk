@@ -1,6 +1,12 @@
 import type { Plugin } from 'vue'
 
-import { ApiClient, createB10cksDataApi, previewBridge } from '@b10cks/client'
+import {
+  ApiClient,
+  createB10cksDataApi,
+  ensurePreviewStyles,
+  previewBridge,
+  setPreviewScrollOffset,
+} from '@b10cks/client'
 
 import type { B10cksVuePluginOptions } from './types'
 
@@ -12,6 +18,7 @@ import { B10cksClientKey, B10cksDataApiKey } from './types'
 
 export { previewBridge } from '@b10cks/client'
 export * from './api'
+export { usePreviewContent } from './preview-content'
 export type {
   B10cksRichTextProps,
   RichTextDocument,
@@ -36,7 +43,11 @@ export const B10cksVue: Plugin = {
     app.component('B10cksComponent', B10cksComponent)
 
     if (previewBridge.isInPreviewMode()) {
-      previewBridge.init()
+      previewBridge.init({ allowedOrigins: pluginOptions.allowedOrigins })
+      ensurePreviewStyles()
+      if (pluginOptions.scrollOffset !== undefined) {
+        setPreviewScrollOffset(pluginOptions.scrollOffset)
+      }
     }
 
     const client = resolveClient(pluginOptions)

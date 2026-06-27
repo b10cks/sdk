@@ -1,116 +1,78 @@
 import type { DirectiveBinding, VNode } from 'vue'
 
-import type { SelectUpdateEvent } from '../preview-bridge'
-
-import { previewBridge } from '../preview-bridge'
+import { attachEditable, type ContentUpdateEvent, previewBridge } from '@b10cks/client'
 
 interface EditableElement extends HTMLElement {
   _editableCleanup?: () => void
 }
 
+function bind(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
+  const block = binding.value
+  const id = block?.id
+  if (!id) {
+    // biome-ignore lint/suspicious/noConsole: give developers feedback
+    console.warn('v-editable directive requires a block with an id')
+    return
+  }
+
+  const detach = attachEditable(el, { id })
+
+  // Backwards-compatible live updates: when the editor pushes new content for
+  // this block, patch the bound block in place so the rendering component
+  // updates — no `usePreviewContent` wiring required. Prefer `usePreviewContent`
+  // for new code; it updates the whole tree (incl. nested/rich text) reactively.
+  const offContent = previewBridge.on('CONTENT_UPDATE', ({ content }: ContentUpdateEvent) => {
+    if (!content || (content as { id?: string }).id !== id) return
+    patchBlockInPlace(block, content)
+    forceHostUpdate(vnode)
+  })
+
+  el._editableCleanup = () => {
+    detach()
+    offContent()
+  }
+}
+
+/**
+ * Replace the bound block's fields in place. Mutating the same object the
+ * component renders keeps a reactive content tree in sync without swapping the
+ * reference (which would detach reactivity for later updates).
+ */
+function patchBlockInPlace(target: unknown, content: Record<string, unknown>) {
+  if (!target || typeof target !== 'object') return
+  const obj = target as Record<string, unknown>
+  for (const key of Object.keys(obj)) {
+    if (!(key in content)) {
+      delete obj[key]
+    }
+  }
+  Object.assign(obj, content)
+}
+
+/** Force the host component to re-render for blocks that aren't reactive. */
+function forceHostUpdate(vnode: VNode) {
+  try {
+    const ctx = (vnode as unknown as { ctx?: { update?: () => void } }).ctx
+    ctx?.update?.()
+  } catch {
+    // Vue internals unavailable; the in-place mutation is the best effort.
+  }
+}
+
 export const EditableDirective = {
-  mounted(el: EditableElement, binding: DirectiveBinding, node: VNode) {
-    if (!previewBridge.isInPreviewMode()) return
-    const { id: itemId } = binding.value
-
-    if (!itemId) {
-      // biome-ignore lint/suspicious/noConsole: give developers feedback
-      console.warn('v-editable directive requires a block with an id')
-      return
-    }
-
-    el.classList.add('b10cks-preview')
-
-    const handleClick = (e: MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      previewBridge.selectItem(itemId)
-    }
-
-    const handleSelectionChange = ({ selectedItem }: SelectUpdateEvent) => {
-      if (!node.el) return
-
-      if (selectedItem === itemId) {
-        node.el.classList.add('b10cks-selected')
-        scrollIntoViewIfNeeded(el)
-      } else {
-        node.el.classList.remove('b10cks-selected')
-      }
-    }
-
-    const handleHoverChange = ({ selectedItem }: SelectUpdateEvent) => {
-      if (!node.el) return
-
-      if (selectedItem === itemId) {
-        node.el.classList.add('b10cks-hover')
-      } else {
-        node.el.classList.remove('b10cks-hover')
-      }
-    }
-
-    const handleUpdate = ({ content }: { content: any }) => {
-      if (content && content.id === itemId) {
-        // biome-ignore lint/suspicious/noExplicitAny: use of any to access internal properties
-        const ctx = (node as any).ctx
-        ctx.parent.attrs.block = content
-        ctx.update()
-        ctx.props.block = content
-        ctx.update()
-      }
-    }
-
-    el.addEventListener('click', handleClick)
-    previewBridge.on('SELECT_UPDATE', handleSelectionChange)
-    previewBridge.on('HOVER_UPDATE', handleHoverChange)
-    previewBridge.on('CONTENT_UPDATE', handleUpdate)
-
-    el._editableCleanup = () => {
-      el.removeEventListener('click', handleClick)
-    }
+  mounted(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
+    bind(el, binding, vnode)
   },
 
   updated(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
-    if (!previewBridge.isInPreviewMode()) return
-
-    if (binding.value !== binding.oldValue) {
-      if (el._editableCleanup) {
-        el._editableCleanup()
-      }
-
-      EditableDirective.mounted(el, binding, vnode)
+    if (binding.value?.id !== binding.oldValue?.id) {
+      el._editableCleanup?.()
+      bind(el, binding, vnode)
     }
   },
 
   unmounted(el: EditableElement) {
-    if (!previewBridge.isInPreviewMode()) return
-
-    if (el._editableCleanup) {
-      el._editableCleanup()
-      delete el._editableCleanup
-    }
-
-    el.classList.remove('b10cks-preview', 'b10cks-selected')
+    el._editableCleanup?.()
+    delete el._editableCleanup
   },
-}
-
-function scrollIntoViewIfNeeded(el: HTMLElement) {
-  if (el.scrollIntoView) {
-    el.scrollIntoView({ behavior: 'smooth' })
-  }
-}
-
-if (previewBridge.isInPreviewMode()) {
-  const style = document.createElement('style')
-  style.innerHTML = `
-    .b10cks-hover,
-    .b10cks-preview:hover {
-      outline: 2px dashed rgba(59, 130, 246, 0.5);
-      outline-offset: 2px;
-    }
-    .b10cks-selected {
-      outline: 2px solid rgb(59, 130, 246) !important;
-      outline-offset: 2px;
-    }
-  `
-  document.head.appendChild(style)
 }

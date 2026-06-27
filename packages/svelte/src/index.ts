@@ -7,6 +7,7 @@ export { editable, editableField } from './actions'
 export { createB10cksContext, getB10cksClient, getB10cksContext, getB10cksDataApi } from './context'
 export type { B10cksContextValue, CreateB10cksContextOptions } from './context'
 export { previewBridge } from './preview-bridge'
+export { createPreviewContent } from './preview'
 export * from './rich-text'
 export { createB10cksStores } from './stores'
 export type {

@@ -56,11 +56,6 @@ const blocks = useBlocks({}, { immediate: true })
 
 The `immediate` option controls whether the request fires on composable setup (`true`) or must be triggered manually (`false`). Pass `immediate: false` to defer requests that depend on reactive values not yet available.
 
-### Directives
-
-- `v-editable` marks a block as selectable inside the b10cks preview editor.
-- `v-editable-field` marks a field as inline-editable in preview mode.
-
 ### Components
 
 Use `B10cksComponent` to render block-specific Vue components dynamically:
@@ -69,11 +64,65 @@ Use `B10cksComponent` to render block-specific Vue components dynamically:
 <B10cksComponent :block="block" v-editable="block" />
 ```
 
-### Rich Text
+## Live preview & visual editing
 
-Rich text exports live in the `@b10cks/vue/rich-text` sub-path. Importing from this path keeps the TipTap and ProseMirror runtime out of your entry bundle on pages that do not render rich text.
+When your app is rendered inside the b10cks visual editor, these directives and the `usePreviewContent` composable make blocks selectable and keep the preview in sync while editing. They are all no-ops outside the editor, so they are safe to leave in production output.
 
-Use `B10cksRichText` to render a b10cks TipTap `RichTextDocument` as HTML with an SSR-friendly renderer powered by `@tiptap/html`.
+### Directives
+
+```vue
+<!-- Mark a block as selectable: click selects it; the editor highlights/scrolls to it.
+     It also live-updates in place when the editor pushes changes for this block. -->
+<section v-editable="block">…</section>
+
+<!-- Inline-edit a simple string field (contenteditable, streams plain-text edits) -->
+<h1 v-editable-field="{ id: block.id, field: 'headline' }">{{ block.headline }}</h1>
+
+<!-- Rich text / complex fields: deep-select so the editor opens its own editor.
+     Use `mode: 'select'` with a `path` instead of inline editing. -->
+<B10cksRichText
+  :document="block.body"
+  v-editable-field="{ id: block.id, path: ['body'], mode: 'select' }"
+/>
+```
+
+### `usePreviewContent` (recommended)
+
+`v-editable` patches a single block in place, which is enough for simple cases. For whole-tree reactive updates — including nested and rich text fields — wrap your fetched content in `usePreviewContent`. It returns a reactive ref that live-updates from the editor and is unchanged outside preview mode:
+
+```vue
+<script setup lang="ts">
+import { usePreviewContent } from '@b10cks/vue'
+
+const { data } = useContent('home')
+const content = usePreviewContent(data.value.content)
+</script>
+
+<template>
+  <B10cksComponent :block="content" />
+</template>
+```
+
+### Plugin options
+
+```typescript
+app.use(B10cksVue, {
+  apiClientOptions: { token, baseUrl },
+  // Offset applied when a selected block is scrolled into view, so selection
+  // clears a fixed app header. A number is px; strings are used verbatim.
+  scrollOffset: 80,
+  // Restrict the preview bridge handshake to known editor origins.
+  allowedOrigins: ['https://app.b10cks.com'],
+})
+```
+
+`scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }` — with no plugin option.
+
+## Rich Text
+
+Rich text exports live in the `@b10cks/vue/rich-text` sub-path, so pages that do not render rich text keep it out of their entry bundle.
+
+Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) as HTML with a dependency-free, SSR-friendly renderer.
 
 ```vue
 <script setup lang="ts">
@@ -148,7 +197,7 @@ const renderer = createRichTextTextRenderer()
 const text = renderer.render(document)
 ```
 
-#### Internal link handler
+### Internal link handler
 
 b10cks internal links carry a `url`, `title`, `anchor`, and `content` (block ID) in their attrs. Pass an `internalLinkHandler` to customise how the `href` is generated — for example to prepend a route prefix or resolve content IDs via Vue Router:
 
@@ -181,30 +230,19 @@ const html = renderRichText(document, {
 
 Return `null` or `undefined` from the handler to fall back to the default `url`/`href` attribute value.
 
-#### Custom extensions
+### Placeholder tokens
 
-If you need to override the default b10cks TipTap extension set entirely, pass custom `extensions`:
+Pass a `placeholderHandler` to resolve `{token}` placeholders embedded in rich text to real values. Return `null`/`undefined` to leave a token unresolved.
 
-```vue
-<script setup lang="ts">
-import { B10cksRichText } from '@b10cks/vue/rich-text'
-import { createB10cksRichTextExtensions, type RichTextDocument } from '@b10cks/richtext'
+```typescript
+import { renderRichText } from '@b10cks/vue/rich-text'
 
-const document: RichTextDocument = {
-  type: 'doc',
-  content: [],
-}
-
-const extensions = createB10cksRichTextExtensions()
-</script>
-
-<template>
-  <B10cksRichText
-    :document="document"
-    :extensions="extensions"
-  />
-</template>
+const html = renderRichText(document, {
+  placeholderHandler: (key) => ({ companyName: 'b10cks' })[key],
+})
 ```
+
+> **Custom extensions are no longer used.** The renderer is a custom, dependency-free implementation — it does not run TipTap. The `extensions` prop and `createB10cksRichTextExtensions()` remain as no-op stubs for backwards compatibility only.
 
 > **Migrating from v1:** `renderRichText` and `B10cksRichText` were previously exported from `@b10cks/vue`. Update all imports to `@b10cks/vue/rich-text`.
 

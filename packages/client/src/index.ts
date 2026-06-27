@@ -15,7 +15,9 @@ export interface B10cksApiClientRvOptions {
 
 export * from './content'
 export * from './data-api'
+export * from './editable'
 export * from './preview-bridge'
+export * from './preview-store'
 export * from './sitemap'
 export type * from './types'
 export * as types from './types'

@@ -59,8 +59,9 @@ export const B10cksRichText = defineComponent({
       required: false,
       default: null,
     },
+    /** @deprecated No-op. The custom renderer does not use TipTap extensions. */
     extensions: {
-      type: Array as PropType<RichTextRenderOptions['extensions']>,
+      type: Array as PropType<unknown[]>,
       required: false,
       default: undefined,
     },
@@ -75,7 +76,6 @@ export const B10cksRichText = defineComponent({
       () =>
         props.html ??
         renderRichText(props.document, {
-          extensions: props.extensions,
           internalLinkHandler: props.internalLinkHandler,
         })
     )

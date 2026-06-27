@@ -1,7 +1,9 @@
 import {
   ApiClient,
   createB10cksDataApi,
+  ensurePreviewStyles,
   previewBridge,
+  setPreviewScrollOffset,
   type B10cksApiClientOptions,
   type B10cksDataApi,
 } from '@b10cks/client'
@@ -20,6 +22,13 @@ export interface B10cksProviderProps extends PropsWithChildren {
   client?: ApiClient
   dataApi?: B10cksDataApi
   requestUrl?: URL | string
+  /**
+   * Offset applied when a selected block is scrolled into view, so selection
+   * clears a fixed app header. A number is pixels; strings are used verbatim.
+   */
+  scrollOffset?: number | string
+  /** Editor origins allowed to drive the preview bridge. */
+  allowedOrigins?: string[]
 }
 
 type B10cksContextValue = {
@@ -38,6 +47,8 @@ export function B10cksProvider({
   client: clientOverride,
   dataApi: dataApiOverride,
   requestUrl,
+  scrollOffset,
+  allowedOrigins,
 }: B10cksProviderProps) {
   const [bridgeIsReady, setBridgeIsReady] = useState(false)
 
@@ -78,9 +89,13 @@ export function B10cksProvider({
       return
     }
 
-    previewBridge.init()
+    previewBridge.init({ allowedOrigins })
+    ensurePreviewStyles()
+    if (scrollOffset !== undefined) {
+      setPreviewScrollOffset(scrollOffset)
+    }
     setBridgeIsReady(true)
-  }, [bridgeIsReady])
+  }, [bridgeIsReady, scrollOffset, allowedOrigins])
 
   return <B10cksContext.Provider value={value}>{children}</B10cksContext.Provider>
 }

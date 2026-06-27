@@ -241,6 +241,96 @@ const xml = renderSitemapXml(filtered, 'https://example.com')
 const index = renderSitemapIndex(['/sitemap-en.xml', '/sitemap-de.xml'], 'https://example.com')
 ```
 
+## Preview bridge & visual editing
+
+When a page is rendered inside the b10cks visual editor (in an `<iframe>`), the SDK exchanges `postMessage` events with the editor so blocks can be selected, hovered, and live-updated while editing. These are the framework-agnostic building blocks — the `@b10cks/vue`, `@b10cks/react`, `@b10cks/svelte`, `@b10cks/nuxt`, and `@b10cks/next` packages wrap them in idiomatic directives/hooks/actions.
+
+### `previewBridge`
+
+A singleton that bridges the preview iframe and the editor.
+
+```typescript
+import { previewBridge } from '@b10cks/client'
+
+// Call once on the client when your app boots (the framework packages do this for you).
+previewBridge.init({ allowedOrigins: ['https://app.b10cks.com'] })
+
+previewBridge.isInPreviewMode()           // true only inside the editor iframe
+previewBridge.selectItem(blockId)         // tell the editor to select a block
+previewBridge.selectField(blockId, path)  // deep-select a nested field (e.g. rich text)
+previewBridge.updateFieldAt(blockId, ['headline'], 'New text') // stream an inline edit
+
+// Subscribe to editor → preview events; returns an unsubscribe function.
+const off = previewBridge.on('CONTENT_UPDATE', ({ content }) => { /* … */ })
+```
+
+Event protocol:
+
+| Event | Direction | Payload | Purpose |
+|---|---|---|---|
+| `SELECT_UPDATE` | both | `{ selectedItem }` | Select a block |
+| `HOVER_UPDATE` | editor → preview | `{ selectedItem }` | Hover-highlight a block |
+| `FIELD_SELECT` | preview → editor | `{ itemId, path }` | Deep-select a field so the editor opens its own editor |
+| `FIELD_UPDATE` | preview → editor | `{ itemId, path?, field?, value }` | Stream an inline edit |
+| `CONTENT_UPDATE` | editor → preview | `{ content }` | Replace the whole content tree |
+| `CONTENT_PATCH` | editor → preview | `{ path, value }` | Replace a single value at `path` |
+
+`path` is a `FieldPath` (`(string | number)[]`) that addresses any value at any depth, including array indices — e.g. `['body', 2, 'headline']`.
+
+#### Security
+
+By default the bridge locks onto the origin of the first message it receives (trust-on-first-use) and ignores everything else afterwards; outbound messages are then targeted to that origin instead of `*`. Pass `allowedOrigins` to `init()` to restrict the handshake to a known list of editor origins.
+
+### Editable DOM helpers
+
+`attachEditable` and `attachEditableField` wire a DOM element to the bridge and return a cleanup function. Both are no-ops outside preview mode.
+
+```typescript
+import { attachEditable, attachEditableField } from '@b10cks/client'
+
+// Selectable block: click selects it; editor-driven select/hover toggle outline classes.
+const detach = attachEditable(el, { id: block.id })
+
+// Inline string field (contenteditable, streams plain-text edits):
+attachEditableField(el, { id: block.id, field: 'headline' })
+
+// Rich text / complex field — deep-select instead of editing inline:
+attachEditableField(el, { id: block.id, path: ['body'], mode: 'select' })
+```
+
+### Scroll offset (fixed headers)
+
+When a block is selected it is scrolled into view with `block: 'nearest'` (so it never jumps when already visible) and honors the `--b10cks-scroll-offset` CSS variable as `scroll-margin-top`. Set it to your fixed header's height so selection doesn't overshoot beneath it — either in CSS:
+
+```css
+:root { --b10cks-scroll-offset: 80px; }
+```
+
+or from JS (the framework packages expose a `scrollOffset` option that calls this):
+
+```typescript
+import { ensurePreviewStyles, setPreviewScrollOffset } from '@b10cks/client'
+
+ensurePreviewStyles()        // inject the outline + scroll-margin styles once
+setPreviewScrollOffset(80)   // number → px, or pass a string like '5rem'
+```
+
+### `PreviewStore` — reactive live content
+
+`PreviewStore` is a framework-agnostic, subscribable holder for the content tree. `bindPreviewStore` feeds `CONTENT_UPDATE`/`CONTENT_PATCH` events into it, so any complex field — including rich text — re-renders from the new snapshot. The framework packages expose this as `usePreviewContent` / `createPreviewContent`.
+
+```typescript
+import { PreviewStore, bindPreviewStore, setAtPath, getAtPath } from '@b10cks/client'
+
+const store = new PreviewStore(initialContent)
+const offBridge = bindPreviewStore(store)
+const off = store.subscribe(() => render(store.getSnapshot()))
+
+// Immutable path helpers used internally — also exported for your own use:
+const next = setAtPath(content, ['body', 0, 'headline'], 'New')
+const value = getAtPath(content, ['body', 0, 'headline'])
+```
+
 ## TypeScript
 
 Common types exported from the package root:

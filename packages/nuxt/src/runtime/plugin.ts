@@ -1,5 +1,5 @@
 import { useState } from '#app'
-import { ApiClient, createB10cksDataApi, previewBridge } from '@b10cks/client'
+import { ApiClient, createB10cksDataApi } from '@b10cks/client'
 import { B10cksClientKey, B10cksDataApiKey, B10cksVue } from '@b10cks/vue'
 import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
 
@@ -11,14 +11,13 @@ export default defineNuxtPlugin({
     const config = useRuntimeConfig()
     const url = useRequestURL()
 
-    // B10cksVue plugin provides directives and registers components
-    nuxtApp.vueApp.use(B10cksVue)
-
-    if (previewBridge.isInPreviewMode()) {
-      if (import.meta.client) {
-        previewBridge.init()
-      }
-    }
+    // B10cksVue plugin provides directives, registers components, and (in
+    // preview mode) initializes the bridge, injects styles, and applies the
+    // scroll offset.
+    nuxtApp.vueApp.use(B10cksVue, {
+      scrollOffset: config.public.b10cks.scrollOffset,
+      allowedOrigins: config.public.b10cks.allowedOrigins,
+    })
 
     const rvState = useState<string | number>(
       'b10cks_rv',

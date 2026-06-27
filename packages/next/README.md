@@ -40,6 +40,38 @@ export function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
+## Live preview & visual editing
+
+`B10cksNextProvider` forwards the preview options to `@b10cks/react`, and `@b10cks/next/client` re-exports the editing hooks (`useEditable`, `useEditableField`, `usePreviewContent`, `usePreviewSelection`). They are no-ops outside the b10cks visual editor.
+
+```tsx
+'use client'
+
+import { B10cksNextProvider } from '@b10cks/next/client'
+
+export function App({ children }: { children: React.ReactNode }) {
+  return (
+    <B10cksNextProvider
+      apiClientOptions={{ token: process.env.NEXT_PUBLIC_B10CKS_TOKEN || '', baseUrl: 'https://api.b10cks.com/api' }}
+      // Offset so selection clears a fixed app header (number → px, or '5rem').
+      scrollOffset={80}
+      // Restrict the preview bridge handshake to known editor origins.
+      allowedOrigins={['https://app.b10cks.com']}
+    >
+      {children}
+    </B10cksNextProvider>
+  )
+}
+```
+
+```tsx
+'use client'
+
+import { useEditable, useEditableField, usePreviewContent } from '@b10cks/next/client'
+```
+
+See the [`@b10cks/react` README](../react/README.md#live-preview--visual-editing) for the full hook reference. `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
+
 ## Server Usage
 
 ```ts
@@ -54,7 +86,7 @@ const { dataApi } = createB10cksNextApi({
 
 ## Rich Text
 
-Use `B10cksRichText` to render a TipTap-based b10cks rich text document on the server or client.
+Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) on the server or client with a dependency-free renderer.
 
 ```tsx
 import { B10cksRichText } from '@b10cks/next'

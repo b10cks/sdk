@@ -11,6 +11,7 @@ export type {
   UseB10cksConfigResult,
 } from './hooks'
 export { previewBridge } from './preview-bridge'
+export { useEditable, useEditableField, usePreviewContent } from './preview'
 export {
   B10cksProvider,
   useB10cksClient,
