@@ -20,8 +20,10 @@
   "scripts": {
     "build": "unbuild",
     "dev": "bun run build && ./dist/index.mjs",
-    "lint": "biome lint --write .",
-    "clean": "rm -rf dist"
+    "lint": "oxlint src",
+    "clean": "rm -rf dist",
+    "lint:fix": "oxlint --fix src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@b10cks/mgmt-client": "workspace:*",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@types/figlet": "^1.7.0",
+    "@types/node": "^24.13.2",
     "@types/update-notifier": "^6.0.8",
     "unbuild": "^3.6.1"
   },

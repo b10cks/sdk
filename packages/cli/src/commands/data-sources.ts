@@ -155,7 +155,7 @@ export class DataSourcesCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No entries found')
           console.log(`\n${chalk.bold('Data Source Entries:')}`)
           res.data.forEach((e) => {
-            console.log(`  ${chalk.yellow(e.id)}  ${chalk.bold(e.name ?? '')}  ${chalk.dim(e.value ?? '')}`)
+            console.log(`  ${chalk.yellow(e.id)}  ${chalk.bold(e.external_id ?? '')}  ${chalk.dim(JSON.stringify(e.data))}`)
           })
         } catch (e: any) { this.handleError(e) }
       })
@@ -172,26 +172,28 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, options) => {
         this.ensureAuthenticated()
         try {
-          let payload: any = {}
+          const data: Record<string, unknown> = {}
           if (options.interactive || !options.name) {
             const answers = await inquirer.prompt([
               { type: 'input', name: 'name', message: 'Entry name:', default: options.name, validate: (v) => v ? true : 'Required' },
               { type: 'input', name: 'value', message: 'Value:', default: options.value },
               { type: 'input', name: 'dimension', message: 'Dimension (optional):', default: options.dimension || '' },
             ])
-            payload = { name: answers.name, value: answers.value }
-            if (answers.dimension) payload.dimension_value = answers.dimension
+            data.name = answers.name
+            data.value = answers.value
+            if (answers.dimension) data.dimension = answers.dimension
           } else {
             if (!options.name) throw new Error('--name is required')
-            payload = { name: options.name, value: options.value }
-            if (options.dimension) payload.dimension_value = options.dimension
+            data.name = options.name
+            data.value = options.value
+            if (options.dimension) data.dimension = options.dimension
           }
-          const entry = await this.client.dataSources.createEntry(spaceId, dataSourceId, payload)
+          const entry = await this.client.dataSources.createEntry(spaceId, dataSourceId, { data })
           if (options.json) return this.outputJson(entry)
           console.log(`\n${chalk.green('✓')} Entry created`)
-          console.log(`  ${chalk.bold('ID:')}    ${chalk.yellow(entry.id)}`)
-          console.log(`  ${chalk.bold('Name:')}  ${entry.name ?? ''}`)
-          console.log(`  ${chalk.bold('Value:')} ${entry.value ?? ''}`)
+          console.log(`  ${chalk.bold('ID:')}         ${chalk.yellow(entry.id)}`)
+          console.log(`  ${chalk.bold('External ID:')} ${entry.external_id ?? ''}`)
+          console.log(`  ${chalk.bold('Data:')}        ${JSON.stringify(entry.data)}`)
         } catch (e: any) { this.handleError(e) }
       })
 

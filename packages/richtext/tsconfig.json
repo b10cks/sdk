@@ -12,7 +12,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
       "@b10cks/client": ["../client/src"],

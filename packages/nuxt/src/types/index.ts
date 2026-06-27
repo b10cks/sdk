@@ -12,6 +12,20 @@ export interface ModuleOptions {
   allowedOrigins?: string[]
 }
 
+/** Public runtime config injected by the module under `runtimeConfig.public.b10cks`. */
+export interface B10cksPublicRuntimeConfig {
+  accessToken: string
+  apiUrl: string
+  scrollOffset?: number | string
+  allowedOrigins?: string[]
+}
+
+declare module '@nuxt/schema' {
+  interface PublicRuntimeConfig {
+    b10cks: B10cksPublicRuntimeConfig
+  }
+}
+
 export {
   B10cksRichText,
   renderRichText,

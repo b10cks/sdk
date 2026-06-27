@@ -13,7 +13,11 @@
     "noUnusedLocals": true,
     "resolveJsonModule": true,
     "types": ["node"],
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@b10cks/mgmt-client": ["../mgmt-client/src"]
+    }
   },
   "include": ["src"],
   "exclude": ["dist/**/*"]

@@ -37,8 +37,10 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest",
-    "lint": "biome lint --write",
-    "clean": "rm -rf dist"
+    "lint": "oxlint src",
+    "clean": "rm -rf dist",
+    "lint:fix": "oxlint --fix src",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@b10cks/client": "workspace:^",
@@ -48,7 +50,8 @@
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-dts": "^4.5.4",
-    "vue": "^3.5.25"
+    "vue": "^3.5.25",
+    "vue-tsc": "^3.3.5"
   },
   "peerDependencies": {
     "vue": "^3.5.21"

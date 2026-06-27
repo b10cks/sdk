@@ -194,7 +194,7 @@ export class ContentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const content = await this.client.contents.schedule(spaceId, contentId, { publish_at: options.publishAt })
+          const content = await this.client.contents.schedule(spaceId, contentId, { scheduled_at: options.publishAt })
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} scheduled for ${options.publishAt}`)
         } catch (e: any) { this.handleError(e) }

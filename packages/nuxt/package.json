@@ -26,10 +26,11 @@
   "scripts": {
     "prepack": "nuxt-module-build build",
     "build": "nuxt-module-build prepare && nuxt-module-build build",
-    "lint": "biome check --apply .",
-    "lint:fix": "biome check --apply .",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint --fix src",
     "test": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "typecheck": "nuxt-module-build prepare && vue-tsc --noEmit"
   },
   "dependencies": {
     "@b10cks/client": "workspace:^",
@@ -40,7 +41,8 @@
     "@nuxt/kit": "^4.2.1",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.2.1",
-    "nuxt": "^4.2.1"
+    "nuxt": "^4.2.1",
+    "vue-tsc": "^3.3.5"
   },
   "release": {
     "branches": [

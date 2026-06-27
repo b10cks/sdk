@@ -42,8 +42,10 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest",
-    "lint": "biome lint --write .",
-    "clean": "rm -rf dist"
+    "lint": "oxlint src",
+    "clean": "rm -rf dist",
+    "lint:fix": "oxlint --fix src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@b10cks/client": "workspace:^",

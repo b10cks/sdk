@@ -125,7 +125,7 @@ export interface CreateTeamParams {
 }
 
 export interface UpdateTeamParams {
-  name: string
+  name?: string
   icon?: string | null
   color?: string | null
   description?: string | null
@@ -256,8 +256,8 @@ export interface CreateSpaceParams {
 }
 
 export interface UpdateSpaceParams {
-  name: string
-  slug: string
+  name?: string
+  slug?: string
   icon?: string | null
   color?: string | null
   description?: string | null

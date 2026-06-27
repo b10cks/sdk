@@ -22,8 +22,6 @@ export * from './sitemap'
 export type * from './types'
 export * as types from './types'
 
-let rv: string | number = 0
-
 type ApiResourceResponse<T> = IBResponse<T> | T
 type ApiCollectionResponse<T> =
   | IBCollectionResponse<T>
@@ -38,6 +36,13 @@ export class ApiClient {
   private readonly fetchClient: FetchClient
   private readonly getRvFn?: () => string | number
   private readonly setRvFn?: (value: string | number) => void
+  /**
+   * Per-instance revision store, used when no `getRv`/`setRv` callbacks are
+   * supplied. Kept on the instance (not module scope) so concurrent requests
+   * in a server runtime cannot leak revisions into one another. Server callers
+   * that need request-scoped persistence should pass `getRv`/`setRv`.
+   */
+  private rvValue: string | number = 0
 
   constructor(options: B10cksApiClientOptions, requestUrl?: URL | string) {
     this.baseUrl = options.baseUrl.endsWith('/') ? options.baseUrl.slice(0, -1) : options.baseUrl
@@ -59,7 +64,7 @@ export class ApiClient {
 
     const url = this.resolveRequestUrl(requestUrl)
     this.vid = options.version || 'published'
-    this.setRv(url?.searchParams.get('b10cks_rv') || options.rv || rv)
+    this.setRv(url?.searchParams.get('b10cks_rv') || options.rv || 0)
   }
 
   async get<T>(
@@ -138,7 +143,7 @@ export class ApiClient {
     if (this.setRvFn) {
       this.setRvFn(value)
     } else {
-      rv = value
+      this.rvValue = value
     }
   }
 
@@ -146,7 +151,7 @@ export class ApiClient {
     if (this.getRvFn) {
       return this.getRvFn()
     }
-    return rv
+    return this.rvValue
   }
 
   private async parseResponse<T>(payload: unknown): Promise<T> {

@@ -1,38 +1,30 @@
 <script lang="ts">
-  import type {
-    ComponentProps as SvelteComponentProps,
-    HTMLAttributes,
-  } from 'svelte/elements'
+  import type { HTMLAttributes } from 'svelte/elements'
   import {
     renderRichText,
     type RichTextDocument,
-    type RichTextRenderOptions,
+    type RichTextExtensionOptions,
+    type RichTextHtmlOptions,
   } from '@b10cks/richtext'
 
-  type HtmlTag = keyof SvelteHTMLElements
-
-  type ElementAttributes<TTag extends HtmlTag> = Omit<
-    SvelteComponentProps<TTag>,
-    'children' | 'tag' | 'document'
-  >
-
-  export interface B10cksRichTextProps<TTag extends HtmlTag = 'div'>
-    extends RichTextRenderOptions {
+  export interface B10cksRichTextProps extends RichTextHtmlOptions, RichTextExtensionOptions {
     document?: RichTextDocument | null
     html?: string | null
-    tag?: TTag
+    tag?: string
   }
 
   let {
     document = null,
     html = null,
-    tag = 'div' as HtmlTag,
+    tag = 'div',
     extensions,
+    internalLinkHandler,
+    placeholderHandler,
     ...restProps
   }: B10cksRichTextProps & HTMLAttributes<HTMLElement> = $props()
 
   const resolvedHtml = $derived(
-    html ?? renderRichText(document, { extensions })
+    html ?? renderRichText(document, { extensions, internalLinkHandler, placeholderHandler })
   )
 </script>
 

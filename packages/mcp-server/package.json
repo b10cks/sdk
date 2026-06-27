@@ -56,13 +56,17 @@
     "build": "vite build",
     "dev": "vite build --watch",
     "test": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint --fix src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@b10cks/mgmt-client": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
+    "@types/node": "^24.13.2",
     "vite": "^7.2.4",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"

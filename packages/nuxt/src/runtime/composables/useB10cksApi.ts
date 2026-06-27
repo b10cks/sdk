@@ -19,7 +19,10 @@ import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
 import { computed, toValue, watch } from 'vue'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
-type QueryParams = Omit<IBBaseQueryParams, 'token'>
+// `sort` is omitted because content params widen it to `string | ContentSortItem[]`,
+// which is incompatible with the base `sort?: string`. Concrete param types (e.g.
+// IBGetContentsParams) re-add their own `sort`.
+type QueryParams = Omit<IBBaseQueryParams, 'token' | 'sort'>
 
 type AwaitedAsyncData<T> = Awaited<ReturnType<typeof useAsyncData<T | undefined, Error>>>
 type AwaitedCollectionAsyncData<T> = Awaited<
@@ -208,11 +211,14 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     params: QueryParams = {},
     options: UseNuxtB10cksCollectionOptions<IBBlock> = {}
   ): Promise<AwaitedCollectionAsyncData<IBBlock>> => {
-    const { allPages = false, key, ...asyncDataOptions } = options
+    const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBBlock[] | undefined, Error>(
       key ?? createAsyncDataKey('blocks', { allPages, params }),
-      () => api.dataApi.getBlocks(params, { allPages }),
+      async () => {
+        const value = await api.dataApi.getBlocks(params, { allPages })
+        return transform ? transform(value) : value
+      },
       asyncDataOptions
     )
   }
@@ -222,11 +228,14 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     params: QueryParams = {},
     options: UseNuxtB10cksCollectionOptions<IBDataEntry> = {}
   ): Promise<AwaitedCollectionAsyncData<IBDataEntry>> => {
-    const { allPages = false, key, ...asyncDataOptions } = options
+    const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBDataEntry[] | undefined, Error>(
       key ?? createAsyncDataKey('data-entries', { allPages, source, params }),
-      () => api.dataApi.getDataEntries(source, params, { allPages }),
+      async () => {
+        const value = await api.dataApi.getDataEntries(source, params, { allPages })
+        return transform ? transform(value) : value
+      },
       asyncDataOptions
     )
   }
@@ -253,11 +262,14 @@ export const useB10cksApi = (): NuxtB10cksApi => {
       Omit<IBContentQueryParams, 'token'>
     > = {}
   ): Promise<AwaitedCollectionAsyncData<IBSitemapEntry>> => {
-    const { allPages = false, key, ...asyncDataOptions } = options
+    const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
       key ?? createAsyncDataKey('sitemap', { allPages, params }),
-      () => api.dataApi.getSitemap(params, { allPages }),
+      async () => {
+        const value = await api.dataApi.getSitemap(params, { allPages })
+        return transform ? transform(value) : value
+      },
       asyncDataOptions
     )
   }
