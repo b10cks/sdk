@@ -923,8 +923,24 @@ export interface Asset {
   folder_id: string | null
   space_id: string
   metadata: Record<string, unknown> | null
+  tags: string[]
   created_at: string
   updated_at: string
+}
+
+export interface GetAssetsParams extends PaginationParams {
+  q?: string
+  filename?: string
+  external_id?: string
+  size?: number | string
+  folder?: string | null
+  extension?: string | string[]
+  mime_type?: string | string[]
+  tags?: string | string[]
+  created_at?: string
+  updated_at?: string
+  sort?: string
+  [key: string]: unknown
 }
 
 export interface AssetFolder {
@@ -941,11 +957,32 @@ export interface AssetTag {
   id: string
   external_id?: string | null
   name: string
-  slug: string
+  icon: string | null
   color: string | null
+  assets_count?: number
   space_id: string
   created_at: string
   updated_at: string
+}
+
+export interface UpsertAssetTagParams {
+  name: string
+  external_id?: string | null
+  icon?: string | null
+  color?: string | null
+}
+
+export interface GetAssetTagsParams extends PaginationParams {
+  q?: string
+  name?: string
+  icon?: string
+  color?: string
+  external_id?: string
+  assets_count?: number
+  created_at?: string
+  updated_at?: string
+  sort?: string
+  [key: string]: unknown
 }
 
 export interface LinkedAssetContent {

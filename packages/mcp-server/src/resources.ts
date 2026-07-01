@@ -55,8 +55,11 @@ Supported types (validated by the CMS):
 | \`meta\` | SEO metadata (title, description, OG). One per root block. | ✓ | — |
 | \`blocks\` | Composable nested block slot | — | — |
 | \`table\` | Structured table with typed columns | ✓ | — |
+| \`icon\` | Icon picker — space registry or Iconify public collections | — | — |
+| \`geo\` | Geographic coordinate (lat/lon with optional altitude) | — | — |
+| \`price\` | Multi-currency price object (currency code → amount) | — | — |
 
-**Never-indexable types** (setting \`indexable: true\` is a validation error): \`asset\`, \`multi_assets\`, \`references\`, \`boolean\`, \`options\`, \`table\`
+**Never-indexable types** (setting \`indexable: true\` is a validation error): \`asset\`, \`multi_assets\`, \`icon\`, \`geo\`, \`price\`, \`references\`, \`boolean\`, \`options\`, \`table\`
 
 ---
 
@@ -195,6 +198,54 @@ Column types: \`text\`, \`number\`, \`boolean\`, \`option\` (with the same sourc
 \`has_thead\`: whether to show editable column header labels.
 \`validation.min\`/\`max\`: min/max number of rows.
 IS translatable (\`translatable: true\` is valid).
+
+### \`icon\` fields
+\`\`\`json
+{
+  "type": "icon",
+  "source": "all",
+  "allowed_collections": []
+}
+\`\`\`
+- \`source\`: where icons can be picked from:
+  - \`"registry"\` — only the space's own uploaded icons
+  - \`"all"\` — registry plus any public Iconify collection
+  - \`"collections"\` — registry plus the allow-listed Iconify collections
+- \`allowed_collections\`: array of Iconify collection names (only relevant when \`source: "collections"\`)
+- Value at runtime: fully-qualified icon name string — \`b10cks:{key}\` for space registry icons, or \`{collection}:{name}\` for Iconify icons (e.g. \`mdi:home\`)
+- NOT translatable, NOT indexable.
+
+### \`geo\` fields
+\`\`\`json
+{
+  "type": "geo",
+  "key_style": "lat_lng",
+  "altitude": false,
+  "map": true
+}
+\`\`\`
+- \`key_style\`: controls the JSON key names of the stored value:
+  - \`"lat_lng"\` (default) → \`{ lat, lng, alt }\`
+  - \`"lat_lon"\` → \`{ lat, lon, alt }\`
+  - \`"latitude_longitude"\` → \`{ latitude, longitude, altitude }\`
+- \`altitude\`: \`true\` to enable the altitude field (optional in the value, stored as \`null\` when blank); \`false\` to omit altitude entirely
+- \`map\`: \`true\` to show a map picker widget in the editor
+- Value at runtime: plain object with the resolved key names → \`number | null\` (altitude key omitted when \`altitude: false\`)
+- NOT translatable, NOT indexable.
+
+### \`price\` fields
+\`\`\`json
+{
+  "type": "price",
+  "base_currency": "EUR",
+  "currencies": ["USD", "GBP"]
+}
+\`\`\`
+- \`base_currency\`: required base currency — 1–3 uppercase letter ISO 4217 code. The editor always shows this first and it is required when the field is set.
+- \`currencies\`: additional optional currencies shown in the editor (same format)
+- Value at runtime: \`Record<string, number | null>\` — currency code → amount (\`null\` when not filled in)
+  - e.g. \`{ "EUR": 9.99, "USD": 10.99, "GBP": null }\`
+- NOT translatable, NOT indexable.
 
 ---
 

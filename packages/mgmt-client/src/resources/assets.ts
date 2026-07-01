@@ -1,13 +1,17 @@
 import type { HttpClient } from '../http-client'
-import type { Asset, LinkedAssetContent, PaginatedResponse, RequestOptions } from '../types'
+import type { Asset, GetAssetsParams, LinkedAssetContent, PaginatedResponse, RequestOptions } from '../types'
 
 export class AssetsResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Asset>> {
+  async list(
+    spaceId: string,
+    params?: GetAssetsParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Asset>> {
     return this.client.get<PaginatedResponse<Asset>>(
       `/mgmt/v1/spaces/${spaceId}/assets`,
-      undefined,
+      params as Record<string, unknown>,
       options?.headers
     )
   }

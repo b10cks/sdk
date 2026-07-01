@@ -172,6 +172,8 @@ export interface B10cksTable {
   rows: B10cksTableRow[]
 }
 
+export type B10cksPrice = Record<string, number | null>
+
 `
     const blockInterfaces: string[] = []
 
@@ -279,8 +281,32 @@ export interface B10cksTable {
         return 'B10cksMeta'
       case 'table':
         return this.registerTableType(_blockSlug, _key, schema)
+      case 'icon':
+        return 'string'
+      case 'geo':
+        return this.resolveGeoType(schema)
+      case 'price':
+        return 'B10cksPrice'
       default:
         return 'any'
+    }
+  }
+
+  private resolveGeoType(schema: any): string {
+    const hasAltitude = schema.altitude !== false
+    switch (schema.key_style) {
+      case 'latitude_longitude':
+        return hasAltitude
+          ? '{ latitude: number | null; longitude: number | null; altitude?: number | null }'
+          : '{ latitude: number | null; longitude: number | null }'
+      case 'lat_lon':
+        return hasAltitude
+          ? '{ lat: number | null; lon: number | null; alt?: number | null }'
+          : '{ lat: number | null; lon: number | null }'
+      default:
+        return hasAltitude
+          ? '{ lat: number | null; lng: number | null; alt?: number | null }'
+          : '{ lat: number | null; lng: number | null }'
     }
   }
 

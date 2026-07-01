@@ -1210,6 +1210,14 @@ operations.push(
     handler: (client, args) => client.icons.tags(spaceId(args)),
   },
   {
+    name: 'assetTags.assign',
+    description: 'Assign an asset tag to one or more assets. Payload fields: asset_ids (string[]).',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'tagId', 'payload'],
+    handler: (client, args) =>
+      client.assetTags.assign(spaceId(args), tagId(args), (payload(args).asset_ids as string[]) ?? []),
+  },
+  {
     name: 'redirects.reset',
     description: 'Reset redirect hit counters.',
     required: ['spaceId', 'id'],
