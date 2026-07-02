@@ -20,9 +20,7 @@ const isRequestOptions = (
 ): value is RequestOptions => {
   if (!value || typeof value !== 'object') return false
 
-  const keys = Object.keys(value)
-
-  return keys.length === 0 || keys.every((key) => key === 'headers')
+  return Object.keys(value).every((key) => key === 'headers')
 }
 
 export class ContentsResource {

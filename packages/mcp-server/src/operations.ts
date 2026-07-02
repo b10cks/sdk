@@ -53,16 +53,6 @@ const requireString = (args: MgmtToolArguments, key: keyof MgmtToolArguments): s
   return value
 }
 
-const requireNumber = (args: MgmtToolArguments, key: keyof MgmtToolArguments): number => {
-  const value = args[key]
-
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new Error(`Missing required number argument: ${String(key)}`)
-  }
-
-  return value
-}
-
 const payload = (args: MgmtToolArguments): Record<string, unknown> => args.payload ?? {}
 const params = (args: MgmtToolArguments): Record<string, unknown> | undefined => args.params
 
@@ -86,7 +76,6 @@ const commentId = (args: MgmtToolArguments): string => args.commentId ?? id(args
 const templateId = (args: MgmtToolArguments): string => args.templateId ?? id(args)
 const configId = (args: MgmtToolArguments): string => args.configId ?? id(args)
 const backupId = (args: MgmtToolArguments): string => args.backupId ?? id(args)
-const migrationId = (args: MgmtToolArguments): string => args.migrationId ?? id(args)
 const inviteId = (args: MgmtToolArguments): string => args.inviteId ?? id(args)
 const noteId = (args: MgmtToolArguments): string => args.noteId ?? id(args)
 const iconId = (args: MgmtToolArguments): string => args.iconId ?? id(args)

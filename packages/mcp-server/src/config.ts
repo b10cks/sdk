@@ -40,7 +40,7 @@ const parseArgs = (argv: string[]): Record<string, string> => {
 
 const getNetrcToken = (host = 'b10cks.com'): string | undefined => {
   try {
-    const home = process.env[/^win/.test(process.platform) ? 'USERPROFILE' : 'HOME']
+    const home = process.env[process.platform.startsWith('win') ? 'USERPROFILE' : 'HOME']
     const file = path.join(home!, '.netrc')
     const content = fs.readFileSync(file, 'utf8')
     let current: string | null = null

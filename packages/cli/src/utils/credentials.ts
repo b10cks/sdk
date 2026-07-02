@@ -9,7 +9,7 @@ export interface Credentials {
 }
 
 const getFile = () => {
-  const home = process.env[/^win/.test(process.platform) ? 'USERPROFILE' : 'HOME']
+  const home = process.env[process.platform.startsWith('win') ? 'USERPROFILE' : 'HOME']
   return path.join(home!, '.netrc')
 }
 
@@ -18,7 +18,7 @@ const getNrcFile = (): Record<string, any> => {
 
   try {
     obj = netrc(getFile()) as Record<string, any>
-  } catch (_e) {
+  } catch {
     obj = {}
   }
 
@@ -48,7 +48,7 @@ const set = (content: Credentials | null, host: string = 'b10cks.com'): Credenti
 
   try {
     obj = netrc(file) as Record<string, any>
-  } catch (_e) {
+  } catch {
     obj = {}
   }
 

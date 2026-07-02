@@ -380,7 +380,6 @@ describe('renderRichText', () => {
       const renderer = createRichTextRenderer({
         internalLinkHandler: (attrs) => `/resolved/${attrs.content}`,
       })
-      const node: RichTextDocument = { type: 'placeholderToken', attrs: {} }
       const linkDoc = doc(p(text('x', mark('internalLink', { content: 'abc' }))))
       expect(renderer.render(linkDoc)).toContain('href="/resolved/abc"')
     })

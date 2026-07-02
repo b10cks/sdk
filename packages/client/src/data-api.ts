@@ -14,7 +14,6 @@ import type {
   IBRedirectLookupResult,
   IBSearchParams,
   IBSearchResponse,
-  IBSearchResult,
   IBSitemapEntry,
   IBSpace,
 } from './types'

@@ -18,7 +18,7 @@
     "build:packages": "pnpm --filter='@b10cks/client' run build && pnpm --filter='@b10cks/mgmt-client' run build && pnpm --filter='@b10cks/mcp-server' run build && pnpm --filter='@b10cks/cli' run build && pnpm --filter='@b10cks/richtext' run build && pnpm --filter='@b10cks/vue' run build && pnpm --filter='@b10cks/react' run build && pnpm --filter='@b10cks/svelte' run build && pnpm --filter='@b10cks/nuxt' run build && pnpm --filter='@b10cks/next' run build",
     "test": "pnpm --filter='*' run test",
     "typecheck": "pnpm --filter='*' --if-present run typecheck",
-    "lint": "oxlint .",
+    "lint": "oxlint --deny-warnings .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt --write .",
     "clean": "pnpm --filter='*' run clean",
