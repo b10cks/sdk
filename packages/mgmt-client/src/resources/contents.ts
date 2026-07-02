@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   Content,
@@ -32,7 +33,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Content>> {
     return this.client.get<PaginatedResponse<Content>>(
-      `/mgmt/v1/spaces/${spaceId}/contents`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents`,
       params,
       options?.headers
     )
@@ -44,7 +45,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.post<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents`,
       payload,
       options?.headers
     )
@@ -52,7 +53,7 @@ export class ContentsResource {
 
   async get(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content> {
     return this.client.get<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
       undefined,
       options?.headers
     )
@@ -65,7 +66,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.put<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
       payload,
       options?.headers
     )
@@ -73,7 +74,7 @@ export class ContentsResource {
 
   async delete(spaceId: string, contentId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
       options?.headers
     )
   }
@@ -84,7 +85,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<{ data: Content[] }> {
     return this.client.post<{ data: Content[] }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/bulk-create`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/bulk-create`,
       payload,
       options?.headers
     )
@@ -96,7 +97,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<ContentTreeOperationsResult> {
     return this.client.post<ContentTreeOperationsResult>(
-      `/mgmt/v1/spaces/${spaceId}/contents/tree-operations`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/tree-operations`,
       payload,
       options?.headers
     )
@@ -109,7 +110,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.post<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/move`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/move`,
       payload,
       options?.headers
     )
@@ -132,7 +133,7 @@ export class ContentsResource {
     const requestOptions = isRequestOptions(payloadOrOptions) ? payloadOrOptions : options
 
     return this.client.post<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/publish`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/publish`,
       payload,
       requestOptions?.headers
     )
@@ -140,7 +141,7 @@ export class ContentsResource {
 
   async unpublish(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content> {
     return this.client.post<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/unpublish`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/unpublish`,
       undefined,
       options?.headers
     )
@@ -153,7 +154,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<Content> {
     return this.client.post<Content>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/schedule`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/schedule`,
       payload,
       options?.headers
     )
@@ -167,7 +168,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<ContentVersionListItem>> {
     return this.client.get<PaginatedResponse<ContentVersionListItem>>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions`,
       undefined,
       options?.headers
     )
@@ -180,7 +181,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<ContentVersion> {
     return this.client.get<ContentVersion>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
       undefined,
       options?.headers
     )
@@ -194,7 +195,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<ContentVersionListItem> {
     return this.client.patch<ContentVersionListItem>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}`,
       payload,
       options?.headers
     )
@@ -207,7 +208,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/publish`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/publish`,
       undefined,
       options?.headers
     )
@@ -220,7 +221,7 @@ export class ContentsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/current`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/current`,
       undefined,
       options?.headers
     )

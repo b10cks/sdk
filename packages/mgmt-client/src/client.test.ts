@@ -241,6 +241,30 @@ describe('ManagementClient', () => {
     })
   })
 
+  describe('Path parameter encoding', () => {
+    it('URL-encodes path traversal attempts in resource ids', async () => {
+      const client = new ManagementClient(mockConfig)
+      vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({ data: {} }) as never)
+
+      await client.contents.get('space-1', '../../users/me/tokens')
+
+      const url = vi.mocked(fetch).mock.calls.at(-1)?.[0] as string
+      expect(url).toBe(
+        'https://api.test.com/mgmt/v1/spaces/space-1/contents/..%2F..%2Fusers%2Fme%2Ftokens'
+      )
+    })
+
+    it('URL-encodes query and fragment characters in resource ids', async () => {
+      const client = new ManagementClient(mockConfig)
+      vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({ data: {} }) as never)
+
+      await client.contents.get('space?force=1', 'id#frag')
+
+      const url = vi.mocked(fetch).mock.calls.at(-1)?.[0] as string
+      expect(url).toContain('/mgmt/v1/spaces/space%3Fforce%3D1/contents/id%23frag')
+    })
+  })
+
   describe('Error handling', () => {
     it('should throw ManagementApiError on API error', async () => {
       const errorResponse = {

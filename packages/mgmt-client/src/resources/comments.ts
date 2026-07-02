@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   Comment,
@@ -18,7 +19,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Comment>> {
     return this.client.get<PaginatedResponse<Comment>>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
       undefined,
       options?.headers
     )
@@ -31,7 +32,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: Comment }> {
     return this.client.post<{ data: Comment }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
       payload,
       options?.headers
     )
@@ -44,7 +45,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: Comment }> {
     return this.client.get<{ data: Comment }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
       undefined,
       options?.headers
     )
@@ -58,7 +59,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: Comment }> {
     return this.client.patch<{ data: Comment }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
       payload,
       options?.headers
     )
@@ -71,7 +72,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}`,
       options?.headers
     )
   }
@@ -83,7 +84,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: Comment }> {
     return this.client.post<{ data: Comment }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/resolve`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/resolve`,
       undefined,
       options?.headers
     )
@@ -96,7 +97,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: Comment }> {
     return this.client.delete<{ data: Comment }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/resolve`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/resolve`,
       options?.headers
     )
   }
@@ -110,7 +111,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: CommentReaction[] }> {
     return this.client.get<{ data: CommentReaction[] }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
       undefined,
       options?.headers
     )
@@ -124,7 +125,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<{ data: CommentReaction }> {
     return this.client.post<{ data: CommentReaction }>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
       payload,
       options?.headers
     )
@@ -137,7 +138,7 @@ export class CommentsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
       options?.headers
     )
   }

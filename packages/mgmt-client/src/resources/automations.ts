@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   Automation,
@@ -23,7 +24,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<AutomationAction>> {
     return this.client.get<PaginatedResponse<AutomationAction>>(
-      `/mgmt/v1/spaces/${spaceId}/automation-actions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions`,
       undefined,
       options?.headers
     )
@@ -35,7 +36,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: AutomationAction }> {
     return this.client.post<{ data: AutomationAction }>(
-      `/mgmt/v1/spaces/${spaceId}/automation-actions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions`,
       payload,
       options?.headers
     )
@@ -47,7 +48,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: AutomationAction }> {
     return this.client.get<{ data: AutomationAction }>(
-      `/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
       undefined,
       options?.headers
     )
@@ -60,7 +61,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: AutomationAction }> {
     return this.client.patch<{ data: AutomationAction }>(
-      `/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
       payload,
       options?.headers
     )
@@ -68,7 +69,7 @@ export class AutomationsResource {
 
   async deleteAction(spaceId: string, actionId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions/${actionId}`,
       options?.headers
     )
   }
@@ -77,7 +78,7 @@ export class AutomationsResource {
 
   async getTriggerCatalog(spaceId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/trigger-catalog`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/trigger-catalog`,
       undefined,
       options?.headers
     )
@@ -85,7 +86,7 @@ export class AutomationsResource {
 
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Automation>> {
     return this.client.get<PaginatedResponse<Automation>>(
-      `/mgmt/v1/spaces/${spaceId}/automations`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations`,
       undefined,
       options?.headers
     )
@@ -97,7 +98,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: Automation }> {
     return this.client.post<{ data: Automation }>(
-      `/mgmt/v1/spaces/${spaceId}/automations`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations`,
       payload,
       options?.headers
     )
@@ -109,7 +110,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: Automation }> {
     return this.client.get<{ data: Automation }>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
       undefined,
       options?.headers
     )
@@ -122,7 +123,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<{ data: Automation }> {
     return this.client.patch<{ data: Automation }>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
       payload,
       options?.headers
     )
@@ -130,7 +131,7 @@ export class AutomationsResource {
 
   async delete(spaceId: string, automationId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}`,
       options?.headers
     )
   }
@@ -142,7 +143,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}/trigger`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}/trigger`,
       payload,
       options?.headers
     )
@@ -157,7 +158,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/executions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/executions`,
       params,
       options?.headers
     )
@@ -170,7 +171,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/trends`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/trends`,
       params,
       options?.headers
     )
@@ -183,7 +184,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/statistics`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/statistics`,
       params,
       options?.headers
     )
@@ -196,7 +197,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/summary`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automations/${automationId}/stats/summary`,
       params,
       options?.headers
     )
@@ -210,7 +211,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<AutomationExecution>> {
     return this.client.get<PaginatedResponse<AutomationExecution>>(
-      `/mgmt/v1/spaces/${spaceId}/automation-executions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-executions`,
       params,
       options?.headers
     )
@@ -222,7 +223,7 @@ export class AutomationsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/automation-executions/${executionId}/replay`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/automation-executions/${executionId}/replay`,
       undefined,
       options?.headers
     )

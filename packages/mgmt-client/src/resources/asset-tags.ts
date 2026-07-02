@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   AssetTag,
@@ -16,7 +17,7 @@ export class AssetTagsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<AssetTag>> {
     return this.client.get<PaginatedResponse<AssetTag>>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags`,
       params as Record<string, unknown>,
       options?.headers
     )
@@ -28,7 +29,7 @@ export class AssetTagsResource {
     options?: RequestOptions
   ): Promise<AssetTag> {
     return this.client.post<AssetTag>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags`,
       payload,
       options?.headers
     )
@@ -36,7 +37,7 @@ export class AssetTagsResource {
 
   async get(spaceId: string, tagId: string, options?: RequestOptions): Promise<AssetTag> {
     return this.client.get<AssetTag>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
       undefined,
       options?.headers
     )
@@ -49,7 +50,7 @@ export class AssetTagsResource {
     options?: RequestOptions
   ): Promise<AssetTag> {
     return this.client.put<AssetTag>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
       payload,
       options?.headers
     )
@@ -57,7 +58,7 @@ export class AssetTagsResource {
 
   async delete(spaceId: string, tagId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}`,
       options?.headers
     )
   }
@@ -69,7 +70,7 @@ export class AssetTagsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}/assign`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-tags/${tagId}/assign`,
       { asset_ids: assetIds },
       options?.headers
     )

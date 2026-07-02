@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type { CreateSpaceTokenParams, PaginatedResponse, RequestOptions, SpaceToken } from '../types'
 
@@ -6,7 +7,7 @@ export class TokensResource {
 
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<SpaceToken>> {
     return this.client.get<PaginatedResponse<SpaceToken>>(
-      `/mgmt/v1/spaces/${spaceId}/tokens`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/tokens`,
       undefined,
       options?.headers
     )
@@ -18,7 +19,7 @@ export class TokensResource {
     options?: RequestOptions
   ): Promise<SpaceToken> {
     return this.client.post<SpaceToken>(
-      `/mgmt/v1/spaces/${spaceId}/tokens`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/tokens`,
       params,
       options?.headers
     )
@@ -26,7 +27,7 @@ export class TokensResource {
 
   async delete(spaceId: string, tokenId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/tokens/${tokenId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/tokens/${tokenId}`,
       options?.headers
     )
   }

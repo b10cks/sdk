@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   AssignReleaseVersionParams,
@@ -14,7 +15,7 @@ export class ReleasesResource {
 
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Release>> {
     return this.client.get<PaginatedResponse<Release>>(
-      `/mgmt/v1/spaces/${spaceId}/releases`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases`,
       undefined,
       options?.headers
     )
@@ -26,7 +27,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.post<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases`,
       payload,
       options?.headers
     )
@@ -38,7 +39,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.get<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
       undefined,
       options?.headers
     )
@@ -51,7 +52,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.put<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
       payload,
       options?.headers
     )
@@ -59,7 +60,7 @@ export class ReleasesResource {
 
   async delete(spaceId: string, releaseId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}`,
       options?.headers
     )
   }
@@ -70,7 +71,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.post<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/commit`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/commit`,
       undefined,
       options?.headers
     )
@@ -82,7 +83,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.post<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/cancel`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/cancel`,
       undefined,
       options?.headers
     )
@@ -94,7 +95,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.post<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/publish`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/publish`,
       undefined,
       options?.headers
     )
@@ -107,7 +108,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.post<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/versions/assign`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/versions/assign`,
       payload,
       options?.headers
     )
@@ -120,7 +121,7 @@ export class ReleasesResource {
     options?: RequestOptions
   ): Promise<{ data: Release }> {
     return this.client.delete<{ data: Release }>(
-      `/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/versions/remove`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/versions/remove`,
       options?.headers
     )
   }

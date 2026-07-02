@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   AuditLog,
@@ -38,7 +39,7 @@ export class SpacesResource {
   }
 
   async get(spaceId: string, options?: RequestOptions): Promise<Space> {
-    return this.client.get<Space>(`/mgmt/v1/spaces/${spaceId}`, undefined, options?.headers)
+    return this.client.get<Space>(apiPath`/mgmt/v1/spaces/${spaceId}`, undefined, options?.headers)
   }
 
   async update(
@@ -46,11 +47,11 @@ export class SpacesResource {
     params: UpdateSpaceParams,
     options?: RequestOptions
   ): Promise<Space> {
-    return this.client.put<Space>(`/mgmt/v1/spaces/${spaceId}`, params, options?.headers)
+    return this.client.put<Space>(apiPath`/mgmt/v1/spaces/${spaceId}`, params, options?.headers)
   }
 
   async delete(spaceId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/spaces/${spaceId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/spaces/${spaceId}`, options?.headers)
   }
 
   async updateIcon(
@@ -58,12 +59,12 @@ export class SpacesResource {
     params: UpdateSpaceIconParams,
     options?: RequestOptions
   ): Promise<void> {
-    return this.client.post<void>(`/mgmt/v1/spaces/${spaceId}/icon`, params, options?.headers)
+    return this.client.post<void>(apiPath`/mgmt/v1/spaces/${spaceId}/icon`, params, options?.headers)
   }
 
   async archive(spaceId: string, options?: RequestOptions): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/archive`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/archive`,
       undefined,
       options?.headers
     )
@@ -71,19 +72,19 @@ export class SpacesResource {
 
   async getAiUsage(spaceId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/ai-usage`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-usage`,
       undefined,
       options?.headers
     )
   }
 
   async getStats(spaceId: string, options?: RequestOptions): Promise<unknown> {
-    return this.client.get<unknown>(`/mgmt/v1/spaces/${spaceId}/stats`, undefined, options?.headers)
+    return this.client.get<unknown>(apiPath`/mgmt/v1/spaces/${spaceId}/stats`, undefined, options?.headers)
   }
 
   async getContentMenu(spaceId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.get<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/content-menu`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/content-menu`,
       undefined,
       options?.headers
     )
@@ -96,7 +97,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<SpaceMember>> {
     return this.client.get<PaginatedResponse<SpaceMember>>(
-      `/mgmt/v1/spaces/${spaceId}/members`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/members`,
       undefined,
       options?.headers
     )
@@ -109,7 +110,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<SpaceMember> {
     return this.client.patch<SpaceMember>(
-      `/mgmt/v1/spaces/${spaceId}/members/${userId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/members/${userId}`,
       payload,
       options?.headers
     )
@@ -117,7 +118,7 @@ export class SpacesResource {
 
   async removeMember(spaceId: string, userId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/members/${userId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/members/${userId}`,
       options?.headers
     )
   }
@@ -129,7 +130,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
-      `/mgmt/v1/spaces/${spaceId}/invites`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/invites`,
       undefined,
       options?.headers
     )
@@ -141,7 +142,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<Invite> {
     return this.client.post<Invite>(
-      `/mgmt/v1/spaces/${spaceId}/invites`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/invites`,
       payload,
       options?.headers
     )
@@ -149,14 +150,14 @@ export class SpacesResource {
 
   async deleteInvite(spaceId: string, inviteId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/invites/${inviteId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/invites/${inviteId}`,
       options?.headers
     )
   }
 
   async resendInvite(spaceId: string, inviteId: string, options?: RequestOptions): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/spaces/${spaceId}/invites/${inviteId}/resend`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/invites/${inviteId}/resend`,
       undefined,
       options?.headers
     )
@@ -170,7 +171,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.patch<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/search`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/search`,
       payload,
       options?.headers
     )
@@ -178,7 +179,7 @@ export class SpacesResource {
 
   async reindexSearch(spaceId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/search/reindex`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/search/reindex`,
       undefined,
       options?.headers
     )
@@ -191,7 +192,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Subscription[] }> {
     return this.client.get<{ data: Subscription[] }>(
-      `/mgmt/v1/spaces/${spaceId}/subscriptions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions`,
       undefined,
       options?.headers
     )
@@ -202,7 +203,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Subscription | null }> {
     return this.client.get<{ data: Subscription | null }>(
-      `/mgmt/v1/spaces/${spaceId}/subscriptions/current`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions/current`,
       undefined,
       options?.headers
     )
@@ -214,7 +215,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ checkout_url: string | null; upgraded?: boolean }> {
     return this.client.post<{ checkout_url: string | null; upgraded?: boolean }>(
-      `/mgmt/v1/spaces/${spaceId}/subscriptions/checkout`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions/checkout`,
       payload,
       options?.headers
     )
@@ -225,7 +226,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ checkout_url: string }> {
     return this.client.post<{ checkout_url: string }>(
-      `/mgmt/v1/spaces/${spaceId}/subscriptions/reinit`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions/reinit`,
       undefined,
       options?.headers
     )
@@ -233,7 +234,7 @@ export class SpacesResource {
 
   async cancelSubscription(spaceId: string, options?: RequestOptions): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(
-      `/mgmt/v1/spaces/${spaceId}/subscriptions/cancel`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions/cancel`,
       undefined,
       options?.headers
     )
@@ -246,7 +247,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiSettings }> {
     return this.client.get<{ data: SpaceAiSettings }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-settings`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-settings`,
       undefined,
       options?.headers
     )
@@ -258,7 +259,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiSettings }> {
     return this.client.patch<{ data: SpaceAiSettings }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-settings`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-settings`,
       payload,
       options?.headers
     )
@@ -271,7 +272,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiConfig[] }> {
     return this.client.get<{ data: SpaceAiConfig[] }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-configs`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs`,
       undefined,
       options?.headers
     )
@@ -283,7 +284,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiConfig }> {
     return this.client.post<{ data: SpaceAiConfig }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-configs`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs`,
       payload,
       options?.headers
     )
@@ -295,7 +296,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiConfig }> {
     return this.client.get<{ data: SpaceAiConfig }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
       undefined,
       options?.headers
     )
@@ -308,7 +309,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceAiConfig }> {
     return this.client.patch<{ data: SpaceAiConfig }>(
-      `/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
       payload,
       options?.headers
     )
@@ -316,7 +317,7 @@ export class SpacesResource {
 
   async deleteAiConfig(spaceId: string, configId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs/${configId}`,
       options?.headers
     )
   }
@@ -329,7 +330,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<AuditLog>> {
     return this.client.get<PaginatedResponse<AuditLog>>(
-      `/mgmt/v1/spaces/${spaceId}/audit-logs`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/audit-logs`,
       params,
       options?.headers
     )
@@ -342,7 +343,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Backup>> {
     return this.client.get<PaginatedResponse<Backup>>(
-      `/mgmt/v1/spaces/${spaceId}/backups`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/backups`,
       undefined,
       options?.headers
     )
@@ -354,7 +355,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Backup }> {
     return this.client.post<{ data: Backup }>(
-      `/mgmt/v1/spaces/${spaceId}/backups`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/backups`,
       payload,
       options?.headers
     )
@@ -366,7 +367,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Backup }> {
     return this.client.get<{ data: Backup }>(
-      `/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
       undefined,
       options?.headers
     )
@@ -379,7 +380,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Backup }> {
     return this.client.put<{ data: Backup }>(
-      `/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
       payload,
       options?.headers
     )
@@ -387,7 +388,7 @@ export class SpacesResource {
 
   async deleteBackup(spaceId: string, backupId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/backups/${backupId}`,
       options?.headers
     )
   }
@@ -399,7 +400,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Migration>> {
     return this.client.get<PaginatedResponse<Migration>>(
-      `/mgmt/v1/spaces/${spaceId}/migrations`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/migrations`,
       undefined,
       options?.headers
     )
@@ -411,7 +412,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Migration }> {
     return this.client.post<{ data: Migration }>(
-      `/mgmt/v1/spaces/${spaceId}/migrations`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/migrations`,
       payload,
       options?.headers
     )
@@ -423,7 +424,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<{ data: Migration }> {
     return this.client.get<{ data: Migration }>(
-      `/mgmt/v1/spaces/${spaceId}/migrations/${migrationId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/migrations/${migrationId}`,
       undefined,
       options?.headers
     )
@@ -435,7 +436,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/migrations/${migrationId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/migrations/${migrationId}`,
       options?.headers
     )
   }
@@ -448,14 +449,14 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/presence`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/presence`,
       payload,
       options?.headers
     )
   }
 
   async leaveSpacePresence(spaceId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/spaces/${spaceId}/presence`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/spaces/${spaceId}/presence`, options?.headers)
   }
 
   async updateContentPresence(
@@ -465,7 +466,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
       payload,
       options?.headers
     )
@@ -477,7 +478,7 @@ export class SpacesResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
       options?.headers
     )
   }
@@ -486,7 +487,7 @@ export class SpacesResource {
 
   async listSpaceRoles(spaceId: string, options?: RequestOptions): Promise<{ data: Role[] }> {
     return this.client.get<{ data: Role[] }>(
-      `/mgmt/v1/spaces/${spaceId}/roles/space`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/roles/space`,
       undefined,
       options?.headers
     )

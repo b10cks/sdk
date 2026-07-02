@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   CreateInviteParams,
@@ -31,15 +32,15 @@ export class TeamsResource {
   }
 
   async get(teamId: string, options?: RequestOptions): Promise<Team> {
-    return this.client.get<Team>(`/mgmt/v1/teams/${teamId}`, undefined, options?.headers)
+    return this.client.get<Team>(apiPath`/mgmt/v1/teams/${teamId}`, undefined, options?.headers)
   }
 
   async update(teamId: string, params: UpdateTeamParams, options?: RequestOptions): Promise<Team> {
-    return this.client.put<Team>(`/mgmt/v1/teams/${teamId}`, params, options?.headers)
+    return this.client.put<Team>(apiPath`/mgmt/v1/teams/${teamId}`, params, options?.headers)
   }
 
   async delete(teamId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}`, options?.headers)
   }
 
   async getHierarchy(options?: RequestOptions): Promise<TeamHierarchy> {
@@ -53,7 +54,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<TeamMember>> {
     return this.client.get<PaginatedResponse<TeamMember>>(
-      `/mgmt/v1/teams/${teamId}/members`,
+      apiPath`/mgmt/v1/teams/${teamId}/members`,
       undefined,
       options?.headers
     )
@@ -66,14 +67,14 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<TeamMember> {
     return this.client.patch<TeamMember>(
-      `/mgmt/v1/teams/${teamId}/members/${userId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/members/${userId}`,
       payload,
       options?.headers
     )
   }
 
   async removeMember(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/members/${userId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/members/${userId}`, options?.headers)
   }
 
   // ─── Users (direct team membership management) ─────────────────────────────
@@ -83,7 +84,7 @@ export class TeamsResource {
     payload: { user_id: string; role?: string },
     options?: RequestOptions
   ): Promise<void> {
-    return this.client.post<void>(`/mgmt/v1/teams/${teamId}/users`, payload, options?.headers)
+    return this.client.post<void>(apiPath`/mgmt/v1/teams/${teamId}/users`, payload, options?.headers)
   }
 
   async updateUser(
@@ -93,21 +94,21 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.patch<void>(
-      `/mgmt/v1/teams/${teamId}/users/${userId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/users/${userId}`,
       payload,
       options?.headers
     )
   }
 
   async removeUser(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/users/${userId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/users/${userId}`, options?.headers)
   }
 
   // ─── Invites ───────────────────────────────────────────────────────────────
 
   async listInvites(teamId: string, options?: RequestOptions): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
-      `/mgmt/v1/teams/${teamId}/invites`,
+      apiPath`/mgmt/v1/teams/${teamId}/invites`,
       undefined,
       options?.headers
     )
@@ -119,7 +120,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<Invite> {
     return this.client.post<Invite>(
-      `/mgmt/v1/teams/${teamId}/invites`,
+      apiPath`/mgmt/v1/teams/${teamId}/invites`,
       payload,
       options?.headers
     )
@@ -127,14 +128,14 @@ export class TeamsResource {
 
   async deleteInvite(teamId: string, inviteId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/teams/${teamId}/invites/${inviteId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/invites/${inviteId}`,
       options?.headers
     )
   }
 
   async resendInvite(teamId: string, inviteId: string, options?: RequestOptions): Promise<void> {
     return this.client.post<void>(
-      `/mgmt/v1/teams/${teamId}/invites/${inviteId}/resend`,
+      apiPath`/mgmt/v1/teams/${teamId}/invites/${inviteId}/resend`,
       undefined,
       options?.headers
     )
@@ -147,7 +148,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: TeamSamlProvider }> {
     return this.client.get<{ data: TeamSamlProvider }>(
-      `/mgmt/v1/teams/${teamId}/saml-provider`,
+      apiPath`/mgmt/v1/teams/${teamId}/saml-provider`,
       undefined,
       options?.headers
     )
@@ -159,14 +160,14 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: TeamSamlProvider }> {
     return this.client.put<{ data: TeamSamlProvider }>(
-      `/mgmt/v1/teams/${teamId}/saml-provider`,
+      apiPath`/mgmt/v1/teams/${teamId}/saml-provider`,
       payload,
       options?.headers
     )
   }
 
   async deleteSamlProvider(teamId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/teams/${teamId}/saml-provider`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/saml-provider`, options?.headers)
   }
 
   // ─── Space Blueprints ──────────────────────────────────────────────────────
@@ -176,7 +177,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<SpaceBlueprint>> {
     return this.client.get<PaginatedResponse<SpaceBlueprint>>(
-      `/mgmt/v1/teams/${teamId}/blueprints`,
+      apiPath`/mgmt/v1/teams/${teamId}/blueprints`,
       undefined,
       options?.headers
     )
@@ -188,7 +189,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceBlueprint }> {
     return this.client.post<{ data: SpaceBlueprint }>(
-      `/mgmt/v1/teams/${teamId}/blueprints`,
+      apiPath`/mgmt/v1/teams/${teamId}/blueprints`,
       payload,
       options?.headers
     )
@@ -200,7 +201,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceBlueprint }> {
     return this.client.get<{ data: SpaceBlueprint }>(
-      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
       undefined,
       options?.headers
     )
@@ -213,7 +214,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: SpaceBlueprint }> {
     return this.client.put<{ data: SpaceBlueprint }>(
-      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
       payload,
       options?.headers
     )
@@ -225,7 +226,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/blueprints/${blueprintId}`,
       options?.headers
     )
   }
@@ -234,7 +235,7 @@ export class TeamsResource {
 
   async listSpaceRoles(teamId: string, options?: RequestOptions): Promise<{ data: Role[] }> {
     return this.client.get<{ data: Role[] }>(
-      `/mgmt/v1/teams/${teamId}/roles/space`,
+      apiPath`/mgmt/v1/teams/${teamId}/roles/space`,
       undefined,
       options?.headers
     )
@@ -246,7 +247,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: Role }> {
     return this.client.post<{ data: Role }>(
-      `/mgmt/v1/teams/${teamId}/roles/space`,
+      apiPath`/mgmt/v1/teams/${teamId}/roles/space`,
       payload,
       options?.headers
     )
@@ -259,7 +260,7 @@ export class TeamsResource {
     options?: RequestOptions
   ): Promise<{ data: Role }> {
     return this.client.patch<{ data: Role }>(
-      `/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
       payload,
       options?.headers
     )
@@ -267,7 +268,7 @@ export class TeamsResource {
 
   async deleteSpaceRole(teamId: string, roleId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
+      apiPath`/mgmt/v1/teams/${teamId}/roles/space/${roleId}`,
       options?.headers
     )
   }

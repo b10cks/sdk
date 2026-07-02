@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   CreateProviderNoteParams,
@@ -35,7 +36,7 @@ export class ProviderResource {
 
   async getNote(noteId: string, options?: RequestOptions): Promise<{ data: ProviderNote }> {
     return this.client.get<{ data: ProviderNote }>(
-      `/mgmt/v1/provider/notes/${noteId}`,
+      apiPath`/mgmt/v1/provider/notes/${noteId}`,
       undefined,
       options?.headers
     )
@@ -47,13 +48,13 @@ export class ProviderResource {
     options?: RequestOptions
   ): Promise<{ data: ProviderNote }> {
     return this.client.patch<{ data: ProviderNote }>(
-      `/mgmt/v1/provider/notes/${noteId}`,
+      apiPath`/mgmt/v1/provider/notes/${noteId}`,
       payload,
       options?.headers
     )
   }
 
   async deleteNote(noteId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/provider/notes/${noteId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/provider/notes/${noteId}`, options?.headers)
   }
 }

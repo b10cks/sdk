@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type { Asset, GetAssetsParams, LinkedAssetContent, PaginatedResponse, RequestOptions } from '../types'
 
@@ -10,19 +11,19 @@ export class AssetsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Asset>> {
     return this.client.get<PaginatedResponse<Asset>>(
-      `/mgmt/v1/spaces/${spaceId}/assets`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets`,
       params as Record<string, unknown>,
       options?.headers
     )
   }
 
   async create(spaceId: string, payload: Partial<Asset>, options?: RequestOptions): Promise<Asset> {
-    return this.client.post<Asset>(`/mgmt/v1/spaces/${spaceId}/assets`, payload, options?.headers)
+    return this.client.post<Asset>(apiPath`/mgmt/v1/spaces/${spaceId}/assets`, payload, options?.headers)
   }
 
   async get(spaceId: string, assetId: string, options?: RequestOptions): Promise<Asset> {
     return this.client.get<Asset>(
-      `/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
       undefined,
       options?.headers
     )
@@ -35,7 +36,7 @@ export class AssetsResource {
     options?: RequestOptions
   ): Promise<Asset> {
     return this.client.put<Asset>(
-      `/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
       payload,
       options?.headers
     )
@@ -43,7 +44,7 @@ export class AssetsResource {
 
   async delete(spaceId: string, assetId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}`,
       options?.headers
     )
   }
@@ -54,7 +55,7 @@ export class AssetsResource {
     options?: RequestOptions
   ): Promise<{ data: LinkedAssetContent[] }> {
     return this.client.get<{ data: LinkedAssetContent[] }>(
-      `/mgmt/v1/spaces/${spaceId}/assets/${assetId}/linked-contents`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}/linked-contents`,
       undefined,
       options?.headers
     )
@@ -66,7 +67,7 @@ export class AssetsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/assets/export`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/export`,
       payload,
       options?.headers
     )
@@ -78,7 +79,7 @@ export class AssetsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/assets/import`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/import`,
       payload,
       options?.headers
     )

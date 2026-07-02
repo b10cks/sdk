@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   CreatePersonalAccessTokenParams,
@@ -47,7 +48,7 @@ export class UsersResource {
 
   async deleteSocialLink(provider: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/users/me/social-links/${provider}`,
+      apiPath`/mgmt/v1/users/me/social-links/${provider}`,
       options?.headers
     )
   }
@@ -76,7 +77,7 @@ export class UsersResource {
   }
 
   async deleteToken(tokenId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(`/mgmt/v1/users/me/tokens/${tokenId}`, options?.headers)
+    return this.client.delete<void>(apiPath`/mgmt/v1/users/me/tokens/${tokenId}`, options?.headers)
   }
 
   // ─── Invites ───────────────────────────────────────────────────────────────
@@ -91,7 +92,7 @@ export class UsersResource {
 
   async getInvite(inviteId: string, options?: RequestOptions): Promise<{ data: Invite }> {
     return this.client.get<{ data: Invite }>(
-      `/mgmt/v1/users/me/invites/${inviteId}`,
+      apiPath`/mgmt/v1/users/me/invites/${inviteId}`,
       undefined,
       options?.headers
     )
@@ -99,7 +100,7 @@ export class UsersResource {
 
   async acceptInvite(inviteId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/users/me/invites/${inviteId}/accept`,
+      apiPath`/mgmt/v1/users/me/invites/${inviteId}/accept`,
       undefined,
       options?.headers
     )

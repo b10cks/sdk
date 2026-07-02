@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type { AssetFolder, PaginatedResponse, RequestOptions } from '../types'
 
@@ -6,7 +7,7 @@ export class AssetFoldersResource {
 
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<AssetFolder>> {
     return this.client.get<PaginatedResponse<AssetFolder>>(
-      `/mgmt/v1/spaces/${spaceId}/asset-folders`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders`,
       undefined,
       options?.headers
     )
@@ -18,7 +19,7 @@ export class AssetFoldersResource {
     options?: RequestOptions
   ): Promise<AssetFolder> {
     return this.client.post<AssetFolder>(
-      `/mgmt/v1/spaces/${spaceId}/asset-folders`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders`,
       payload,
       options?.headers
     )
@@ -26,7 +27,7 @@ export class AssetFoldersResource {
 
   async get(spaceId: string, folderId: string, options?: RequestOptions): Promise<AssetFolder> {
     return this.client.get<AssetFolder>(
-      `/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
       undefined,
       options?.headers
     )
@@ -39,7 +40,7 @@ export class AssetFoldersResource {
     options?: RequestOptions
   ): Promise<AssetFolder> {
     return this.client.put<AssetFolder>(
-      `/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
       payload,
       options?.headers
     )
@@ -47,7 +48,7 @@ export class AssetFoldersResource {
 
   async delete(spaceId: string, folderId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders/${folderId}`,
       options?.headers
     )
   }

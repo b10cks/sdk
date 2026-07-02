@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type { GetRedirectsParams, PaginatedResponse, Redirect, RequestOptions } from '../types'
 
@@ -10,7 +11,7 @@ export class RedirectsResource {
     options?: RequestOptions
   ): Promise<PaginatedResponse<Redirect>> {
     return this.client.get<PaginatedResponse<Redirect>>(
-      `/mgmt/v1/spaces/${spaceId}/redirects`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects`,
       params,
       options?.headers
     )
@@ -22,7 +23,7 @@ export class RedirectsResource {
     options?: RequestOptions
   ): Promise<Redirect> {
     return this.client.post<Redirect>(
-      `/mgmt/v1/spaces/${spaceId}/redirects`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects`,
       payload,
       options?.headers
     )
@@ -30,7 +31,7 @@ export class RedirectsResource {
 
   async get(spaceId: string, redirectId: string, options?: RequestOptions): Promise<Redirect> {
     return this.client.get<Redirect>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
       undefined,
       options?.headers
     )
@@ -43,7 +44,7 @@ export class RedirectsResource {
     options?: RequestOptions
   ): Promise<Redirect> {
     return this.client.put<Redirect>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
       payload,
       options?.headers
     )
@@ -51,14 +52,14 @@ export class RedirectsResource {
 
   async delete(spaceId: string, redirectId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}`,
       options?.headers
     )
   }
 
   async reset(spaceId: string, redirectId: string, options?: RequestOptions): Promise<Redirect> {
     return this.client.post<Redirect>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}/reset`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/${redirectId}/reset`,
       undefined,
       options?.headers
     )
@@ -70,7 +71,7 @@ export class RedirectsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/export`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/export`,
       payload,
       options?.headers
     )
@@ -82,7 +83,7 @@ export class RedirectsResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      `/mgmt/v1/spaces/${spaceId}/redirects/import`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/redirects/import`,
       payload,
       options?.headers
     )

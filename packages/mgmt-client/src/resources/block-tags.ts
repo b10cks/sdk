@@ -1,3 +1,4 @@
+import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type { BlockTag, PaginatedResponse, RequestOptions } from '../types'
 
@@ -6,7 +7,7 @@ export class BlockTagsResource {
 
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<BlockTag>> {
     return this.client.get<PaginatedResponse<BlockTag>>(
-      `/mgmt/v1/spaces/${spaceId}/block-tags`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/block-tags`,
       undefined,
       options?.headers
     )
@@ -18,7 +19,7 @@ export class BlockTagsResource {
     options?: RequestOptions
   ): Promise<BlockTag> {
     return this.client.post<BlockTag>(
-      `/mgmt/v1/spaces/${spaceId}/block-tags`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/block-tags`,
       payload,
       options?.headers
     )
@@ -26,7 +27,7 @@ export class BlockTagsResource {
 
   async get(spaceId: string, tagId: string, options?: RequestOptions): Promise<BlockTag> {
     return this.client.get<BlockTag>(
-      `/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
       undefined,
       options?.headers
     )
@@ -39,7 +40,7 @@ export class BlockTagsResource {
     options?: RequestOptions
   ): Promise<BlockTag> {
     return this.client.put<BlockTag>(
-      `/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
       payload,
       options?.headers
     )
@@ -47,7 +48,7 @@ export class BlockTagsResource {
 
   async delete(spaceId: string, tagId: string, options?: RequestOptions): Promise<void> {
     return this.client.delete<void>(
-      `/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/block-tags/${tagId}`,
       options?.headers
     )
   }
