@@ -7,7 +7,7 @@ export default defineConfig({
     dts({
       include: ['src/**/*'],
       exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
-      rollupTypes: false,
+      bundleTypes: false,
       outDir: 'dist',
       entryRoot: 'src',
     }),
