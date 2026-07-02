@@ -96,8 +96,13 @@ const URL_SCHEME_RE = /^([a-z][a-z0-9+.-]*):/
 
 function sanitizeUrl(url: string, options: RichTextHtmlOptions): string {
   // Browsers ignore control characters and whitespace when parsing the URL
-  // scheme (e.g. `java\nscript:`), so strip them before matching.
-  const normalized = url.replace(/[\u0000-\u0020]/g, '').toLowerCase()
+  // scheme (e.g. `java\nscript:`), so strip anything at or below U+0020 before
+  // matching. Done via a code-point filter to avoid a control-char regex.
+  let stripped = ''
+  for (const char of url) {
+    if (char.charCodeAt(0) > 0x20) stripped += char
+  }
+  const normalized = stripped.toLowerCase()
   const scheme = URL_SCHEME_RE.exec(normalized)?.[1]
   if (!scheme) return url // relative, anchor, query or protocol-relative URL
   const allowed = options.allowedSchemes ?? DEFAULT_ALLOWED_SCHEMES
