@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createRichTextRenderer,
   createRichTextTextRenderer,
+  DEFAULT_ALLOWED_SCHEMES,
   renderRichText,
   renderRichTextAsText,
 } from './index'
@@ -146,6 +147,51 @@ describe('renderRichText', () => {
     it('renders target and rel', () => {
       const result = renderRichText(doc(p(text('click', mark('link', { href: '/x', target: '_blank', rel: 'noopener' })))))
       expect(result).toBe('<p><a href="/x" target="_blank" rel="noopener">click</a></p>')
+    })
+  })
+
+  describe('URL scheme sanitizing', () => {
+    it('neutralizes javascript: URLs in link href', () => {
+      const result = renderRichText(doc(p(text('click', mark('link', { href: 'javascript:alert(1)' })))))
+      expect(result).toBe('<p><a href="#">click</a></p>')
+    })
+
+    it('neutralizes javascript: URLs hidden behind case and control characters', () => {
+      const result = renderRichText(doc(p(text('click', mark('link', { href: 'JaVa\tScRiPt:alert(1)' })))))
+      expect(result).toBe('<p><a href="#">click</a></p>')
+    })
+
+    it('neutralizes data: URLs in image src', () => {
+      const result = renderRichText(doc({ type: 'image', attrs: { src: 'data:text/html,<script>1</script>' } }))
+      expect(result).toBe('<img src="#">')
+    })
+
+    it('neutralizes disallowed schemes returned by internalLinkHandler', () => {
+      const result = renderRichText(doc(p(text('page', mark('internalLink', { content: 'abc' })))), {
+        internalLinkHandler: () => 'vbscript:evil',
+      })
+      expect(result).toContain('href="#"')
+    })
+
+    it('allows http, https, mailto, tel and relative URLs by default', () => {
+      for (const href of ['https://example.com', 'http://example.com', 'mailto:a@b.c', 'tel:+123', '/about', '#anchor', '//cdn.example.com/x']) {
+        const result = renderRichText(doc(p(text('x', mark('link', { href })))))
+        expect(result).toContain(`href="${href}"`)
+      }
+    })
+
+    it('allows javascript: when explicitly whitelisted via allowedSchemes', () => {
+      const result = renderRichText(doc(p(text('x', mark('link', { href: 'javascript:void(0)' })))), {
+        allowedSchemes: [...DEFAULT_ALLOWED_SCHEMES, 'javascript'],
+      })
+      expect(result).toContain('href="javascript:void(0)"')
+    })
+
+    it('restricts to a custom allowlist when one is provided', () => {
+      const result = renderRichText(doc(p(text('x', mark('link', { href: 'http://example.com' })))), {
+        allowedSchemes: ['https'],
+      })
+      expect(result).toContain('href="#"')
     })
   })
 

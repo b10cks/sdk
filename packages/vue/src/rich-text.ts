@@ -6,6 +6,7 @@ import {
   type RichTextHtmlOptions,
   type RichTextInternalLinkAttrs,
   type RichTextInternalLinkHandler,
+  type RichTextPlaceholderHandler,
   type RichTextTextOptions,
   type RichTextTextRenderer,
 } from '@b10cks/richtext'
@@ -70,6 +71,16 @@ export const B10cksRichText = defineComponent({
       required: false,
       default: undefined,
     },
+    placeholderHandler: {
+      type: Function as PropType<RichTextPlaceholderHandler>,
+      required: false,
+      default: undefined,
+    },
+    allowedSchemes: {
+      type: Array as PropType<string[]>,
+      required: false,
+      default: undefined,
+    },
   },
   setup(props, { attrs }) {
     const html = computed(
@@ -77,6 +88,8 @@ export const B10cksRichText = defineComponent({
         props.html ??
         renderRichText(props.document, {
           internalLinkHandler: props.internalLinkHandler,
+          placeholderHandler: props.placeholderHandler,
+          allowedSchemes: props.allowedSchemes,
         })
     )
 

@@ -20,11 +20,12 @@
     extensions,
     internalLinkHandler,
     placeholderHandler,
+    allowedSchemes,
     ...restProps
   }: B10cksRichTextProps & HTMLAttributes<HTMLElement> = $props()
 
   const resolvedHtml = $derived(
-    html ?? renderRichText(document, { extensions, internalLinkHandler, placeholderHandler })
+    html ?? renderRichText(document, { extensions, internalLinkHandler, placeholderHandler, allowedSchemes })
   )
 </script>
 

@@ -50,6 +50,17 @@ export type RichTextPlaceholderHandler = (
 export interface RichTextHtmlOptions {
   internalLinkHandler?: RichTextInternalLinkHandler
   placeholderHandler?: RichTextPlaceholderHandler
+  /**
+   * URL schemes (without the trailing colon) permitted in link `href` and
+   * image `src` attributes. URLs with any other scheme are replaced with `'#'`
+   * to prevent script-injecting URLs (e.g. `javascript:`) stored in CMS
+   * content from executing. Relative URLs are always allowed.
+   *
+   * Defaults to {@link DEFAULT_ALLOWED_SCHEMES}. To additionally allow
+   * `javascript:` URLs, pass
+   * `[...DEFAULT_ALLOWED_SCHEMES, 'javascript']`.
+   */
+  allowedSchemes?: string[]
 }
 
 export interface RichTextTextOptions {
@@ -74,6 +85,23 @@ export interface RichTextExtensionOptions {
    * this field.
    */
   extensions?: unknown
+}
+
+// ─── URL sanitizing ───────────────────────────────────────────────────────────
+
+/** Default schemes allowed in link/image URLs. */
+export const DEFAULT_ALLOWED_SCHEMES: readonly string[] = ['http', 'https', 'mailto', 'tel']
+
+const URL_SCHEME_RE = /^([a-z][a-z0-9+.-]*):/
+
+function sanitizeUrl(url: string, options: RichTextHtmlOptions): string {
+  // Browsers ignore control characters and whitespace when parsing the URL
+  // scheme (e.g. `java\nscript:`), so strip them before matching.
+  const normalized = url.replace(/[\u0000-\u0020]/g, '').toLowerCase()
+  const scheme = URL_SCHEME_RE.exec(normalized)?.[1]
+  if (!scheme) return url // relative, anchor, query or protocol-relative URL
+  const allowed = options.allowedSchemes ?? DEFAULT_ALLOWED_SCHEMES
+  return allowed.includes(scheme) ? url : '#'
 }
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
@@ -131,7 +159,7 @@ function applyMark(
     case 'code':
       return tag('code', inner)
     case 'link': {
-      const href = ((a.href || a.url || '#') as string)
+      const href = sanitizeUrl((a.href || a.url || '#') as string, options)
       const linkAttrs: Record<string, unknown> = { href }
       if (a.target) linkAttrs.target = a.target
       if (a.rel) linkAttrs.rel = a.rel
@@ -147,9 +175,12 @@ function applyMark(
           : typeof linkAttrs.href === 'string' && linkAttrs.href.length > 0
             ? linkAttrs.href
             : '#'
-      const href = options.internalLinkHandler
-        ? (options.internalLinkHandler(linkAttrs) ?? defaultHref)
-        : defaultHref
+      const href = sanitizeUrl(
+        options.internalLinkHandler
+          ? (options.internalLinkHandler(linkAttrs) ?? defaultHref)
+          : defaultHref,
+        options
+      )
       const elAttrs: Record<string, unknown> = {
         href,
         // data-type="internal" matches CMS output; data-b10cks-internal-link kept for SDK consumers
@@ -246,7 +277,9 @@ function renderNode(node: RichTextDocument, options: RichTextHtmlOptions): strin
       return voidTag('hr')
 
     case 'image': {
-      const imgAttrs: Record<string, unknown> = { src: a.src ?? '' }
+      const imgAttrs: Record<string, unknown> = {
+        src: sanitizeUrl((a.src ?? '') as string, options),
+      }
       if (a.alt) imgAttrs.alt = a.alt
       if (a.title) imgAttrs.title = a.title
       return voidTag('img', imgAttrs)
