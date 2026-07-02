@@ -82,6 +82,9 @@ importers:
 
   packages/client:
     devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.58.7
+        version: 7.58.7(@types/node@26.1.0)
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
@@ -110,6 +113,9 @@ importers:
         specifier: ^1.29.0
         version: 1.29.0(zod@4.3.6)
     devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.58.7
+        version: 7.58.7(@types/node@26.1.0)
       '@types/node':
         specifier: ^26.1.0
         version: 26.1.0
@@ -125,6 +131,9 @@ importers:
 
   packages/mgmt-client:
     devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.58.7
+        version: 7.58.7(@types/node@26.1.0)
       '@types/node':
         specifier: ^26.1.0
         version: 26.1.0
@@ -248,6 +257,9 @@ importers:
 
   packages/richtext:
     devDependencies:
+      '@microsoft/api-extractor':
+        specifier: ^7.58.7
+        version: 7.58.7(@types/node@26.1.0)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -6994,7 +7006,6 @@ snapshots:
       '@rushstack/node-core-library': 5.23.1(@types/node@26.1.0)
     transitivePeerDependencies:
       - '@types/node'
-    optional: true
 
   '@microsoft/api-extractor@7.58.7(@types/node@26.1.0)':
     dependencies:
@@ -7013,7 +7024,6 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - '@types/node'
-    optional: true
 
   '@microsoft/tsdoc-config@0.18.1':
     dependencies:
@@ -7021,10 +7031,8 @@ snapshots:
       ajv: 8.18.0
       jju: 1.4.0
       resolve: 1.22.12
-    optional: true
 
-  '@microsoft/tsdoc@0.16.0':
-    optional: true
+  '@microsoft/tsdoc@0.16.0': {}
 
   '@modelcontextprotocol/sdk@1.29.0(zod@4.3.6)':
     dependencies:
@@ -8023,18 +8031,15 @@ snapshots:
       semver: 7.7.4
     optionalDependencies:
       '@types/node': 26.1.0
-    optional: true
 
   '@rushstack/problem-matcher@0.2.1(@types/node@26.1.0)':
     optionalDependencies:
       '@types/node': 26.1.0
-    optional: true
 
   '@rushstack/rig-package@0.7.3':
     dependencies:
       jju: 1.4.0
       resolve: 1.22.12
-    optional: true
 
   '@rushstack/terminal@0.24.0(@types/node@26.1.0)':
     dependencies:
@@ -8043,7 +8048,6 @@ snapshots:
       supports-color: 8.1.1
     optionalDependencies:
       '@types/node': 26.1.0
-    optional: true
 
   '@rushstack/ts-command-line@5.3.9(@types/node@26.1.0)':
     dependencies:
@@ -8053,7 +8057,6 @@ snapshots:
       string-argv: 0.3.2
     transitivePeerDependencies:
       - '@types/node'
-    optional: true
 
   '@simple-git/args-pathspec@1.0.3': {}
 
@@ -8093,8 +8096,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@types/argparse@1.0.38':
-    optional: true
+  '@types/argparse@1.0.38': {}
 
   '@types/chai@5.2.3':
     dependencies:
@@ -8386,12 +8388,10 @@ snapshots:
   ajv-draft-04@1.0.0(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
-    optional: true
 
   ajv-formats@3.0.1(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
-    optional: true
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -8403,7 +8403,6 @@ snapshots:
       fast-uri: 3.1.3
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
-    optional: true
 
   ajv@8.20.0:
     dependencies:
@@ -9300,7 +9299,6 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
       universalify: 2.0.1
-    optional: true
 
   fs-extra@7.0.1:
     dependencies:
@@ -9429,8 +9427,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  has-flag@4.0.0:
-    optional: true
+  has-flag@4.0.0: {}
 
   has-symbols@1.1.0: {}
 
@@ -9479,8 +9476,7 @@ snapshots:
 
   image-meta@0.2.2: {}
 
-  import-lazy@4.0.0:
-    optional: true
+  import-lazy@4.0.0: {}
 
   impound@1.1.5(esbuild@0.28.1)(rolldown@1.1.4)(rollup@4.62.2)(vite@8.1.3(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)):
     dependencies:
@@ -9614,8 +9610,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  jju@1.4.0:
-    optional: true
+  jju@1.4.0: {}
 
   jose@6.2.3: {}
 
@@ -9649,7 +9644,6 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
-    optional: true
 
   kleur@4.1.5: {}
 
@@ -9862,7 +9856,6 @@ snapshots:
   minimatch@10.2.3:
     dependencies:
       brace-expansion: 5.0.7
-    optional: true
 
   minimatch@10.2.5:
     dependencies:
@@ -11097,8 +11090,7 @@ snapshots:
 
   semver@6.3.1: {}
 
-  semver@7.7.4:
-    optional: true
+  semver@7.7.4: {}
 
   semver@7.8.0:
     optional: true
@@ -11277,8 +11269,7 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
-  string-argv@0.3.2:
-    optional: true
+  string-argv@0.3.2: {}
 
   string-width@4.2.3:
     dependencies:
@@ -11359,7 +11350,6 @@ snapshots:
   supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
-    optional: true
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
@@ -11598,8 +11588,7 @@ snapshots:
 
   universalify@0.1.2: {}
 
-  universalify@2.0.1:
-    optional: true
+  universalify@2.0.1: {}
 
   unpipe@1.0.0: {}
 
