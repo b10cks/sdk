@@ -68,7 +68,7 @@ export class BlocksResource {
   ): Promise<PaginatedResponse<BlockTemplate>> {
     return this.client.get<PaginatedResponse<BlockTemplate>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/${blockId}/templates`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -134,7 +134,7 @@ export class BlocksResource {
   ): Promise<PaginatedResponse<BlockVersion>> {
     return this.client.get<PaginatedResponse<BlockVersion>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/${blockId}/versions`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

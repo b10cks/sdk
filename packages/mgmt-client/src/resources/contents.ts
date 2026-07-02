@@ -169,7 +169,7 @@ export class ContentsResource {
   ): Promise<PaginatedResponse<ContentVersionListItem>> {
     return this.client.get<PaginatedResponse<ContentVersionListItem>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

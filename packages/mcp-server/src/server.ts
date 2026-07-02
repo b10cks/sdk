@@ -19,6 +19,21 @@ export interface ServerConfig {
   timeout?: number
 }
 
+/**
+ * Extracts only safe, structured fields from a Management API error response so
+ * they can be surfaced to the MCP caller without leaking the raw response body
+ * (which may echo request context or internal detail).
+ */
+const safeErrorDetails = (response: unknown): Record<string, unknown> => {
+  if (!response || typeof response !== 'object') return {}
+  const r = response as Record<string, unknown>
+  const details: Record<string, unknown> = {}
+  if (typeof r.message === 'string') details.message = r.message
+  if (typeof r.error === 'string') details.error = r.error
+  if (r.errors && typeof r.errors === 'object') details.errors = r.errors
+  return details
+}
+
 export const createManagementClient = (config: ServerConfig): ManagementClient =>
   new ManagementClient({
     baseUrl: config.baseUrl,
@@ -119,7 +134,8 @@ export const createServer = (client: ManagementClient | Error): Server => {
             noteId: { type: 'string' },
             params: {
               type: 'object',
-              description: 'Query parameters for list/search operations.',
+              description:
+                'Query parameters for list/search operations (e.g. page, per_page, filters).',
               additionalProperties: true,
             },
             payload: {
@@ -188,7 +204,9 @@ export const createServer = (client: ManagementClient | Error): Server => {
           `Management API request failed: ${error.message}`,
           {
             statusCode: error.statusCode,
-            response: error.response,
+            // Only surface safe, structured fields — never the raw response
+            // body, which can echo request context or internal detail.
+            ...safeErrorDetails(error.response),
           }
         )
       }

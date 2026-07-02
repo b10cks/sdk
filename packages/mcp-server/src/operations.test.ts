@@ -91,12 +91,36 @@ describe('operation dispatch', () => {
     expect(calls).toEqual([{ path: 'users.updateMe', args: [{}] }])
   })
 
-  it('forwards params for list operations and leaves them undefined when omitted', async () => {
+  it('forwards params to the dedicated params argument for list operations that accept one', async () => {
     const withParams = await run('blocks.list', { spaceId: 's1', params: { page: 2 } })
     expect(withParams).toEqual([{ path: 'blocks.list', args: ['s1', { page: 2 }] }])
+  })
+
+  it('routes params through the query option for RequestOptions-only list operations', async () => {
+    const withParams = await run('teams.list', { params: { page: 2 } })
+    expect(withParams).toEqual([{ path: 'teams.list', args: [{ query: { page: 2 } }] }])
 
     const withoutParams = await run('teams.list', {})
-    expect(withoutParams).toEqual([{ path: 'teams.list', args: [undefined] }])
+    expect(withoutParams).toEqual([{ path: 'teams.list', args: [{ query: {} }] }])
+  })
+
+  it('never lets a params.headers key reach the request options', async () => {
+    const calls = await run('teams.list', {
+      params: { headers: { Authorization: 'Bearer attacker' }, page: 1 } as never,
+    })
+    // headers is carried inside `query` (a harmless query param), never at the
+    // top level where it would be spread into request headers.
+    expect(calls).toEqual([
+      { path: 'teams.list', args: [{ query: { headers: { Authorization: 'Bearer attacker' }, page: 1 } }] },
+    ])
+  })
+
+  it('strips prototype-polluting keys from params', async () => {
+    // JSON.parse produces an *own* __proto__ property, exactly as an untrusted
+    // MCP payload would arrive over the wire.
+    const params = JSON.parse('{"__proto__":{"polluted":true},"page":1}')
+    const calls = await run('teams.list', { params })
+    expect(calls).toEqual([{ path: 'teams.list', args: [{ query: { page: 1 } }] }])
   })
 
   it('resolves the id via the generic `id` argument', async () => {

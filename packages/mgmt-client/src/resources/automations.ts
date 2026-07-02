@@ -25,7 +25,7 @@ export class AutomationsResource {
   ): Promise<PaginatedResponse<AutomationAction>> {
     return this.client.get<PaginatedResponse<AutomationAction>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -87,7 +87,7 @@ export class AutomationsResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Automation>> {
     return this.client.get<PaginatedResponse<Automation>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automations`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -224,7 +224,7 @@ export class AutomationsResource {
   ): Promise<unknown> {
     return this.client.post<unknown>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automation-executions/${executionId}/replay`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

@@ -8,7 +8,7 @@ export class DataSourcesResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<DataSource>> {
     return this.client.get<PaginatedResponse<DataSource>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/data-sources`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -62,7 +62,7 @@ export class DataSourcesResource {
   ): Promise<PaginatedResponse<DataEntry>> {
     return this.client.get<PaginatedResponse<DataEntry>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

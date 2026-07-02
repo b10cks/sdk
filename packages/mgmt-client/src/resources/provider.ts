@@ -18,7 +18,7 @@ export class ProviderResource {
   async listNotes(options?: RequestOptions): Promise<PaginatedResponse<ProviderNote>> {
     return this.client.get<PaginatedResponse<ProviderNote>>(
       '/mgmt/v1/provider/notes',
-      undefined,
+      options?.query,
       options?.headers
     )
   }

@@ -16,7 +16,7 @@ export class ReleasesResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Release>> {
     return this.client.get<PaginatedResponse<Release>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/releases`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

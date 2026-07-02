@@ -8,7 +8,7 @@ export class BlockFoldersResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<BlockFolder>> {
     return this.client.get<PaginatedResponse<BlockFolder>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/block-folders`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

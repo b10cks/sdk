@@ -7,6 +7,11 @@ export interface ClientConfig {
 
 export interface RequestOptions {
   headers?: Record<string, string>
+  /**
+   * Query-string parameters (pagination, filtering, …) for list-style
+   * endpoints that do not take a dedicated params argument.
+   */
+  query?: Record<string, unknown>
 }
 
 export interface PaginationParams {

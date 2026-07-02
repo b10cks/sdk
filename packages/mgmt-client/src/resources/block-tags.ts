@@ -8,7 +8,7 @@ export class BlockTagsResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<BlockTag>> {
     return this.client.get<PaginatedResponse<BlockTag>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/block-tags`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

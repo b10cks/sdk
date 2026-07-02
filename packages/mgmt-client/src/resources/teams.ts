@@ -24,7 +24,7 @@ export class TeamsResource {
   constructor(private readonly client: HttpClient) {}
 
   async list(options?: RequestOptions): Promise<PaginatedResponse<Team>> {
-    return this.client.get<PaginatedResponse<Team>>('/mgmt/v1/teams', undefined, options?.headers)
+    return this.client.get<PaginatedResponse<Team>>('/mgmt/v1/teams', options?.query, options?.headers)
   }
 
   async create(params: CreateTeamParams, options?: RequestOptions): Promise<Team> {

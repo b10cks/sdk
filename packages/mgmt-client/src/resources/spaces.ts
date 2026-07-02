@@ -31,7 +31,7 @@ export class SpacesResource {
   constructor(private readonly client: HttpClient) {}
 
   async list(options?: RequestOptions): Promise<PaginatedResponse<Space>> {
-    return this.client.get<PaginatedResponse<Space>>('/mgmt/v1/spaces', undefined, options?.headers)
+    return this.client.get<PaginatedResponse<Space>>('/mgmt/v1/spaces', options?.query, options?.headers)
   }
 
   async create(params: CreateSpaceParams, options?: RequestOptions): Promise<Space> {
@@ -98,7 +98,7 @@ export class SpacesResource {
   ): Promise<PaginatedResponse<SpaceMember>> {
     return this.client.get<PaginatedResponse<SpaceMember>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/members`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -131,7 +131,7 @@ export class SpacesResource {
   ): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/invites`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -193,7 +193,7 @@ export class SpacesResource {
   ): Promise<{ data: Subscription[] }> {
     return this.client.get<{ data: Subscription[] }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -273,7 +273,7 @@ export class SpacesResource {
   ): Promise<{ data: SpaceAiConfig[] }> {
     return this.client.get<{ data: SpaceAiConfig[] }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/ai-configs`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -344,7 +344,7 @@ export class SpacesResource {
   ): Promise<PaginatedResponse<Backup>> {
     return this.client.get<PaginatedResponse<Backup>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/backups`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -401,7 +401,7 @@ export class SpacesResource {
   ): Promise<PaginatedResponse<Migration>> {
     return this.client.get<PaginatedResponse<Migration>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/migrations`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

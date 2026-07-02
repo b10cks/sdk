@@ -20,7 +20,7 @@ export class CommentsResource {
   ): Promise<PaginatedResponse<Comment>> {
     return this.client.get<PaginatedResponse<Comment>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
@@ -112,7 +112,7 @@ export class CommentsResource {
   ): Promise<{ data: CommentReaction[] }> {
     return this.client.get<{ data: CommentReaction[] }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments/${commentId}/reactions`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

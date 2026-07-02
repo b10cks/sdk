@@ -8,7 +8,7 @@ export class TokensResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<SpaceToken>> {
     return this.client.get<PaginatedResponse<SpaceToken>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/tokens`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

@@ -8,7 +8,7 @@ export class AssetFoldersResource {
   async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<AssetFolder>> {
     return this.client.get<PaginatedResponse<AssetFolder>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }
