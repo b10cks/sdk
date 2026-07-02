@@ -13,7 +13,7 @@ import type {
   RedirectMap,
 } from '@b10cks/client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useB10cksDataApi } from './provider'
 
@@ -54,7 +54,7 @@ export function useB10cksApi() {
         const value = await dataApi.getResource<T>(endpoint, params)
         return transform ? transform(value) : value
       },
-      [dataApi, endpoint, params, transform],
+      [dataApi, endpoint, stableKey(params)],
       immediate
     )
   }
@@ -69,7 +69,7 @@ export function useB10cksApi() {
         const value = await dataApi.getCollection<T>(endpoint, params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, endpoint, params, transform],
+      [allPages, dataApi, endpoint, stableKey(params)],
       immediate
     )
   }
@@ -85,7 +85,7 @@ export function useB10cksApi() {
         const value = await dataApi.getContent<T>(fullSlug, params)
         return transform ? transform(value) : value
       },
-      [dataApi, fullSlug, params, transform],
+      [dataApi, fullSlug, stableKey(params)],
       immediate
     )
   }
@@ -100,7 +100,7 @@ export function useB10cksApi() {
         const value = await dataApi.getContents<T>(params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, params, transform],
+      [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
@@ -115,7 +115,7 @@ export function useB10cksApi() {
         const value = await dataApi.getBlocks(params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, params, transform],
+      [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
@@ -130,7 +130,7 @@ export function useB10cksApi() {
         const value = await dataApi.getSitemap(params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, params, transform],
+      [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
@@ -146,7 +146,7 @@ export function useB10cksApi() {
         const value = await dataApi.getDataEntries(source, params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, params, source, transform],
+      [allPages, dataApi, stableKey(params), source],
       immediate
     )
   }
@@ -160,7 +160,7 @@ export function useB10cksApi() {
         const value = await dataApi.getDataSources(params, { allPages })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, params, transform],
+      [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
@@ -172,7 +172,7 @@ export function useB10cksApi() {
         const value = await dataApi.getSpace(params)
         return transform ? transform(value) : value
       },
-      [dataApi, params, transform],
+      [dataApi, stableKey(params)],
       immediate
     )
   }
@@ -186,7 +186,7 @@ export function useB10cksApi() {
         const value = await dataApi.getRedirects(params, { allPages, forceRefresh })
         return transform ? transform(value) : value
       },
-      [allPages, dataApi, forceRefresh, params, transform],
+      [allPages, dataApi, forceRefresh, stableKey(params)],
       immediate
     )
   }
@@ -198,7 +198,7 @@ export function useB10cksApi() {
     const { immediate = true } = executionOptions
     const state = useAsyncTask<T>(
       () => dataApi.getConfig<T>(options),
-      [dataApi, options],
+      [dataApi, stableKey(options)],
       immediate
     )
 
@@ -231,6 +231,15 @@ export function useB10cksApi() {
   }
 }
 
+/**
+ * Serializes params/options for use in hook dependency arrays, so a fresh
+ * (but structurally equal) object created on each render does not re-trigger
+ * the immediate fetch effect.
+ */
+function stableKey(value: unknown): string {
+  return JSON.stringify(value) ?? ''
+}
+
 function useAsyncTask<T>(
   task: () => Promise<T>,
   dependencies: unknown[],
@@ -240,12 +249,17 @@ function useAsyncTask<T>(
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
+  // The task closure (params, transform) is read through a ref so `execute`
+  // always sees the latest values without them being identity dependencies.
+  const taskRef = useRef(task)
+  taskRef.current = task
+
   const execute = useCallback(async () => {
     setPending(true)
     setError(null)
 
     try {
-      const value = await task()
+      const value = await taskRef.current()
       setData(value)
       return value
     } catch (caughtError) {
