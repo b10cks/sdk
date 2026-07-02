@@ -1,6 +1,6 @@
 import type { Command } from 'commander'
 
-import { ManagementClient } from '@b10cks/mgmt-client'
+import { ManagementApiError, ManagementClient } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
 import inquirer from 'inquirer'
 
@@ -35,10 +35,21 @@ export function registerAuthCommands(program: Command): void {
       try {
         const client = new ManagementClient({ baseUrl: API_BASE_URL, token: token.trim() })
         await client.users.getMe()
+      } catch (error) {
+        if (error instanceof ManagementApiError && (error.statusCode === 401 || error.statusCode === 403)) {
+          console.error(`${chalk.red('✖')} Authentication failed. Please check your token.`)
+        } else {
+          const message = error instanceof Error ? error.message : String(error)
+          console.error(`${chalk.red('✖')} Could not reach ${API_BASE_URL}: ${message}`)
+        }
+        process.exit(1)
+      }
+
+      try {
         credentials.set({ login: 'sanctum', password: token.trim() })
         console.log(`${chalk.green('✓')} Authenticated successfully! Token stored in ~/.netrc`)
-      } catch {
-        console.error(`${chalk.red('✖')} Authentication failed. Please check your token.`)
+      } catch (error) {
+        console.error(`${chalk.red('✖')} ${error instanceof Error ? error.message : String(error)}`)
         process.exit(1)
       }
     })
