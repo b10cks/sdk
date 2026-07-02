@@ -88,11 +88,13 @@ function hasFileData(data: unknown): boolean {
 /**
  * Converts a payload to FormData for multipart/form-data requests
  */
+const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor'])
+
 function toFormData(data: Record<string, unknown>): FormData {
   const formData = new FormData()
 
   for (const [key, value] of Object.entries(data)) {
-    if (value === undefined || value === null) {
+    if (value === undefined || value === null || DANGEROUS_KEYS.has(key)) {
       continue
     }
 
@@ -158,7 +160,12 @@ export class HttpClient {
   constructor(config: ClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '')
     this.token = config.token
-    this.timeout = config.timeout ?? 30000
+    // Guard against NaN/negative timeouts (e.g. a mis-parsed env var), which
+    // would make setTimeout fire immediately and abort every request.
+    this.timeout =
+      typeof config.timeout === 'number' && Number.isFinite(config.timeout) && config.timeout > 0
+        ? config.timeout
+        : 30000
     this.defaultHeaders = config.headers ?? {}
   }
 
@@ -173,6 +180,7 @@ export class HttpClient {
 
     if (params) {
       for (const [key, value] of Object.entries(params)) {
+        if (DANGEROUS_KEYS.has(key)) continue
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
             for (const item of value) {
@@ -294,7 +302,11 @@ export class HttpClient {
     return this.request<T>('PATCH', path, data, undefined, headers)
   }
 
-  async delete<T>(path: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, undefined, headers)
+  async delete<T>(
+    path: string,
+    headers?: Record<string, string>,
+    data?: unknown
+  ): Promise<T> {
+    return this.request<T>('DELETE', path, data, undefined, headers)
   }
 }

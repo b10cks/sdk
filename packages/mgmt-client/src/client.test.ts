@@ -265,6 +265,20 @@ describe('ManagementClient', () => {
     })
   })
 
+  describe('Releases resource', () => {
+    it('sends the payload when removing a release version (DELETE with body)', async () => {
+      const client = new ManagementClient(mockConfig)
+      vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({ data: {} }) as never)
+
+      await client.releases.removeVersion('space-1', 'rel-1', { content_id: 'c-1' } as never)
+
+      const [url, init] = vi.mocked(fetch).mock.calls.at(-1) as [string, RequestInit]
+      expect(url).toContain('/mgmt/v1/spaces/space-1/releases/rel-1/versions/remove')
+      expect(init.method).toBe('DELETE')
+      expect(init.body).toBe(JSON.stringify({ content_id: 'c-1' }))
+    })
+  })
+
   describe('Error handling', () => {
     it('should throw ManagementApiError on API error', async () => {
       const errorResponse = {

@@ -122,7 +122,8 @@ export class ReleasesResource {
   ): Promise<{ data: Release }> {
     return this.client.delete<{ data: Release }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/releases/${releaseId}/versions/remove`,
-      options?.headers
+      options?.headers,
+      payload
     )
   }
 }
