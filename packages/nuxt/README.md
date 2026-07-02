@@ -107,7 +107,9 @@ For whole-tree reactive updates while editing — including nested and rich text
 <script setup lang="ts">
 const { useContent } = useB10cksApi()
 const { data } = await useContent('home')
-const content = usePreviewContent(data.value.content)
+// Pass a getter (or ref) so the preview resets when content is refetched
+// on a route/locale change instead of keeping the first tree.
+const content = usePreviewContent(() => data.value.content)
 </script>
 
 <template>

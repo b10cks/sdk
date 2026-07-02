@@ -82,7 +82,7 @@ function Hero({ block }: { block: HeroBlock }) {
 }
 ```
 
-For whole-tree reactive updates — including nested and rich text fields — wrap your fetched content in `usePreviewContent`. It returns the content live-updated from the editor, and `initial` unchanged outside preview mode:
+For whole-tree reactive updates — including nested and rich text fields — wrap your fetched content in `usePreviewContent`. It returns the content live-updated from the editor, and `initial` unchanged outside preview mode. When `initial` changes identity (a route change, revalidation, or locale switch under a persistent layout), the preview resets to the new tree instead of keeping the first one:
 
 ```tsx
 function Page({ initialContent }: { initialContent: PageContent }) {
@@ -135,7 +135,7 @@ const text = renderRichTextAsText(block.body)
 const inline = renderRichTextAsText(block.body, { blockSeparator: ' ' })
 ```
 
-`options` accepts an `internalLinkHandler` (to customise how internal-link hrefs are generated) and a `placeholderHandler` (to resolve `{token}` placeholders to real values):
+`options` accepts an `internalLinkHandler` (to customise how internal-link hrefs are generated), a `placeholderHandler` (to resolve `{token}` placeholders to real values), and `allowedSchemes` (the URL scheme allowlist for link/image URLs):
 
 ```tsx
 import { B10cksRichText } from '@b10cks/react'
@@ -152,6 +152,8 @@ export function CustomBody({ document }: { document: any }) {
   )
 }
 ```
+
+> Link and image URLs from CMS content are validated against a scheme allowlist (default `http`/`https`/`mailto`/`tel`), so stored `javascript:` URLs cannot execute. Override it via `options.allowedSchemes` — see the [`@b10cks/richtext` URL safety docs](../richtext/README.md#url-safety).
 
 > The renderer is a custom, dependency-free implementation — it does not run TipTap, and there is no `extensions` option.
 

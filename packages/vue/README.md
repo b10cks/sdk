@@ -95,13 +95,17 @@ When your app is rendered inside the b10cks visual editor, these directives and 
 import { usePreviewContent } from '@b10cks/vue'
 
 const { data } = useContent('home')
-const content = usePreviewContent(data.value.content)
+// Pass a getter (or ref) so the preview resets when the content is refetched
+// on a route/locale change instead of keeping the first tree.
+const content = usePreviewContent(() => data.value.content)
 </script>
 
 <template>
   <B10cksComponent :block="content" />
 </template>
 ```
+
+`usePreviewContent` accepts a plain value, a `ref`, or a getter. A plain value is captured once; a reactive source resets the preview store whenever it changes.
 
 ### Plugin options
 
@@ -240,6 +244,16 @@ import { renderRichText } from '@b10cks/vue/rich-text'
 const html = renderRichText(document, {
   placeholderHandler: (key) => ({ companyName: 'b10cks' })[key],
 })
+```
+
+`B10cksRichText` also exposes `placeholderHandler` as a prop, alongside `internalLinkHandler`.
+
+### URL safety
+
+Link and image URLs from CMS content are validated against a scheme allowlist (default `http`/`https`/`mailto`/`tel`, plus relative URLs), so stored `javascript:` URLs cannot execute. Override the allowlist with the `allowedSchemes` prop / render option — see the [`@b10cks/richtext` URL safety docs](../richtext/README.md#url-safety).
+
+```vue
+<B10cksRichText :document="doc" :allowed-schemes="['https', 'mailto']" />
 ```
 
 > **Custom extensions are no longer used.** The renderer is a custom, dependency-free implementation — it does not run TipTap. The `extensions` prop and `createB10cksRichTextExtensions()` remain as no-op stubs for backwards compatibility only.

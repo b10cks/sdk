@@ -84,6 +84,34 @@ const { dataApi } = createB10cksNextApi({
 })
 ```
 
+> **Request-scoped state.** The returned client holds request-scoped state — the content revision (`rv`, which a preview/draft request pins) and per-instance caches. **Do not** hoist the result into a module-level singleton: a preview request would pin a draft revision that then bleeds to every subsequent visitor. Create it per request, or use `defineB10cksNextApi` below.
+
+### Request-scoped singleton (App Router)
+
+`defineB10cksNextApi` wraps creation in React's `cache()`, so every server request render gets its own client (with its own revision and caches) while a single request reuses one instance. This makes it safe to export at module scope. The `optionsFactory` runs once per request — read per-request values (e.g. `headers()`, `draftMode()`) inside it.
+
+```ts
+// lib/b10cks.ts
+import { headers } from 'next/headers'
+import { defineB10cksNextApi } from '@b10cks/next/server'
+
+export const getB10cks = defineB10cksNextApi(() => ({
+  token: process.env.B10CKS_TOKEN || '',
+  baseUrl: 'https://api.b10cks.com/api',
+  fetchClient: fetch,
+  requestUrl: new URL(headers().get('x-url') ?? 'http://localhost'),
+}))
+
+// app/page.tsx
+import { getB10cks } from '@/lib/b10cks'
+
+export default async function Page() {
+  const { dataApi } = getB10cks()
+  const home = await dataApi.getContent('home')
+  // …
+}
+```
+
 ## Rich Text
 
 Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) on the server or client with a dependency-free renderer.

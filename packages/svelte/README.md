@@ -67,6 +67,18 @@ When your app is rendered inside the b10cks visual editor, these actions and the
 </section>
 ```
 
+`createPreviewContent` accepts either a plain value or a readable store. A plain value is captured once; pass a store (e.g. a data store that re-fetches on navigation) and its updates reset the preview so it never keeps a stale tree:
+
+```svelte
+<script lang="ts">
+  import { createPreviewContent } from '@b10cks/svelte'
+  import { page } from '$app/stores'
+  import { derived } from 'svelte/store'
+
+  const content = createPreviewContent(derived(page, ($p) => $p.data.content))
+</script>
+```
+
 `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
 
 ## Rich text
@@ -106,6 +118,8 @@ const text = renderRichTextAsText(document)
 // or with a custom block separator (e.g. for meta descriptions):
 const inline = renderRichTextAsText(document, { blockSeparator: ' ' })
 ```
+
+Link and image URLs are validated against a scheme allowlist (blocking `javascript:` and similar). `B10cksRichText` forwards `allowedSchemes` (and `placeholderHandler`) to the renderer — see the [`@b10cks/richtext` URL safety docs](../richtext/README.md#url-safety).
 
 ## License
 

@@ -34,7 +34,7 @@ bunx @b10cks/cli <command>
 b10cks login
 ```
 
-Prompts for a personal access token (PAT). The token is stored in `~/.netrc` and used for all subsequent commands. To create a PAT, visit your account security settings.
+Prompts for a personal access token (PAT). The token is stored in `~/.netrc` (created with `0600` permissions so it is not world-readable) and used for all subsequent commands. To create a PAT, visit your account security settings. If an existing `~/.netrc` cannot be parsed, `login`/`logout` abort rather than overwrite it, so credentials for other hosts are never lost.
 
 ### Logout
 
@@ -52,7 +52,7 @@ You can bypass `.netrc` by setting:
 B10CKS_LOGIN=sanctum B10CKS_TOKEN=<your-token> b10cks spaces-list
 ```
 
-A custom API domain can be set via `B10CKS_API_DOMAIN` (defaults to `https://api.b10cks.com`).
+A custom API domain (self-hosted or staging) can be set via `B10CKS_API_DOMAIN` (defaults to `https://api.b10cks.com`). It is read at runtime, so it works with the published binary.
 
 ## Commands
 

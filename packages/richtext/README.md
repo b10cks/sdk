@@ -133,6 +133,26 @@ The handler receives:
 
 Returning `null` or `undefined` leaves the token as a `<span data-type="placeholder-token" data-key="…" data-label="…">` so it can be replaced client-side instead. This works identically in `renderRichTextAsText` — resolved values are injected as plain text, unresolved tokens emit nothing.
 
+## URL safety
+
+Link `href` and image `src` values coming from CMS content are validated against a scheme allowlist before rendering, so stored `javascript:` (and similar) URLs cannot execute. URLs with a disallowed scheme are replaced with `#`; relative URLs, anchors, and query-only URLs always pass.
+
+The default allowlist is exported as `DEFAULT_ALLOWED_SCHEMES` (`http`, `https`, `mailto`, `tel`). Override it per render with `allowedSchemes`:
+
+```ts
+import { renderRichText, DEFAULT_ALLOWED_SCHEMES } from '@b10cks/richtext'
+
+// Restrict further — only secure links
+renderRichText(document, { allowedSchemes: ['https', 'mailto'] })
+
+// Opt back into javascript: URLs (only for fully trusted content)
+renderRichText(document, {
+  allowedSchemes: [...DEFAULT_ALLOWED_SCHEMES, 'javascript'],
+})
+```
+
+`allowedSchemes` is part of `RichTextHtmlOptions`, so the `@b10cks/react`, `@b10cks/vue`, and `@b10cks/svelte` components forward it too.
+
 ## Supported node and mark types
 
 | Node | HTML output |
@@ -174,6 +194,9 @@ import type {
   RichTextRenderer,
   RichTextTextRenderer,
 } from '@b10cks/richtext'
+
+// Runtime value: the default URL scheme allowlist
+import { DEFAULT_ALLOWED_SCHEMES } from '@b10cks/richtext'
 ```
 
 ## Framework components

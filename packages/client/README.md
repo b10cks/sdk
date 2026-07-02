@@ -158,8 +158,31 @@ interface B10cksApiClientOptions {
   fetchClient?: FetchClient          // Custom fetch implementation (required in environments without globalThis.fetch)
   getRv?: () => string | number      // Custom getter for the shared revision token
   setRv?: (value: string | number) => void  // Custom setter for the shared revision token
+  timeoutMs?: number                 // Per-request timeout; aborts and throws ApiError when exceeded (default: none)
+  retries?: number                   // Retry attempts for transient GET failures (network/429/5xx) with backoff (default: 0)
+  maxConcurrency?: number            // Max pages fetched concurrently by getAll/allPages (default: 6)
 }
 ```
+
+## Error handling
+
+Non-2xx responses and transport failures throw an `ApiError` carrying the HTTP `status` (0 for network/timeout errors), the requested `endpoint`, and a best-effort parsed `body`, so you can branch on the status without string-matching the message:
+
+```typescript
+import { ApiError } from '@b10cks/client'
+
+try {
+  const content = await dataApi.getContent('missing-page')
+} catch (error) {
+  if (error instanceof ApiError && error.status === 404) {
+    // render a 404 page
+  } else {
+    throw error
+  }
+}
+```
+
+Set `retries` to automatically retry transient failures (network errors, HTTP 429 and 5xx) on idempotent GET requests with exponential backoff, and `timeoutMs` to bound each request.
 
 ## Low-level `ApiClient`
 
