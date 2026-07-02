@@ -19,9 +19,4 @@ export default defineBuildConfig({
     'node:os',
     'node:fs',
   ],
-  replace: {
-    'process.env.B10CKS_API_DOMAIN': JSON.stringify(
-      process.env.B10CKS_API_DOMAIN || 'https://api.b10cks.com'
-    ),
-  },
 })

@@ -8,13 +8,28 @@ import credentials from '../utils/credentials.js'
 
 const API_BASE_URL = process.env.B10CKS_API_DOMAIN || 'https://api.b10cks.com'
 
+/**
+ * Derives the account/dashboard base URL from the API base URL by stripping a
+ * leading `api.` host label (e.g. `https://api.b10cks.com` → `https://b10cks.com`).
+ * Falls back to the input if it is not a parseable URL.
+ */
+function accountBaseUrl(apiBaseUrl: string): string {
+  try {
+    const url = new URL(apiBaseUrl)
+    url.hostname = url.hostname.replace(/^api\./, '')
+    url.pathname = url.pathname.replace(/\/?api\/?$/, '')
+    return url.toString().replace(/\/+$/, '')
+  } catch {
+    return apiBaseUrl.replace(/\/+$/, '')
+  }
+}
+
 export function registerAuthCommands(program: Command): void {
   program
     .command('login')
     .description('authenticate with b10cks using a personal access token')
     .action(async () => {
-      const baseUrl = API_BASE_URL.replace('/api', '').replace(/\/+$/, '')
-      const settingsUrl = `${baseUrl}/account/settings/security`
+      const settingsUrl = accountBaseUrl(API_BASE_URL) + '/account/settings/security'
 
       console.log()
       console.log(chalk.yellow('To create a personal access token:'))
