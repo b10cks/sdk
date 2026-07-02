@@ -56,6 +56,18 @@ export function useEditableField<T extends HTMLElement = HTMLElement>(
  */
 export function usePreviewContent<T extends Record<string, unknown>>(initial: T): T {
   const store = useMemo(() => new PreviewStore<T>(initial), [])
+
+  // Reset the store when the caller passes a new content tree (route change,
+  // revalidation, locale switch) so it does not keep rendering the first tree.
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    store.setContent(initial)
+  }, [store, initial])
+
   useEffect(() => bindPreviewStore(store), [store])
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot)
 }
