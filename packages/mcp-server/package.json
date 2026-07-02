@@ -55,7 +55,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf dist",
     "lint": "oxlint src",
     "lint:fix": "oxlint --fix src",

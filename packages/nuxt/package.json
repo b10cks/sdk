@@ -28,7 +28,7 @@
     "build": "nuxt-module-build prepare && nuxt-module-build build",
     "lint": "oxlint src",
     "lint:fix": "oxlint --fix src",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf dist",
     "typecheck": "nuxt-module-build prepare && vue-tsc --noEmit"
   },
@@ -42,6 +42,7 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.2.1",
     "nuxt": "^4.2.1",
+    "vitest": "^3.2.4",
     "vue-tsc": "^3.3.5"
   },
   "release": {

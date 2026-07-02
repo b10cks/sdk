@@ -31,7 +31,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "lint": "oxlint src",
     "clean": "rm -rf dist",
     "lint:fix": "oxlint --fix src",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "chalk": "^5.6.2",
+    "happy-dom": "^15.11.7",
     "vite": "^7.2.4",
     "vite-plugin-banner": "^0.8.1",
     "vite-plugin-dts": "^4.5.4",
