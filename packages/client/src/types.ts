@@ -196,6 +196,21 @@ export interface B10cksApiClientOptions {
   fetchClient?: FetchClient
   getRv?: () => string | number
   setRv?: (value: string | number) => void
+  /**
+   * Per-request timeout in milliseconds. When exceeded the request is aborted
+   * and rejected with an {@link ApiError}. Defaults to no timeout.
+   */
+  timeoutMs?: number
+  /**
+   * Number of retry attempts for transient failures (network errors, HTTP 429
+   * and 5xx) on idempotent GET requests, using exponential backoff. Defaults
+   * to 0 (no retries).
+   */
+  retries?: number
+  /**
+   * Maximum number of pages fetched concurrently by `getAll`. Defaults to 6.
+   */
+  maxConcurrency?: number
 }
 
 // ─── Advanced Filter Types ──────────────────────────────────────────────────

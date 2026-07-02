@@ -13,6 +13,29 @@ export interface B10cksApiClientRvOptions {
   setRv?: (value: string | number) => void
 }
 
+/**
+ * Error thrown for non-2xx API responses and transport failures. Carries the
+ * HTTP `status` (0 for network/timeout errors), the requested `endpoint`, and a
+ * best-effort parsed `body` so callers can branch on status (e.g. render a 404
+ * page) without string-matching the message.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly endpoint: string,
+    public readonly body?: unknown
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+const isRetryableStatus = (status: number): boolean =>
+  status === 429 || (status >= 500 && status <= 599)
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+
 export * from './content'
 export * from './data-api'
 export * from './editable'
@@ -36,6 +59,9 @@ export class ApiClient {
   private readonly fetchClient: FetchClient
   private readonly getRvFn?: () => string | number
   private readonly setRvFn?: (value: string | number) => void
+  private readonly timeoutMs?: number
+  private readonly retries: number
+  private readonly maxConcurrency: number
   /**
    * Per-instance revision store, used when no `getRv`/`setRv` callbacks are
    * supplied. Kept on the instance (not module scope) so concurrent requests
@@ -61,6 +87,9 @@ export class ApiClient {
 
     this.getRvFn = options.getRv
     this.setRvFn = options.setRv
+    this.timeoutMs = options.timeoutMs
+    this.retries = Math.max(0, options.retries ?? 0)
+    this.maxConcurrency = Math.max(1, options.maxConcurrency ?? 6)
 
     const url = this.resolveRequestUrl(requestUrl)
     this.vid = options.version || 'published'
@@ -78,8 +107,7 @@ export class ApiClient {
       token: this.token,
     })
 
-    const payload = await this.fetchClient(url)
-    const response = await this.parseResponse<ApiResourceResponse<T>>(payload)
+    const response = await this.requestWithRetry<ApiResourceResponse<T>>(url, endpoint)
 
     if (this.hasRevision(response)) {
       this.setRv(response.rv)
@@ -100,13 +128,54 @@ export class ApiClient {
       token: this.token,
     })
 
-    const payload = await this.fetchClient(url, {
+    // POST is not retried (non-idempotent), but still honors the timeout.
+    const payload = await this.fetchWithTimeout(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     })
 
-    return this.parseResponse<T>(payload)
+    return this.parseResponse<T>(payload, endpoint)
+  }
+
+  private async fetchWithTimeout(url: string, init?: RequestInit): Promise<unknown> {
+    if (!this.timeoutMs) {
+      return this.fetchClient(url, init)
+    }
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
+    try {
+      return await this.fetchClient(url, { ...init, signal: controller.signal })
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError(`Request timed out after ${this.timeoutMs}ms`, 0, url)
+      }
+      throw error
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  private async requestWithRetry<T>(url: string, endpoint: string): Promise<T> {
+    let lastError: unknown
+    for (let attempt = 0; attempt <= this.retries; attempt++) {
+      try {
+        const payload = await this.fetchWithTimeout(url)
+        return await this.parseResponse<T>(payload, endpoint)
+      } catch (error) {
+        lastError = error
+        const retryable =
+          attempt < this.retries &&
+          (!(error instanceof ApiError) || error.status === 0 || isRetryableStatus(error.status))
+        if (!retryable) {
+          throw error
+        }
+        // Exponential backoff: 200ms, 400ms, 800ms, …
+        await sleep(200 * 2 ** attempt)
+      }
+    }
+    throw lastError
   }
 
   async getAll<T>(
@@ -127,16 +196,46 @@ export class ApiClient {
       return normalizedFirstResponse.data
     }
 
-    const pageRequests = Array.from(
+    const pages = Array.from(
       { length: normalizedFirstResponse.meta.last_page - 1 },
-      (_, i) => this.get<IBCollectionResponse<T>>(endpoint, { ...params, page: i + 2 })
+      (_, i) => i + 2
     )
 
-    const allResponses = await Promise.all(pageRequests)
+    const allResponses = await this.mapWithConcurrency(pages, (page) =>
+      this.get<IBCollectionResponse<T>>(endpoint, { ...params, page })
+    )
 
     return normalizedFirstResponse.data.concat(
       allResponses.flatMap((response) => this.normalizeCollectionResponse<T>(response).data)
     )
+  }
+
+  /**
+   * Runs `task` over `items` preserving order, with at most `maxConcurrency`
+   * requests in flight, so paginated fan-out cannot open hundreds of sockets
+   * at once and trip API rate limits.
+   */
+  private async mapWithConcurrency<I, O>(
+    items: I[],
+    task: (item: I) => Promise<O>
+  ): Promise<O[]> {
+    const results: O[] = Array.from({ length: items.length })
+    let cursor = 0
+
+    const worker = async (): Promise<void> => {
+      while (cursor < items.length) {
+        const index = cursor++
+        results[index] = await task(items[index] as I)
+      }
+    }
+
+    const workers = Array.from(
+      { length: Math.min(this.maxConcurrency, items.length) },
+      () => worker()
+    )
+    await Promise.all(workers)
+
+    return results
   }
 
   setRv(value: string | number) {
@@ -154,16 +253,36 @@ export class ApiClient {
     return this.rvValue
   }
 
-  private async parseResponse<T>(payload: unknown): Promise<T> {
+  private async parseResponse<T>(payload: unknown, endpoint: string): Promise<T> {
     if (this.isFetchResponse(payload)) {
       if (!payload.ok) {
-        throw new Error(`Request failed with status ${payload.status}`)
+        const body = await this.readErrorBody(payload)
+        throw new ApiError(
+          `Request to "${endpoint}" failed with status ${payload.status}`,
+          payload.status,
+          endpoint,
+          body
+        )
       }
 
       return (await payload.json()) as T
     }
 
     return payload as T
+  }
+
+  private async readErrorBody(response: Response): Promise<unknown> {
+    try {
+      const text = await response.text()
+      if (!text) return undefined
+      try {
+        return JSON.parse(text)
+      } catch {
+        return text
+      }
+    } catch {
+      return undefined
+    }
   }
 
   private normalizeCollectionResponse<T>(response: ApiCollectionResponse<T>) {
@@ -232,7 +351,12 @@ export class ApiClient {
   }
 
   private hasRevision(value: unknown): value is { rv: string | number } {
-    return typeof value === 'object' && value !== null && 'rv' in value
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'rv' in value &&
+      (value as { rv: unknown }).rv != null
+    )
   }
 
   private isCollectionResponseEnvelope<T>(

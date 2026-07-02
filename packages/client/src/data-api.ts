@@ -44,6 +44,7 @@ export interface DataApiClient {
   getAll<T>(endpoint: Endpoint, params?: ApiQueryParams): Promise<T[]>
   post?<T>(endpoint: string, body?: unknown, params?: ApiQueryParams): Promise<T>
   setRv(value: string | number): void
+  getRv?(): string | number
 }
 
 export type RedirectMap = Record<string, { target: string; status_code: number }>
@@ -66,7 +67,9 @@ function serializeFilterValue(value: unknown): string | undefined {
     if ('null' in obj) return 'null:'
     if ('!null' in obj) return '!null:'
     if ('between' in obj) {
-      const [from, to] = obj.between as [string, string]
+      const between = obj.between
+      if (!Array.isArray(between) || between.length !== 2) return undefined
+      const [from, to] = between as [string, string]
       return `${from}...${to}`
     }
 
@@ -111,9 +114,14 @@ function buildParamsWithFilter(
   return { ...params, ...filterParams, ...sortParam }
 }
 
+/** Maximum number of distinct config entries kept in memory (LRU-evicted). */
+const CONFIG_CACHE_MAX = 128
+
 export class B10cksDataApi {
-  private redirectsCache: RedirectMap | null = null
+  private readonly redirectsCache = new Map<string, RedirectMap>()
   private readonly configCache = new Map<string, unknown>()
+  /** In-flight config requests, keyed like `configCache`, to dedupe stampedes. */
+  private readonly configInflight = new Map<string, Promise<unknown>>()
 
   constructor(private readonly client: DataApiClient) {}
 
@@ -248,8 +256,12 @@ export class B10cksDataApi {
         ? { allPages: true, forceRefresh: forceRefreshOrOptions }
         : forceRefreshOrOptions
 
-    if (allPages && this.redirectsCache && !forceRefresh) {
-      return this.redirectsCache
+    // Key the cache on the params (and current revision) so a filtered lookup
+    // can never serve its result to an unfiltered caller, and vice versa.
+    const cacheKey = JSON.stringify({ params, rv: this.currentRv() })
+    if (allPages && !forceRefresh) {
+      const cached = this.redirectsCache.get(cacheKey)
+      if (cached) return cached
     }
 
     const { filter, ...rest } = params
@@ -260,10 +272,14 @@ export class B10cksDataApi {
     )
 
     if (allPages) {
-      this.redirectsCache = map
+      this.redirectsCache.set(cacheKey, map)
     }
 
     return map
+  }
+
+  private currentRv(): string | number {
+    return typeof this.client.getRv === 'function' ? this.client.getRv() : ''
   }
 
   async getConfig<T = Record<string, unknown>>({
@@ -274,22 +290,54 @@ export class B10cksDataApi {
     ...params
   }: GetConfigOptions = {}): Promise<T> {
     const normalizedLanguage = language_iso ?? language
-    const cacheKey = JSON.stringify({ slug, language_iso: normalizedLanguage, ...params })
+    // Include the current revision so a published config change is not masked
+    // by a stale cache entry from a previous revision.
+    const cacheKey = JSON.stringify({
+      slug,
+      language_iso: normalizedLanguage,
+      rv: this.currentRv(),
+      ...params,
+    })
     if (!bypassCache && this.configCache.has(cacheKey)) {
       return this.configCache.get(cacheKey) as T
     }
 
-    const configContent = await this.getContent<Record<string, unknown>>(slug, {
+    // Dedupe concurrent misses so a cold-start burst issues one upstream fetch.
+    const inflight = this.configInflight.get(cacheKey)
+    if (!bypassCache && inflight) {
+      return inflight as Promise<T>
+    }
+
+    const fetchPromise = this.getContent<Record<string, unknown>>(slug, {
       ...params,
       language_iso: normalizedLanguage,
     })
-    const value = (configContent.content ?? {}) as T
+      .then((configContent) => {
+        const value = (configContent.content ?? {}) as T
+        if (!bypassCache) {
+          this.setConfigCache(cacheKey, value)
+        }
+        return value
+      })
+      .finally(() => {
+        this.configInflight.delete(cacheKey)
+      })
 
     if (!bypassCache) {
-      this.configCache.set(cacheKey, value)
+      this.configInflight.set(cacheKey, fetchPromise)
     }
 
-    return value
+    return fetchPromise
+  }
+
+  private setConfigCache(key: string, value: unknown): void {
+    // Simple LRU: refresh recency by re-inserting, evict oldest past the cap.
+    this.configCache.delete(key)
+    this.configCache.set(key, value)
+    if (this.configCache.size > CONFIG_CACHE_MAX) {
+      const oldest = this.configCache.keys().next().value
+      if (oldest !== undefined) this.configCache.delete(oldest)
+    }
   }
 
   async syncRevision(fallbackRv = 426713400): Promise<string | number> {
@@ -300,8 +348,9 @@ export class B10cksDataApi {
   }
 
   clearCache() {
-    this.redirectsCache = null
+    this.redirectsCache.clear()
     this.configCache.clear()
+    this.configInflight.clear()
   }
 
   private unwrapResource<T>(response: T | { data: T }): T {

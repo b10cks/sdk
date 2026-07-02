@@ -2,12 +2,17 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { FetchClient } from './types'
 
-import { ApiClient } from './index'
+import { ApiClient, ApiError } from './index'
 
 const noopFetch: FetchClient = async () => ({})
 
 const makeClient = (
-  overrides: Partial<{ fetchClient: FetchClient; rv: string | number }> = {},
+  overrides: Partial<{
+    fetchClient: FetchClient
+    rv: string | number
+    retries: number
+    maxConcurrency: number
+  }> = {},
   requestUrl?: string
 ) =>
   new ApiClient(
@@ -16,6 +21,8 @@ const makeClient = (
       token: 'test-token',
       fetchClient: overrides.fetchClient ?? noopFetch,
       rv: overrides.rv,
+      retries: overrides.retries,
+      maxConcurrency: overrides.maxConcurrency,
     },
     requestUrl
   )
@@ -77,11 +84,49 @@ describe('ApiClient revision handling', () => {
 })
 
 describe('ApiClient error handling', () => {
-  it('throws with the status code when a fetch Response is not ok', async () => {
-    const fetchClient = vi.fn(async () => new Response('nope', { status: 500 }))
+  it('throws an ApiError carrying status, endpoint and body when a Response is not ok', async () => {
+    const fetchClient = vi.fn(async () =>
+      new Response(JSON.stringify({ message: 'boom' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      })
+    )
     const client = makeClient({ fetchClient })
 
-    await expect(client.get('spaces/me')).rejects.toThrow('Request failed with status 500')
+    const error = await client.get('spaces/me').catch((e) => e)
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error.status).toBe(500)
+    expect(error.endpoint).toBe('spaces/me')
+    expect(error.body).toEqual({ message: 'boom' })
+  })
+
+  it('retries transient 5xx responses on GET and eventually succeeds', async () => {
+    let calls = 0
+    const fetchClient = vi.fn(async () => {
+      calls++
+      if (calls < 3) return new Response('err', { status: 503 })
+      return new Response(JSON.stringify({ data: { ok: true } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    })
+    const client = makeClient({ fetchClient, retries: 3 })
+
+    const result = await client.get<{ data: { ok: boolean } }>('spaces/me')
+    expect(calls).toBe(3)
+    expect(result).toEqual({ data: { ok: true } })
+  })
+
+  it('does not retry non-retryable 4xx responses', async () => {
+    let calls = 0
+    const fetchClient = vi.fn(async () => {
+      calls++
+      return new Response('nope', { status: 404 })
+    })
+    const client = makeClient({ fetchClient, retries: 3 })
+
+    await expect(client.get('spaces/me')).rejects.toBeInstanceOf(ApiError)
+    expect(calls).toBe(1)
   })
 
   it('throws when no fetch implementation is available', () => {
