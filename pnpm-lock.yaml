@@ -313,6 +313,9 @@ importers:
         specifier: workspace:^
         version: link:../richtext
     devDependencies:
+      '@vue/language-core':
+        specifier: ^3.3.6
+        version: 3.3.6
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

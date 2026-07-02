@@ -10,6 +10,7 @@ export default defineConfig({
       include: ['src/**/*'],
       exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
       bundleTypes: false,
+      processor: 'vue',
       outDir: 'dist',
       entryRoot: 'src',
     }),
