@@ -16,7 +16,7 @@ import type { AsyncDataOptions } from 'nuxt/app'
 
 import { callOnce, useAsyncData } from '#app'
 import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
-import { computed, toValue, watch } from 'vue'
+import { computed, getCurrentScope, toValue, watch } from 'vue'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 // `sort` is omitted because content params widen it to `string | ContentSortItem[]`,
@@ -319,20 +319,32 @@ export const useB10cksApi = (): NuxtB10cksApi => {
 
     const resolvedParams = computed(() => toValue(params))
 
+    // Capture the effect scope before awaiting: after the await the active
+    // scope/component instance is lost, so registering the watch directly would
+    // warn and leak an undisposed watcher across navigations.
+    const scope = getCurrentScope()
+
     const asyncData = await useAsyncData<T | undefined, Error>(
       key ?? createAsyncDataKey('config', { params: resolvedParams.value }),
       () => api.dataApi.getConfig<T>(resolvedParams.value),
       asyncDataOptions
     )
 
-    watch(
-      () => resolvedParams.value.language,
-      (language, previousLanguage) => {
-        if (language !== previousLanguage) {
-          void asyncData.refresh()
+    const registerLanguageWatch = () =>
+      watch(
+        () => resolvedParams.value.language,
+        (language, previousLanguage) => {
+          if (language !== previousLanguage) {
+            void asyncData.refresh()
+          }
         }
-      }
-    )
+      )
+
+    if (scope) {
+      scope.run(registerLanguageWatch)
+    } else {
+      registerLanguageWatch()
+    }
 
     return Object.assign(asyncData, {
       config: computed(() => asyncData.data.value ?? ({} as T)),
