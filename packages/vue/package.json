@@ -15,19 +15,19 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./rich-text": {
       "types": "./dist/rich-text.d.ts",
       "import": "./dist/rich-text.mjs",
-      "require": "./dist/rich-text.js"
+      "require": "./dist/rich-text.cjs"
     }
   },
   "publishConfig": {

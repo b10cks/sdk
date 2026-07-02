@@ -22,7 +22,7 @@ export default defineConfig({
       },
       name: 'b10cksVue',
       formats: ['es', 'cjs'],
-      fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'js'}`,
+      fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
       external: ['vue', '@b10cks/client', '@b10cks/richtext'],
