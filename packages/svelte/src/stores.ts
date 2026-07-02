@@ -201,7 +201,9 @@ function createAsyncStore<T>(task: () => Promise<T>, immediate: boolean): AsyncS
   }
 
   if (immediate) {
-    void execute()
+    // The error is already captured in the store; swallow the rethrow here so
+    // the immediate fetch does not surface as an unhandled promise rejection.
+    void execute().catch(() => {})
   }
 
   return {

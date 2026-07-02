@@ -228,7 +228,9 @@ function createAsyncState<T>(fetcher: () => Promise<T>, immediate: boolean): Asy
   }
 
   if (immediate) {
-    void execute()
+    // The error is already captured in `error`; swallow the rethrow here so the
+    // immediate fetch does not surface as an unhandled promise rejection.
+    void execute().catch(() => {})
   }
 
   return {

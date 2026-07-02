@@ -276,7 +276,9 @@ function useAsyncTask<T>(
 
   useEffect(() => {
     if (immediate) {
-      void execute()
+      // The error is already captured in state; swallow the rethrow so the
+      // immediate fetch does not surface as an unhandled promise rejection.
+      void execute().catch(() => {})
     }
   }, [execute, immediate])
 
