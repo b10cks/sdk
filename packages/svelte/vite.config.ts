@@ -24,6 +24,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['svelte', 'svelte/store', '@b10cks/client', '@b10cks/richtext'],
       output: {
+        sourcemapExcludeSources: true,
         globals: {
           svelte: 'Svelte',
           '@b10cks/client': 'b10cksClient',

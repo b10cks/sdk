@@ -44,5 +44,10 @@
     "node": ">=24.7.0"
   },
   "packageManager": "pnpm@10.15.1",
-  "private": true
+  "private": true,
+  "pnpm": {
+    "overrides": {
+      "next": ">=16.2.6"
+    }
+  }
 }

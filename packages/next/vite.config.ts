@@ -34,6 +34,7 @@ export default defineConfig({
         '@b10cks/richtext',
       ],
       output: {
+        sourcemapExcludeSources: true,
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',

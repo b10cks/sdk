@@ -20,6 +20,7 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
+        sourcemapExcludeSources: true,
         globals: {},
       },
     },

@@ -27,6 +27,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['vue', '@b10cks/client', '@b10cks/richtext'],
       output: {
+        sourcemapExcludeSources: true,
         globals: {
           vue: 'Vue',
           '@b10cks/client': 'b10cksClient',

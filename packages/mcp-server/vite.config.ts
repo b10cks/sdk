@@ -26,6 +26,7 @@ export default defineConfig({
         id.startsWith('@modelcontextprotocol/sdk') ||
         id.startsWith('node:'),
       output: {
+        sourcemapExcludeSources: true,
         banner: '#!/usr/bin/env node',
         globals: {},
       },

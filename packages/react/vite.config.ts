@@ -22,6 +22,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['react', 'react-dom', '@b10cks/client', '@b10cks/richtext'],
       output: {
+        sourcemapExcludeSources: true,
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',

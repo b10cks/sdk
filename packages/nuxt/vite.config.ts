@@ -20,6 +20,7 @@ export default defineConfig({
     rollupOptions: {
       external: ['vue', '@nuxt/kit', '@nuxt/schema', '@b10cks/client', '@b10cks/vue'],
       output: {
+        sourcemapExcludeSources: true,
         globals: {
           vue: 'Vue',
           '@nuxt/kit': 'NuxtKit',
