@@ -1,5 +1,12 @@
 # @b10cks/mcp-server
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/mgmt-client@1.2.0
+
 ## 0.12.0
 
 ### Minor Changes
