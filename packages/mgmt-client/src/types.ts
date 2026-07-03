@@ -917,6 +917,88 @@ export interface GetIconsParams extends PaginationParams {
 
 // ─── Assets ──────────────────────────────────────────────────────────────────
 
+/**
+ * WCAG contrast stats derived from the asset's dominant color, so consumers
+ * can pick accessible overlay/text colors without recomputing contrast.
+ */
+export interface AssetA11y {
+  /** `'dark'` = treat the image as a dark surface (use light overlays/text). */
+  scheme: 'dark' | 'light'
+  /** WCAG relative luminance of the dominant color (0–1). */
+  luminance: number
+  /** Contrast ratio of white text against the dominant color (1–21). */
+  contrast_white: number
+  /** Contrast ratio of black text against the dominant color (1–21). */
+  contrast_black: number
+}
+
+/** A generated video preview frame. */
+export interface AssetThumbnail {
+  path: string
+  /** Storage-prefixed path, present in API responses. */
+  full_path?: string
+  /** Frame position in seconds. */
+  position: number
+  /** Frame position as `mm:ss` / `hh:mm:ss`. */
+  position_formatted: string
+  /** Dominant color of this frame as `#rrggbb`. */
+  dominant_color?: string
+}
+
+/** EXIF subset extracted from JPEG/TIFF uploads. */
+export interface AssetExif {
+  make?: string | null
+  model?: string | null
+  exposure?: string | number | null
+  aperture?: string | number | null
+  iso?: string | number | null
+  dateTaken?: string | null
+  orientation?: number | null
+}
+
+/** ID3-style tags extracted from audio uploads. */
+export interface AssetMediaTags {
+  title?: string | null
+  artist?: string | null
+  album?: string | null
+  year?: string | null
+  genre?: string | null
+}
+
+/**
+ * Metadata extracted from an asset at upload time. Which fields are present
+ * depends on the file type (image, video, audio, document). Custom metadata
+ * supplied at upload is carried through via the index signature.
+ */
+export interface AssetMetadata {
+  type?: 'image' | 'video' | 'audio' | 'document' | 'file'
+  /** Format refinement, e.g. `'svg'`, `'pdf'` or the source mime type. */
+  subtype?: string
+  original_filename?: string
+  width?: number
+  height?: number
+  /** `width / height`, rounded to 4 decimals. */
+  aspectRatio?: number
+  /** Dominant color as `#rrggbb` — usable as a loading placeholder. */
+  dominant_color?: string
+  /** Up to 5 representative colors, most dominant first (`palette[0] === dominant_color`). */
+  palette?: string[]
+  /** True for multi-frame GIF/WebP images. */
+  animated?: boolean
+  a11y?: AssetA11y
+  exif?: AssetExif
+  /** Duration in seconds (video/audio). */
+  duration?: number
+  fps?: number
+  bitrate?: number
+  codec?: string
+  thumbnails?: AssetThumbnail[]
+  channels?: number
+  sample_rate?: number
+  tags?: AssetMediaTags
+  [key: string]: unknown
+}
+
 export interface Asset {
   id: string
   external_id?: string | null
@@ -927,7 +1009,7 @@ export interface Asset {
   url: string
   folder_id: string | null
   space_id: string
-  metadata: Record<string, unknown> | null
+  metadata: AssetMetadata | null
   tags: string[]
   created_at: string
   updated_at: string

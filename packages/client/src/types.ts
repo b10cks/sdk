@@ -188,6 +188,106 @@ export type B10cksLink =
       id: string
     }
 
+/**
+ * WCAG contrast stats derived from an asset's dominant color, so consumers
+ * can pick accessible overlay/text colors for content rendered on top of
+ * the image without recomputing contrast client-side.
+ */
+export interface B10cksAssetA11y {
+  /** `'dark'` = treat the image as a dark surface (use light overlays/text). */
+  scheme: 'dark' | 'light'
+  /** WCAG relative luminance of the dominant color (0–1). */
+  luminance: number
+  /** Contrast ratio of white text against the dominant color (1–21). */
+  contrast_white: number
+  /** Contrast ratio of black text against the dominant color (1–21). */
+  contrast_black: number
+}
+
+/** A generated video preview frame. */
+export interface B10cksAssetThumbnail {
+  path: string
+  /** Storage-prefixed path, present when delivered via the API. */
+  full_path?: string
+  /** Frame position in seconds. */
+  position: number
+  /** Frame position as `mm:ss` / `hh:mm:ss`. */
+  position_formatted: string
+  /** Dominant color of this frame as `#rrggbb`. */
+  dominant_color?: string
+}
+
+/** EXIF subset extracted from JPEG/TIFF uploads. */
+export interface B10cksAssetExif {
+  make?: string | null
+  model?: string | null
+  exposure?: string | number | null
+  aperture?: string | number | null
+  iso?: string | number | null
+  dateTaken?: string | null
+  orientation?: number | null
+}
+
+/** ID3-style tags extracted from audio uploads. */
+export interface B10cksAssetMediaTags {
+  title?: string | null
+  artist?: string | null
+  album?: string | null
+  year?: string | null
+  genre?: string | null
+}
+
+/**
+ * Metadata extracted from an asset at upload time. Which fields are present
+ * depends on the file type (image, video, audio, document); content delivery
+ * additionally whitelists to `width`, `height`, `duration`, `thumbnails`,
+ * `dominant_color` and `a11y`. Custom metadata supplied at upload is carried
+ * through via the index signature.
+ */
+export interface B10cksAssetMetadata {
+  type?: 'image' | 'video' | 'audio' | 'document' | 'file'
+  /** Format refinement, e.g. `'svg'`, `'pdf'` or the source mime type. */
+  subtype?: string
+  original_filename?: string
+  width?: number
+  height?: number
+  /** `width / height`, rounded to 4 decimals. */
+  aspectRatio?: number
+  /** Dominant color as `#rrggbb` — usable as a loading placeholder. */
+  dominant_color?: string
+  /** Up to 5 representative colors, most dominant first (`palette[0] === dominant_color`). */
+  palette?: string[]
+  /** True for multi-frame GIF/WebP images. */
+  animated?: boolean
+  a11y?: B10cksAssetA11y
+  exif?: B10cksAssetExif
+  /** Duration in seconds (video/audio). */
+  duration?: number
+  fps?: number
+  bitrate?: number
+  codec?: string
+  thumbnails?: B10cksAssetThumbnail[]
+  channels?: number
+  sample_rate?: number
+  tags?: B10cksAssetMediaTags
+  [key: string]: unknown
+}
+
+/** An asset field value as delivered inside content payloads. */
+export interface B10cksAssetValue {
+  type: 'asset'
+  id: string
+  url?: string
+  full_path?: string
+  filename?: string
+  extension?: string
+  mime_type?: string
+  size?: number
+  metadata?: B10cksAssetMetadata
+  data?: Record<string, unknown> & { focus?: { x: number; y: number } }
+  [key: string]: unknown
+}
+
 export interface B10cksApiClientOptions {
   baseUrl: string
   token: string
