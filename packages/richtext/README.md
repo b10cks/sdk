@@ -161,8 +161,8 @@ renderRichText(document, {
 | `heading` | `<h1>` – `<h6>` |
 | `blockquote` | `<blockquote>` |
 | `codeBlock` | `<pre><code>` |
-| `bulletList` | `<ul>` |
-| `orderedList` | `<ol>` |
+| `bulletList` | `<ul>` (with `class` from a configured list style) |
+| `orderedList` | `<ol>` (with `class` from a configured list style) |
 | `listItem` | `<li>` |
 | `hardBreak` | `<br>` |
 | `horizontalRule` | `<hr>` |
@@ -180,6 +180,21 @@ renderRichText(document, {
 | `link` | `<a href="…">` |
 | `internalLink` | `<a href="…" data-type="internal" data-b10cks-internal-link>` |
 | `textClass` | `<span class="…">` |
+
+### List styles
+
+The b10cks editor lets a space configure named list styles (e.g. a checklist or a
+Roman-numeral variant). The chosen style is stored as a `className` attribute on the
+`bulletList` / `orderedList` node and rendered as a plain `class`, so it works with any
+CSS or framework:
+
+```json
+{ "type": "bulletList", "attrs": { "className": "checklist" }, "content": [ … ] }
+```
+
+renders as `<ul class="checklist"> … </ul>`. Style the class however your project needs —
+the SDK stays framework- and CSS-agnostic. A `class` attribute is also accepted for
+hand-authored documents.
 
 ## Types
 

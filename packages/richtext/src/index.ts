@@ -144,6 +144,17 @@ function voidTag(name: string, attrs: Record<string, unknown> = {}): string {
   return `<${name}${buildAttrs(attrs)}>`
 }
 
+/**
+ * Extract a `class` attribute from a node's attrs. The CMS editor stores a
+ * per-node class name (e.g. a configurable list style) under `className`; we
+ * also accept `class` for hand-authored documents. Returns an empty object when
+ * neither is present so existing documents render unchanged.
+ */
+function classAttr(a: Record<string, unknown>): Record<string, unknown> {
+  const cls = a.className ?? a.class
+  return typeof cls === 'string' && cls.length > 0 ? { class: cls } : {}
+}
+
 // ─── Mark rendering ───────────────────────────────────────────────────────────
 
 function applyMark(
@@ -264,16 +275,16 @@ function renderNode(node: RichTextDocument, options: RichTextHtmlOptions): strin
     }
 
     case 'bulletList':
-      return tag('ul', renderChildren(node.content, options))
+      return tag('ul', renderChildren(node.content, options), classAttr(a))
 
     case 'orderedList': {
-      const listAttrs: Record<string, unknown> = {}
+      const listAttrs: Record<string, unknown> = { ...classAttr(a) }
       if (a.start && a.start !== 1) listAttrs.start = a.start
       return tag('ol', renderChildren(node.content, options), listAttrs)
     }
 
     case 'listItem':
-      return tag('li', renderChildren(node.content, options))
+      return tag('li', renderChildren(node.content, options), classAttr(a))
 
     case 'hardBreak':
       return voidTag('br')

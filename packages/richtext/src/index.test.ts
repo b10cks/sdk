@@ -279,6 +279,32 @@ describe('renderRichText', () => {
       }
       expect(renderRichText(doc(node))).toBe('<ol start="5"><li><p>A</p></li></ol>')
     })
+
+    it('renders a configured list style as a class on the bullet list', () => {
+      const node: RichTextDocument = {
+        type: 'bulletList',
+        attrs: { className: 'checklist' },
+        content: [{ type: 'listItem', content: [p(text('A'))] }],
+      }
+      expect(renderRichText(doc(node))).toBe('<ul class="checklist"><li><p>A</p></li></ul>')
+    })
+
+    it('renders a list style class alongside the start attribute on ordered lists', () => {
+      const node: RichTextDocument = {
+        type: 'orderedList',
+        attrs: { className: 'roman', start: 5 },
+        content: [{ type: 'listItem', content: [p(text('A'))] }],
+      }
+      expect(renderRichText(doc(node))).toBe('<ol class="roman" start="5"><li><p>A</p></li></ol>')
+    })
+
+    it('accepts a plain class attribute on list items', () => {
+      const node: RichTextDocument = {
+        type: 'bulletList',
+        content: [{ type: 'listItem', attrs: { class: 'task' }, content: [p(text('A'))] }],
+      }
+      expect(renderRichText(doc(node))).toBe('<ul><li class="task"><p>A</p></li></ul>')
+    })
   })
 
   describe('hardBreak / horizontalRule', () => {
