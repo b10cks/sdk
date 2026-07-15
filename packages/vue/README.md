@@ -8,9 +8,22 @@ Vue 3 SDK for integrating [b10cks](https://www.b10cks.com), an open-source headl
 npm install @b10cks/vue @b10cks/client @b10cks/richtext
 ```
 
+Or let the CLI install the packages, register the plugin, and write `.env` for you:
+
+```bash
+npx @b10cks/cli init
+```
+
 ## Usage
 
 ### Plugin Setup
+
+Keep the access token in `.env` rather than in source. On Vite:
+
+```bash
+# .env
+VITE_B10CKS_TOKEN=your-access-token
+```
 
 ```typescript
 import { createApp } from 'vue'
@@ -21,7 +34,7 @@ const app = createApp(App)
 
 app.use(B10cksVue, {
   apiClientOptions: {
-    token: 'your-access-token',
+    token: import.meta.env.VITE_B10CKS_TOKEN ?? '',
     baseUrl: 'https://api.b10cks.com/api',
   },
 })

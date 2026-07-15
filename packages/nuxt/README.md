@@ -8,14 +8,29 @@ Nuxt 4 module for integrating [b10cks](https://www.b10cks.com), the open-source 
 npm install @b10cks/nuxt @b10cks/vue @b10cks/client @b10cks/richtext
 ```
 
+Or let the CLI install the packages, wire up `nuxt.config.ts`, and write `.env` for you:
+
+```bash
+npx @b10cks/cli init
+```
+
 ## Setup
+
+Put the access token in `.env`:
+
+```bash
+# .env
+NUXT_PUBLIC_B10CKS_ACCESS_TOKEN=your-access-token
+```
+
+Nuxt maps `NUXT_PUBLIC_*` onto `runtimeConfig.public` automatically, so the token
+never has to appear in your config file — and never lands in version control:
 
 ```typescript
 // nuxt.config.ts
 export default defineNuxtConfig({
   modules: ['@b10cks/nuxt'],
   b10cks: {
-    accessToken: 'your-access-token',
     apiUrl: 'https://api.b10cks.com/api',
     componentsDir: '~/b10cks',
     // Optional: offset applied when a selected block is scrolled into view, so
@@ -26,6 +41,9 @@ export default defineNuxtConfig({
   },
 })
 ```
+
+`accessToken` can also be set directly in the `b10cks` block, but prefer the env
+var so the token stays out of the repository.
 
 `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
 

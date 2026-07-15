@@ -8,7 +8,20 @@ React SDK for integrating [b10cks](https://www.b10cks.com), the open-source head
 npm install @b10cks/react @b10cks/client @b10cks/richtext
 ```
 
+Or let the CLI install the packages, add a provider, and write `.env` for you:
+
+```bash
+npx @b10cks/cli init
+```
+
 ## Usage
+
+Keep the access token in `.env` rather than in source. On Vite:
+
+```bash
+# .env
+VITE_B10CKS_TOKEN=your-access-token
+```
 
 ```tsx
 import { B10cksProvider, useB10cksApi } from '@b10cks/react'
@@ -17,7 +30,7 @@ function App() {
   return (
     <B10cksProvider
       apiClientOptions={{
-        token: 'your-access-token',
+        token: import.meta.env.VITE_B10CKS_TOKEN ?? '',
         baseUrl: 'https://api.b10cks.com/api',
       }}
     >

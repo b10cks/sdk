@@ -6,7 +6,6 @@ import path from 'path'
 
 import chalk from 'chalk'
 import { Command } from 'commander'
-import figlet from 'figlet'
 import updateNotifier from 'update-notifier'
 
 import {
@@ -20,6 +19,7 @@ import {
   ContentsCommand,
   DataSourcesCommand,
   GenerateCommand,
+  InitCommand,
   ProviderCommand,
   RedirectsCommand,
   ReleasesCommand,
@@ -31,6 +31,17 @@ import {
   registerAuthCommands,
 } from './commands/index.js'
 
+// Rendered once with figlet's `small` font. Kept literal because figlet loads
+// fonts from disk at runtime, and the published package ships only `dist/**` —
+// bundling inlines its code but not the .flf files, so it threw on every run.
+const BANNER = [
+  '  _    _  __     _       ',
+  " | |__/ |/  \\ __| |__ ___",
+  " | '_ \\ | () / _| / /(_-<",
+  ' |_.__/_|\\__/\\__|_\\_\\/__/',
+  '                         ',
+].join('\n')
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rawPkg = fs.readFileSync(path.join(__dirname, '../package.json'))
 const pkg = JSON.parse(rawPkg.toString())
@@ -39,7 +50,7 @@ const program = new Command()
 updateNotifier({ pkg }).notify({ isGlobal: true })
 
 program
-  .addHelpText('beforeAll', chalk.blueBright(figlet.textSync('b10cks', { font: 'small' })))
+  .addHelpText('beforeAll', chalk.blueBright(BANNER))
   .configureHelp({ sortSubcommands: true })
   .version(pkg.version)
 
@@ -56,6 +67,7 @@ const namespaceCommands = [
   new ContentsCommand(),
   new DataSourcesCommand(),
   new GenerateCommand(),
+  new InitCommand(),
   new ProviderCommand(),
   new RedirectsCommand(),
   new ReleasesCommand(),

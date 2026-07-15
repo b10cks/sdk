@@ -8,15 +8,33 @@ Svelte SDK for integrating [b10cks](https://www.b10cks.com), the open-source hea
 npm install @b10cks/svelte @b10cks/client @b10cks/richtext
 ```
 
+Or let the CLI install the packages and write `.env` for you:
+
+```bash
+npx @b10cks/cli init
+```
+
 ## Usage
+
+Keep the access token in `.env` rather than in source:
+
+```bash
+# .env — SvelteKit
+PUBLIC_B10CKS_TOKEN=your-access-token
+
+# .env — plain Svelte on Vite
+VITE_B10CKS_TOKEN=your-access-token
+```
 
 ```svelte
 <script lang="ts">
   import { createB10cksContext, createB10cksStores } from '@b10cks/svelte'
+  // SvelteKit; on plain Vite use import.meta.env.VITE_B10CKS_TOKEN instead.
+  import { PUBLIC_B10CKS_TOKEN } from '$env/static/public'
 
   createB10cksContext({
     apiClientOptions: {
-      token: 'your-access-token',
+      token: PUBLIC_B10CKS_TOKEN,
       baseUrl: 'https://api.b10cks.com/api',
     },
   })

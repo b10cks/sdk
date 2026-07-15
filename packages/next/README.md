@@ -8,6 +8,19 @@ Next.js integration for [b10cks](https://www.b10cks.com), the open-source headle
 npm install @b10cks/next @b10cks/react @b10cks/client @b10cks/richtext
 ```
 
+Or let the CLI install the packages, wrap `next.config.ts`, add a provider, and
+write `.env` for you:
+
+```bash
+npx @b10cks/cli init
+```
+
+```bash
+# .env
+NEXT_PUBLIC_B10CKS_TOKEN=your-access-token  # client components
+B10CKS_TOKEN=your-access-token              # server components
+```
+
 ## Configure Next.js
 
 ```ts
