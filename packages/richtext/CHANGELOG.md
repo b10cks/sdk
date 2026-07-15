@@ -1,5 +1,16 @@
 # @b10cks/richtext
 
+## 0.6.0
+
+### Minor Changes
+
+- Render configurable list-style classes in richtext
+
+  `bulletList`, `orderedList` and `listItem` nodes now emit `attrs.className` (or
+  `attrs.class`) as a real `class` attribute, so a space can define its own ul/ol
+  variants that render framework- and CSS-agnostically. Documents without either
+  attribute render unchanged.
+
 ## 0.5.0
 
 ### Minor Changes

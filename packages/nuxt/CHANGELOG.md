@@ -1,5 +1,13 @@
 # @b10cks/nuxt
 
+## 3.2.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/richtext@0.6.0
+  - @b10cks/vue@2.4.2
+
 ## 3.2.1
 
 ### Patch Changes

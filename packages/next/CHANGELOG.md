@@ -1,5 +1,13 @@
 # @b10cks/next
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/richtext@0.6.0
+  - @b10cks/react@0.5.2
+
 ## 0.4.0
 
 ### Minor Changes

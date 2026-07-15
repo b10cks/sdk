@@ -1,5 +1,12 @@
 # @b10cks/react
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/richtext@0.6.0
+
 ## 0.5.1
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @b10cks/vue
 
+## 2.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/richtext@0.6.0
+
 ## 2.4.1
 
 ### Patch Changes
