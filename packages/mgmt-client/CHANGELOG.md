@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.4.0
+
+### Minor Changes
+
+- Add local block schema as source of truth: `b10cks schema pull|diff|push` sync a `b10cks/schema/*.block.json` directory against a space (three-way diff via `b10cks/schema.lock.json`, upsert keyed by external_id, `--prune`, `--dry-run`, `--force`), backed by the new `blocks.sync()` bulk endpoint in the management client and a TypeScript port of the CMS schema normalization pipeline. `b10cks generate types` now generates from the local schema directory when the space ID is omitted.
+
+## 1.3.0
+
+### Minor Changes
+
+- Bring the management client and MCP server up to date with the current management API.
+
+  **mgmt-client**
+
+  - Add DAM resources: `assetCollections`, `assetShares`, `assetPackages`, and public `shares` (including binary image-preview support and share-access-token auth).
+  - Add asset versions and `replaceFile`, user notifications, space usage/history/invoices, onboarding, contents & icons import/export, `authorization`, space blueprints catalogue, and public invite lookup.
+  - Fix endpoints that no longer existed on the server: `ai.translate`, `ai.generateMetaTags`, and `dataSources.translateMissingDimensions` now target their `/stream` routes.
+  - Type space and content settings: new `SpaceSettings` and `ContentSettings` interfaces (with `site_locales`, `content_sorting`, `onboarding_dismissed_at`, `sitemap`, `cache_ttl`, `cache_tags`, `child_sort_by`/`child_sort_direction`, …) replace the untyped `settings` records.
+  - Correct the `Content` response type to match `ContentResource` (it previously declared `data`/`metadata`/`space_id`, which the API never returned); add the `badge`, `plan`, `user_count`, and `content_updated_at` fields to `Space`.
+  - Remove `spaces.listSpaceRoles` (it called a route that returned 404; use `teams.listSpaceRoles`) and the space/content presence methods (realtime collaboration, not a management concern).
+
+  **mcp-server**
+
+  - Add operations covering the new client surface plus previously unmapped methods (teams, users, notifications, usage, DAM, public shares, authorization, blueprints).
+
+  **cli**
+
+  - Remove the broken `spaces roles list` command (roles are team-scoped).
+  - Fix `spaces`/`teams` member list commands so `--page`/`--per-page` are actually sent.
+
 ## 1.2.0
 
 ### Minor Changes
