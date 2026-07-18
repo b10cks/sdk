@@ -11,11 +11,16 @@ import type {
   CreateSpaceParams,
   GetAuditLogsParams,
   Invite,
+  Invoice,
   Migration,
   PaginatedResponse,
   RequestOptions,
-  Role,
   Space,
+  SpaceUsage,
+  SubscriptionPeriod,
+  UpdateSpaceOnboardingParams,
+  UsageTimeseries,
+  UsageTimeseriesMetric,
   SpaceAiConfig,
   SpaceAiSettings,
   SpaceMember,
@@ -80,6 +85,63 @@ export class SpacesResource {
 
   async getStats(spaceId: string, options?: RequestOptions): Promise<unknown> {
     return this.client.get<unknown>(apiPath`/mgmt/v1/spaces/${spaceId}/stats`, undefined, options?.headers)
+  }
+
+  /** Live usage for the current billing period, metered against the plan quota. */
+  async getUsage(spaceId: string, options?: RequestOptions): Promise<{ data: SpaceUsage }> {
+    return this.client.get<{ data: SpaceUsage }>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/usage`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  /** Usage rolled up per billing period, newest first. */
+  async getUsageHistory(
+    spaceId: string,
+    options?: RequestOptions
+  ): Promise<{ data: SubscriptionPeriod[] }> {
+    return this.client.get<{ data: SubscriptionPeriod[] }>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/usage/history`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  /** Day-bucketed usage for one billing period. Defaults to the `traffic` metric. */
+  async getUsageTimeseries(
+    spaceId: string,
+    periodId: string,
+    params?: { metric?: UsageTimeseriesMetric },
+    options?: RequestOptions
+  ): Promise<{ data: UsageTimeseries }> {
+    return this.client.get<{ data: UsageTimeseries }>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/usage/history/${periodId}/timeseries`,
+      params,
+      options?.headers
+    )
+  }
+
+  /** Billing invoices. Resolves to an empty list when billing is not configured. */
+  async listInvoices(spaceId: string, options?: RequestOptions): Promise<{ data: Invoice[] }> {
+    return this.client.get<{ data: Invoice[] }>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/invoices`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  /** Dismisses (or restores) the space's onboarding guide. */
+  async updateOnboarding(
+    spaceId: string,
+    payload: UpdateSpaceOnboardingParams,
+    options?: RequestOptions
+  ): Promise<{ data: Space }> {
+    return this.client.patch<{ data: Space }>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/onboarding`,
+      payload,
+      options?.headers
+    )
   }
 
   async getContentMenu(spaceId: string, options?: RequestOptions): Promise<unknown> {
@@ -437,58 +499,6 @@ export class SpacesResource {
   ): Promise<void> {
     return this.client.delete<void>(
       apiPath`/mgmt/v1/spaces/${spaceId}/migrations/${migrationId}`,
-      options?.headers
-    )
-  }
-
-  // ─── Presence ──────────────────────────────────────────────────────────────
-
-  async updateSpacePresence(
-    spaceId: string,
-    payload?: Record<string, unknown>,
-    options?: RequestOptions
-  ): Promise<unknown> {
-    return this.client.post<unknown>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/presence`,
-      payload,
-      options?.headers
-    )
-  }
-
-  async leaveSpacePresence(spaceId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(apiPath`/mgmt/v1/spaces/${spaceId}/presence`, options?.headers)
-  }
-
-  async updateContentPresence(
-    spaceId: string,
-    contentId: string,
-    payload?: Record<string, unknown>,
-    options?: RequestOptions
-  ): Promise<unknown> {
-    return this.client.post<unknown>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
-      payload,
-      options?.headers
-    )
-  }
-
-  async leaveContentPresence(
-    spaceId: string,
-    contentId: string,
-    options?: RequestOptions
-  ): Promise<void> {
-    return this.client.delete<void>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/presence`,
-      options?.headers
-    )
-  }
-
-  // ─── Space Roles ───────────────────────────────────────────────────────────
-
-  async listSpaceRoles(spaceId: string, options?: RequestOptions): Promise<{ data: Role[] }> {
-    return this.client.get<{ data: Role[] }>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/roles/space`,
-      undefined,
       options?.headers
     )
   }

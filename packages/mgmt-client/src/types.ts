@@ -236,18 +236,97 @@ export interface UpsertTeamSamlProviderParams {
 
 // ─── Spaces ──────────────────────────────────────────────────────────────────
 
+export interface SpaceLanguage {
+  code: string
+  name: string
+  fallback_language?: string | null
+  hidden?: boolean | null
+}
+
+/**
+ * Maps a URL path segment to a CMS language, decoupling site URLs from content
+ * languages (e.g. `de` served under `at-de`, `ch-de`). When empty, the space's
+ * `slug_strategy` applies.
+ */
+export interface SpaceSiteLocale {
+  segment: string
+  language: string
+  name?: string | null
+}
+
+export interface SpaceAssetField {
+  key: string
+  label: string
+  required: boolean
+}
+
+export interface SpaceEnvironment {
+  key: string
+  label: string
+}
+
+export interface SpaceSitemapType {
+  block: string
+  path: string
+}
+
+export interface SpaceSettingsAi {
+  enabled?: boolean | null
+  model?: string | null
+  favourites?: string[]
+}
+
+/**
+ * The full settings object returned on a space. Mirrors the CMS `SpaceSettings`
+ * model defaults — responses always carry every key; on write, any subset is
+ * accepted and merged.
+ */
+export interface SpaceSettings {
+  region: string
+  default_block: string | null
+  default_language: string
+  i18n_mode: 'overlay' | 'independent'
+  languages: SpaceLanguage[]
+  site_locales: SpaceSiteLocale[]
+  asset_fields: SpaceAssetField[]
+  environments: SpaceEnvironment[]
+  default_environment: string | null
+  visual_editor: boolean
+  search_driver: string
+  slug_strategy: 'prepend_translations' | 'always_prepend' | 'never'
+  filter_hidden_blocks: boolean
+  content_sorting: boolean
+  /** ISO timestamp of when the onboarding guide was dismissed; null while shown. */
+  onboarding_dismissed_at: string | null
+  ai: SpaceSettingsAi
+  sitemap: { types: SpaceSitemapType[] }
+  [key: string]: unknown
+}
+
+/** The plan summary embedded in a space, derived from the current subscription. */
+export interface SpacePlanSummary {
+  id: string | null
+  name: string
+  status: string
+}
+
 export interface Space {
   id: string
+  state: 'active' | 'archived' | 'draft'
   name: string
   slug: string
   icon: string | null
   color: string | null
+  badge: string | null
   description: string | null
+  settings: SpaceSettings
   team_id: string | null
-  state: 'active' | 'archived' | 'draft'
-  settings: Record<string, unknown> | null
-  created_at: string
-  updated_at: string
+  plan: SpacePlanSummary | null
+  /** Present only when the `users` relation was counted. */
+  user_count?: number
+  content_updated_at: string | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 export interface CreateSpaceParams {
@@ -257,7 +336,7 @@ export interface CreateSpaceParams {
   team_id?: string | null
   color?: string | null
   description?: string | null
-  settings?: Record<string, unknown> | null
+  settings?: Partial<SpaceSettings> | null
 }
 
 export interface UpdateSpaceParams {
@@ -266,7 +345,7 @@ export interface UpdateSpaceParams {
   icon?: string | null
   color?: string | null
   description?: string | null
-  settings?: Record<string, unknown> | null
+  settings?: Partial<SpaceSettings> | null
   state?: 'active' | 'archived' | 'draft'
 }
 
@@ -643,18 +722,103 @@ export interface UpdateBlockVersionParams {
 
 // ─── Contents ────────────────────────────────────────────────────────────────
 
-export interface Content {
+/**
+ * How the direct children of a content entry are ordered. Besides the fixed
+ * values, `content.{field}` orders by a first-level key of the child content
+ * payload (e.g. `content.publishDate`).
+ */
+export type ContentChildSortBy =
+  | 'inherit'
+  | 'manual'
+  | 'name'
+  | 'published_at'
+  | 'created_at'
+  | 'updated_at'
+  | `content.${string}`
+
+/**
+ * Per-content settings. Mirrors the CMS `ContentSettings` model defaults —
+ * responses carry every key; on write, any subset is accepted.
+ */
+export interface ContentSettings {
+  disablePreview: boolean
+  i18n_mode_override: 'inherit' | 'overlay' | 'independent'
+  restrict_child_blocks: boolean
+  child_block_whitelist: string[]
+  child_tag_whitelist: string[]
+  default_child_block: string | null
+  child_sort_by: ContentChildSortBy
+  child_sort_direction: 'asc' | 'desc'
+  /** Delivery cache TTL in seconds (0–31536000); null uses the space default. */
+  cache_ttl: number | null
+  /** Cache tags delivered with the entry, for tag-based invalidation (max 32). */
+  cache_tags: string[]
+  [key: string]: unknown
+}
+
+/** The block summary embedded in a content entry. */
+export interface ContentBlockRef {
   id: string
-  external_id?: string | null
+  name: string
+  icon: string | null
+  slug: string
+}
+
+/** The parent summary embedded in a content entry. */
+export interface ContentParentRef {
+  id: string
   name: string
   slug: string
+}
+
+export interface Content {
+  id: string
+  external_id: string | null
   block_id: string
-  space_id: string
-  data: Record<string, unknown>
-  metadata: Record<string, unknown> | null
+  block: ContentBlockRef | null
+  /** The block's field schema; null when the block has no schema. */
+  block_schema: Record<string, unknown> | null
+  /** The block's editor layout; `[]` when none. */
+  block_editor: Record<string, unknown> | unknown[]
+  parent_id: string | null
+  position: number
+  parent: ContentParentRef | null
+  name: string
+  /** Present only when the `children` relation was counted. */
+  children_count?: number
+  slug: string
+  full_slug: string
+  language_iso: string
+  i18n_parent_id: string | null
+  i18n_canonical_id: string
+  effective_i18n_mode: 'overlay' | 'independent'
+  language_versions: unknown[]
+  /** The resolved, asset-injected content payload. */
+  content: Record<string, unknown>
+  /** The raw current-version content payload, before i18n resolution. */
+  raw_content: Record<string, unknown>
+  settings: ContentSettings
+  current_version_id: string | null
+  current_version: ContentVersionListItem | null
+  published_version_id: string | null
+  published_version: ContentVersionListItem | null
   published_at: string | null
-  created_at: string
-  updated_at: string
+  first_published_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  /** Present only when the respective i18n relation is loaded. */
+  i18n_parent?: ContentTranslation
+  i18n_translations?: ContentTranslation[]
+  i18n_siblings?: ContentTranslation[]
+}
+
+/** A sibling/parent language version, as returned by the i18n relations. */
+export interface ContentTranslation {
+  id: string
+  name: string
+  slug: string
+  language_iso: string
+  [key: string]: unknown
 }
 
 export interface ContentTranslationMutationParams {
@@ -667,7 +831,7 @@ export interface ContentTranslationMutationParams {
   i18n_parent_id?: string | null
   language_iso?: string
   content?: Record<string, unknown>
-  settings?: Record<string, unknown> | null
+  settings?: Partial<ContentSettings> | null
   force?: boolean
   message?: string
   published_at?: string | null
@@ -682,7 +846,7 @@ export interface CreateContentParams {
   i18n_parent_id?: string | null
   language_iso?: string
   content?: Record<string, unknown>
-  settings?: Record<string, unknown> | null
+  settings?: Partial<ContentSettings> | null
   force?: boolean
   translations?: ContentTranslationMutationParams[]
 }
@@ -1081,6 +1245,263 @@ export interface LinkedAssetContent {
   [key: string]: unknown
 }
 
+/** A point-in-time snapshot of an asset's file, created whenever the file is replaced. */
+export interface AssetVersion {
+  id: string
+  external_id: string | null
+  asset_id: string
+  version_number: number
+  filename: string
+  extension: string
+  mime_type: string
+  size: number
+  checksum: string | null
+  full_path: string
+  metadata: AssetMetadata | null
+  /** Only present when the `createdBy` relation is loaded. */
+  created_by?: { id: string; name: string }
+  created_at: string | null
+}
+
+export interface ReplaceAssetFileParams {
+  /** File contents. A `Buffer`/`Blob`/`File` switches the request to multipart. */
+  file: unknown
+  [key: string]: unknown
+}
+
+// ─── Asset Collections ───────────────────────────────────────────────────────
+
+/**
+ * `manual` collections hold an explicit, ordered list of assets; `smart`
+ * collections resolve their members from `rules` and cannot be edited by hand.
+ */
+export type AssetCollectionType = 'manual' | 'smart'
+
+export interface AssetCollection {
+  id: string
+  external_id: string | null
+  name: string
+  description: string | null
+  icon: string | null
+  color: string | null
+  type: AssetCollectionType
+  /** Membership rules for `smart` collections; always `null` when `manual`. */
+  rules: Record<string, unknown> | unknown[] | null
+  settings: Record<string, unknown> | unknown[] | null
+  cover_asset_id: string | null
+  /** Only present when the `coverAsset` relation is loaded (the `get` endpoint). */
+  cover_asset?: Asset
+  /** `null` for smart collections in list responses, where it is not computed. */
+  assets_count: number | null
+  created_by_id: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface UpsertAssetCollectionParams {
+  name?: string
+  external_id?: string | null
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  type?: AssetCollectionType
+  /** Required when `type` is `smart`; ignored (forced to `null`) when `manual`. */
+  rules?: Record<string, unknown> | unknown[] | null
+  settings?: Record<string, unknown> | unknown[] | null
+  cover_asset_id?: string | null
+}
+
+export interface GetAssetCollectionsParams extends PaginationParams {
+  q?: string
+  name?: string
+  external_id?: string
+  type?: AssetCollectionType
+  /** Range filter, `start...end` (either side optional). */
+  created_at?: string
+  updated_at?: string
+  sort?: string
+  [key: string]: unknown
+}
+
+// ─── Asset Shares & Packages ─────────────────────────────────────────────────
+
+/** Where a share or package draws its assets from. */
+export type AssetSourceType = 'collection' | 'selection' | 'folder'
+
+export type AssetPackageState = 'pending' | 'building' | 'completed' | 'failed'
+
+/** Build status of the zip archive backing a share. */
+export interface AssetSharePackage {
+  id: string
+  state: AssetPackageState
+  progress: number
+  file_size: number | null
+  asset_count: number
+  is_stale: boolean
+  expires_at: string | null
+}
+
+export interface AssetShare {
+  id: string
+  /** Raw share token; combine with the space id to build the public share URL. */
+  token: string
+  name: string
+  description: string | null
+  source_type: AssetSourceType
+  collection_id: string | null
+  folder_id: string | null
+  asset_ids: string[] | null
+  package_id: string | null
+  /** Only present when the `package` relation is loaded. */
+  package?: AssetSharePackage | null
+  has_password: boolean
+  expires_at: string | null
+  download_limit: number | null
+  download_count: number
+  view_count: number
+  allow_individual_downloads: boolean
+  settings: Record<string, unknown> | unknown[] | null
+  is_revoked: boolean
+  is_expired: boolean
+  last_accessed_at: string | null
+  revoked_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  /** Only present when the `creator` relation is loaded. */
+  created_by?: { id: string; display_name: string; email: string } | null
+}
+
+export interface CreateAssetShareParams {
+  name: string
+  source_type: AssetSourceType
+  description?: string | null
+  /** Required when `source_type` is `collection`. */
+  collection_id?: string | null
+  /** Required when `source_type` is `folder`. */
+  folder_id?: string | null
+  /** Required when `source_type` is `selection`; 1–1000 ids. */
+  asset_ids?: string[] | null
+  /** Stored hashed and never returned; 4–255 characters. */
+  password?: string | null
+  expires_at?: string | null
+  download_limit?: number | null
+  allow_individual_downloads?: boolean
+  settings?: Record<string, unknown> | unknown[] | null
+}
+
+/**
+ * Every field is optional. Omitting `password` keeps the current one; passing
+ * `null` or `''` removes it. Changing the source resets the built package.
+ */
+export interface UpdateAssetShareParams extends Partial<CreateAssetShareParams> {}
+
+export interface GetAssetSharesParams extends PaginationParams {
+  source_type?: AssetSourceType
+  collection_id?: string
+  folder_id?: string
+  [key: string]: unknown
+}
+
+export interface AssetPackage {
+  id: string
+  name: string | null
+  source_type: AssetSourceType
+  collection_id: string | null
+  folder_id: string | null
+  asset_ids: string[] | null
+  state: AssetPackageState
+  progress: number
+  error: string | null
+  file_size: number | null
+  checksum: string | null
+  asset_count: number
+  is_stale: boolean
+  expires_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  /** Only present when the `creator` relation is loaded. */
+  created_by?: { id: string; display_name: string; email: string }
+}
+
+export interface CreateAssetPackageParams {
+  source_type: AssetSourceType
+  name?: string | null
+  /** Required when `source_type` is `collection`. */
+  collection_id?: string | null
+  /** Required when `source_type` is `folder`. */
+  folder_id?: string | null
+  /** Required when `source_type` is `selection`; 1–1000 ids. */
+  asset_ids?: string[] | null
+}
+
+/** A short-lived, presigned URL pointing at the actual file bytes. */
+export interface AssetDownloadUrl {
+  url: string
+  expires_at: string | null
+}
+
+/** Returned while a package archive is still being built. */
+export interface AssetPackagePending {
+  state: AssetPackageState
+  progress: number
+}
+
+// ─── Public Shares ───────────────────────────────────────────────────────────
+
+/** The reduced payload returned for a password-protected share before unlock. */
+export interface LockedShare {
+  name: string
+  protected: true
+  unlocked: false
+}
+
+export interface UnlockedShare {
+  name: string
+  description: string | null
+  settings: Record<string, unknown> | unknown[] | null
+  /** `null` when the count could not be computed. */
+  asset_count: number | null
+  allow_individual_downloads: boolean
+  download_limit: number | null
+  download_count: number
+  expires_at: string | null
+  package_state: AssetPackageState | null
+  package_progress: number | null
+  protected: boolean
+  unlocked: true
+}
+
+/** A share is either locked (name only) or unlocked (full detail). */
+export type PublicShare = LockedShare | UnlockedShare
+
+/** The deliberately reduced asset shape exposed on public shares. */
+export interface PublicShareAsset {
+  id: string
+  filename: string
+  extension: string
+  mime_type: string
+  size: number
+  metadata: Pick<AssetMetadata, 'type' | 'width' | 'height' | 'dominant_color' | 'thumbnails'>
+  /** `null` for non-image assets. Carries the access token when protected. */
+  preview_url: string | null
+}
+
+export interface PublicShareAssetsResponse {
+  data: PublicShareAsset[]
+  meta: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
+/** Short-lived HMAC token proving a password-protected share was unlocked. */
+export interface ShareAccessToken {
+  access_token: string
+  expires_at: string
+}
+
 // ─── Tokens ──────────────────────────────────────────────────────────────────
 
 export interface SpaceToken {
@@ -1277,3 +1698,244 @@ export interface CreateProviderNoteParams {
 }
 
 export interface UpdateProviderNoteParams extends Partial<CreateProviderNoteParams> {}
+
+// ─── Import & Export ─────────────────────────────────────────────────────────
+
+export type ImportExportFormat = 'csv' | 'excel' | 'json' | 'xliff' | 'yaml'
+
+/** Imported entries land as drafts unless `publish` is requested. */
+export type ContentImportMode = 'draft' | 'publish'
+
+/** `addition` merges into the existing set; `replacement` prunes what is absent. */
+export type IconImportMode = 'addition' | 'replacement'
+
+export interface ExportContentDataParams extends Partial<GetContentsParams> {
+  as: ImportExportFormat
+}
+
+export interface ImportContentDataParams {
+  /** File contents. A `Buffer`/`Blob`/`File` switches the request to multipart. */
+  file: unknown
+  /** Defaults to `draft`. `publish` additionally requires publish rights. */
+  import_mode?: ContentImportMode
+  create_missing?: boolean
+  [key: string]: unknown
+}
+
+export interface ImportIconDataParams {
+  /** An Iconify icon-set JSON file; max 5000 icons. */
+  file: unknown
+  /** Defaults to `addition`. */
+  import_mode?: IconImportMode
+  [key: string]: unknown
+}
+
+export interface ImportResultChange {
+  field: string
+  old: unknown
+  new: unknown
+}
+
+/** The outcome of an import, reported per entry plus a summary. */
+export interface ImportResult {
+  successes: { id: string; key?: string; [key: string]: unknown }[]
+  changes: { id: string; key?: string; changes: ImportResultChange[] }[]
+  ignored_fields: string[]
+  errors: { id?: string; message: string }[]
+  /** Only populated by `replacement`-mode imports. */
+  deleted: { id: string; key?: string }[]
+  summary: {
+    total_success: number
+    total_changes: number
+    total_errors: number
+    total_deleted: number
+  }
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string
+  /** Fully-qualified class name of the notification that produced this entry. */
+  type: string
+  /** Payload defined by the notification itself; shape varies by `type`. */
+  data: Record<string, unknown>
+  read_at: string | null
+  created_at: string | null
+}
+
+export interface GetNotificationsParams extends PaginationParams {
+  unread_only?: boolean
+  type?: string
+  [key: string]: unknown
+}
+
+// ─── Usage & Billing ─────────────────────────────────────────────────────────
+
+/** One metered dimension of a space's plan quota. */
+export interface UsageMetric {
+  key: string
+  unit: 'bytes' | 'count' | 'usd'
+  used: number
+  /** `null` when the plan places no limit on this metric. */
+  limit: number | null
+  unlimited: boolean
+  percentage: number
+  /** `false` when the figure could not be metered, in which case `used` is 0. */
+  available: boolean
+}
+
+export interface SpaceUsage {
+  storage: UsageMetric
+  traffic: UsageMetric
+  downloads: UsageMetric
+  requests: UsageMetric
+  ai: UsageMetric
+  period: {
+    start: string
+    end: string
+    resets_at: string
+  }
+}
+
+/** Rolled-up usage for a closed billing period. */
+export interface SubscriptionPeriodUsage {
+  used: number | null
+  limit: number | null
+  percentage: number | null
+}
+
+export interface SubscriptionPeriod {
+  id: string
+  plan_id: string | null
+  plan_name: string | null
+  status: string
+  price: number
+  billing_period: string
+  quotas: Record<string, unknown>
+  started_at: string | null
+  renews_at: string | null
+  ended_at: string | null
+  close_reason: string | null
+  is_open: boolean
+  /**
+   * `used` is `null` for an open period whose rollup has not run yet — read
+   * live figures from `spaces.getUsage()` instead.
+   */
+  usage: {
+    storage: SubscriptionPeriodUsage
+    traffic: SubscriptionPeriodUsage
+    requests: SubscriptionPeriodUsage
+    ai: SubscriptionPeriodUsage
+  }
+}
+
+export type UsageTimeseriesMetric = 'traffic' | 'requests'
+
+export interface UsageTimeseries {
+  metric: UsageTimeseriesMetric
+  start: string | null
+  end: string
+  /** Day-buckets: bytes for `traffic`, request count for `requests`. */
+  points: { date: string; value: number }[]
+}
+
+export interface Invoice {
+  id: string
+  total: number
+  total_formatted: string
+  currency: string
+  status: string
+  status_formatted: string
+  refunded: boolean
+  card_brand: string | null
+  card_last_four: string | null
+  billing_reason: string
+  invoice_url: string
+  created_at: string
+}
+
+export interface UpdateSpaceOnboardingParams {
+  dismissed: boolean
+}
+
+// ─── Authorization ───────────────────────────────────────────────────────────
+
+/**
+ * The caller's effective permissions. Passing `team_id` or `space_id` narrows
+ * the answer to that context and leaves `teams`/`spaces` empty.
+ */
+export interface Authorization {
+  user_id: string
+  is_root: boolean
+  teams: { id: string; name: string }[]
+  spaces: { id: string; name: string; team_id: string }[]
+  /** Only populated when `team_id` was supplied. */
+  team: {
+    id: string
+    role_keys: string[]
+    abilities: string[]
+  } | null
+  /** Only populated when `space_id` was supplied. */
+  space: {
+    id: string
+    team_role_keys: string[]
+    space_role_key: string | null
+    abilities: string[]
+    plan: unknown | null
+  } | null
+  /** Assignable role catalogue for the resolved context. */
+  roles: {
+    team: Role[]
+    space: Role[]
+  }
+}
+
+export interface GetAuthorizationParams {
+  team_id?: string
+  space_id?: string
+  [key: string]: unknown
+}
+
+// ─── Space Blueprints ────────────────────────────────────────────────────────
+
+/** The trimmed blueprint shape returned by the available-blueprints catalogue. */
+export interface SpaceBlueprintListItem {
+  id: string
+  name: string
+  icon: string | null
+  color: string | null
+  description: string | null
+  team_id: string | null
+  team?: Team
+  created_by?: SimpleUser
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface GetSpaceBlueprintsParams extends PaginationParams {
+  name?: string
+  team_id?: string
+  created_by_id?: string
+  /** Range filter, `start...end` (either side optional). */
+  created_at?: string
+  updated_at?: string
+  sort?: string
+  [key: string]: unknown
+}
+
+/**
+ * The public view of an invite, safe to read before signing in. The invitee's
+ * address is exposed only as `email_hash` (sha256 of the email).
+ */
+export interface PublicInvite {
+  id: string
+  space?: { name: string; slug: string; icon: string | null }
+  team?: { name: string }
+  inviter?: SimpleUser
+  email_hash: string
+  role: string
+  message: string | null
+  expires_at: string | null
+  status: 'pending' | 'accepted' | 'expired'
+}

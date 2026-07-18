@@ -154,6 +154,58 @@ describe('operation dispatch', () => {
     const calls = await run('assetTags.assign', { spaceId: 's1', id: 't1', payload: {} })
     expect(calls).toEqual([{ path: 'assetTags.assign', args: ['s1', 't1', []] }])
   })
+
+  it('unwraps asset_ids for the collection membership operations', async () => {
+    const calls = await run('assetCollections.addAssets', {
+      spaceId: 's1',
+      collectionId: 'c1',
+      payload: { asset_ids: ['a1', 'a2'] },
+    })
+    expect(calls).toEqual([{ path: 'assetCollections.addAssets', args: ['s1', 'c1', ['a1', 'a2']] }])
+  })
+
+  it('passes the share token and access token positionally', async () => {
+    const calls = await run('shares.listAssets', {
+      spaceId: 's1',
+      token: 'tok',
+      accessToken: 'acc',
+      params: { per_page: 10 },
+    })
+    expect(calls).toEqual([
+      { path: 'shares.listAssets', args: ['s1', 'tok', { per_page: 10 }, 'acc'] },
+    ])
+  })
+
+  it('leaves the access token undefined for a share with no password', async () => {
+    const calls = await run('shares.get', { spaceId: 's1', token: 'tok' })
+    expect(calls).toEqual([{ path: 'shares.get', args: ['s1', 'tok', undefined] }])
+  })
+
+  it('extracts the password for shares.unlock', async () => {
+    const calls = await run('shares.unlock', {
+      spaceId: 's1',
+      token: 'tok',
+      payload: { password: 'hunter2' },
+    })
+    expect(calls).toEqual([{ path: 'shares.unlock', args: ['s1', 'tok', 'hunter2'] }])
+  })
+
+  it('dispatches notification operations that take no arguments', async () => {
+    expect(await run('notifications.unreadCount', {})).toEqual([
+      { path: 'users.getUnreadNotificationCount', args: [] },
+    ])
+  })
+
+  it('resolves a notification id from the generic id argument', async () => {
+    const calls = await run('notifications.markRead', { id: 'n1' })
+    expect(calls).toEqual([{ path: 'users.markNotificationAsRead', args: ['n1'] }])
+  })
+
+  it('requires a teamId for team-scoped operations', async () => {
+    await expect(run('teams.listBlueprints', {})).rejects.toThrow(
+      'Missing required string argument: teamId'
+    )
+  })
 })
 
 describe('required argument validation', () => {

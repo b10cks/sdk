@@ -23,11 +23,11 @@ export class AiResource {
     payload: Record<string, unknown>,
     options?: RequestOptions
   ): Promise<unknown> {
-    return this.client.post<unknown>('/mgmt/v1/ai/meta-tags', payload, options?.headers)
+    return this.client.post<unknown>('/mgmt/v1/ai/meta-tags/stream', payload, options?.headers)
   }
 
   async translate(payload: Record<string, unknown>, options?: RequestOptions): Promise<unknown> {
-    return this.client.post<unknown>('/mgmt/v1/ai/translate', payload, options?.headers)
+    return this.client.post<unknown>('/mgmt/v1/ai/translate/stream', payload, options?.headers)
   }
 
   async translateStream(

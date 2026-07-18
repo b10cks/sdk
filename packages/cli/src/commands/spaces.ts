@@ -19,7 +19,6 @@ export class SpacesCommand extends BaseCommand {
     this.registerHierarchy(ns)
     this.registerMembersGroup(ns)
     this.registerInvitesGroup(ns)
-    this.registerRolesGroup(ns)
     this.registerBackupsGroup(ns)
     this.registerMigrationsGroup(ns)
     this.registerSubscriptionsGroup(ns)
@@ -195,7 +194,7 @@ export class SpacesCommand extends BaseCommand {
           const params: any = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.spaces.listMembers(spaceId, params)
+          const res = await this.client.spaces.listMembers(spaceId, { query: params })
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No members found')
           console.log(`\n${chalk.bold('Members:')}`)
@@ -313,29 +312,6 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.resendInvite(spaceId, inviteId)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} resent`)
-        } catch (e: any) { this.handleError(e) }
-      })
-  }
-
-  private registerRolesGroup(ns: Command): void {
-    const roles = ns.command('roles').description('manage space roles')
-    roles.command('list')
-      .description('list space roles')
-      .argument('<spaceId>', 'space ID')
-      .option('-p, --page <page>', 'page number')
-      .option('--per-page <n>', 'results per page')
-      .option('--json', 'output as JSON')
-      .action(async (spaceId, options) => {
-        this.ensureAuthenticated()
-        try {
-          const params: any = {}
-          if (options.perPage) params.per_page = Number(options.perPage)
-          if (options.page) params.page = Number(options.page)
-          const res = await this.client.spaces.listSpaceRoles(spaceId, params)
-          if (options.json) return this.outputJson(res)
-          if (!res.data?.length) return console.log('No roles found')
-          console.log(`\n${chalk.bold('Roles:')}`)
-          res.data.forEach((r) => console.log(`  ${chalk.yellow(r.id)}  ${r.name}`))
         } catch (e: any) { this.handleError(e) }
       })
   }

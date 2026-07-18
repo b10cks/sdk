@@ -158,7 +158,7 @@ export class TeamsCommand extends BaseCommand {
           const params: any = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.teams.listMembers(teamId, params)
+          const res = await this.client.teams.listMembers(teamId, { query: params })
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No members found')
           console.log(`\n${chalk.bold('Members:')}`)

@@ -2,7 +2,10 @@ import type { ClientConfig } from './types'
 
 import { HttpClient } from './http-client'
 import { AiResource } from './resources/ai'
+import { AssetCollectionsResource } from './resources/asset-collections'
 import { AssetFoldersResource } from './resources/asset-folders'
+import { AssetPackagesResource } from './resources/asset-packages'
+import { AssetSharesResource } from './resources/asset-shares'
 import { IconsResource } from './resources/icons'
 import { AssetTagsResource } from './resources/asset-tags'
 import { AssetsResource } from './resources/assets'
@@ -16,6 +19,7 @@ import { DataSourcesResource } from './resources/data-sources'
 import { ProviderResource } from './resources/provider'
 import { RedirectsResource } from './resources/redirects'
 import { ReleasesResource } from './resources/releases'
+import { SharesResource } from './resources/shares'
 import { SpacesResource } from './resources/spaces'
 import { SystemResource } from './resources/system'
 import { TeamsResource } from './resources/teams'
@@ -36,6 +40,10 @@ export class ManagementClient {
   public readonly assets: AssetsResource
   public readonly assetFolders: AssetFoldersResource
   public readonly assetTags: AssetTagsResource
+  public readonly assetCollections: AssetCollectionsResource
+  public readonly assetShares: AssetSharesResource
+  public readonly assetPackages: AssetPackagesResource
+  public readonly shares: SharesResource
   public readonly redirects: RedirectsResource
   public readonly tokens: TokensResource
   public readonly dataSources: DataSourcesResource
@@ -60,6 +68,10 @@ export class ManagementClient {
     this.assets = new AssetsResource(this.httpClient)
     this.assetFolders = new AssetFoldersResource(this.httpClient)
     this.assetTags = new AssetTagsResource(this.httpClient)
+    this.assetCollections = new AssetCollectionsResource(this.httpClient)
+    this.assetShares = new AssetSharesResource(this.httpClient)
+    this.assetPackages = new AssetPackagesResource(this.httpClient)
+    this.shares = new SharesResource(this.httpClient)
     this.redirects = new RedirectsResource(this.httpClient)
     this.tokens = new TokensResource(this.httpClient)
     this.dataSources = new DataSourcesResource(this.httpClient)

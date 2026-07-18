@@ -132,6 +132,20 @@ export const createServer = (client: ManagementClient | Error): Server => {
             migrationId: { type: 'string' },
             inviteId: { type: 'string' },
             noteId: { type: 'string' },
+            iconId: { type: 'string' },
+            collectionId: { type: 'string' },
+            shareId: { type: 'string' },
+            packageId: { type: 'string' },
+            notificationId: { type: 'string' },
+            periodId: { type: 'string', description: 'Subscription period ID.' },
+            roleId: { type: 'string' },
+            blueprintId: { type: 'string' },
+            provider: { type: 'string', description: 'Social login provider name.' },
+            token: { type: 'string', description: 'Public share token.' },
+            accessToken: {
+              type: 'string',
+              description: 'Access token from shares.unlock, for password-protected shares.',
+            },
             params: {
               type: 'object',
               description:

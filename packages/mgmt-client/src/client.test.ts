@@ -371,4 +371,91 @@ describe('ManagementClient', () => {
       expect(callUrl).toContain('type')
     })
   })
+
+  describe('Asset collections resource', () => {
+    it('removes assets via a DELETE that carries the ids in the body', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(undefined, 204))
+
+      const client = new ManagementClient(mockConfig)
+      await client.assetCollections.removeAssets('space-1', 'col-1', ['a1', 'a2'])
+
+      const [url, init] = (global.fetch as any).mock.lastCall
+      expect(url).toContain('/mgmt/v1/spaces/space-1/asset-collections/col-1/assets')
+      expect(init.method).toBe('DELETE')
+      expect(JSON.parse(init.body)).toEqual({ asset_ids: ['a1', 'a2'] })
+    })
+
+    it('sends the full ordered list when reordering', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(undefined, 204))
+
+      const client = new ManagementClient(mockConfig)
+      await client.assetCollections.reorderAssets('space-1', 'col-1', ['a2', 'a1'])
+
+      const [url, init] = (global.fetch as any).mock.lastCall
+      expect(url).toContain('/asset-collections/col-1/assets/order')
+      expect(init.method).toBe('PATCH')
+      expect(JSON.parse(init.body)).toEqual({ asset_ids: ['a2', 'a1'] })
+    })
+  })
+
+  describe('Public shares resource', () => {
+    it('sends the management token when no share access token is given', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: { name: 'Deck' } }))
+
+      const client = new ManagementClient(mockConfig)
+      await client.shares.get('space-1', 'tok-1')
+
+      const [, init] = (global.fetch as any).mock.lastCall
+      expect(init.headers.Authorization).toBe('Bearer test-token')
+    })
+
+    it('replaces the management token with the share access token', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [], meta: {} }))
+
+      const client = new ManagementClient(mockConfig)
+      await client.shares.listAssets('space-1', 'tok-1', { per_page: 10 }, 'share-access-token')
+
+      const [url, init] = (global.fetch as any).mock.lastCall
+      expect(url).toContain('/mgmt/v1/shares/space-1/tok-1/assets')
+      expect(url).toContain('per_page=10')
+      // The share access token is the credential these routes verify — the
+      // management token must not shadow it.
+      expect(init.headers.Authorization).toBe('Bearer share-access-token')
+    })
+
+    it('reads an asset preview as binary rather than text', async () => {
+      const blob = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' })
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: (_: string) => 'image/png' },
+        blob: async () => blob,
+        text: async () => {
+          throw new Error('binary responses must not be read as text')
+        },
+      })
+
+      const client = new ManagementClient(mockConfig)
+      const result = await client.shares.previewAsset('space-1', 'tok-1', 'asset-1', 'acc')
+
+      expect(result).toBe(blob)
+      const [, init] = (global.fetch as any).mock.lastCall
+      expect(init.headers.accept).toBe('*/*')
+      expect(init.headers.Authorization).toBe('Bearer acc')
+    })
+  })
+
+  describe('AI resource', () => {
+    it('targets the streaming routes, the only ones the API exposes', async () => {
+      const client = new ManagementClient(mockConfig)
+
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({}))
+      await client.ai.translate({ text: 'hi' })
+      expect((global.fetch as any).mock.lastCall[0]).toContain('/mgmt/v1/ai/translate/stream')
+
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({}))
+      await client.ai.generateMetaTags({ text: 'hi' })
+      expect((global.fetch as any).mock.lastCall[0]).toContain('/mgmt/v1/ai/meta-tags/stream')
+    })
+  })
 })

@@ -55,7 +55,7 @@ export class TeamsResource {
   ): Promise<PaginatedResponse<TeamMember>> {
     return this.client.get<PaginatedResponse<TeamMember>>(
       apiPath`/mgmt/v1/teams/${teamId}/members`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

@@ -1,6 +1,15 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { CreateIconParams, GetIconsParams, Icon, PaginatedResponse, RequestOptions, UpdateIconParams } from '../types'
+import type {
+  CreateIconParams,
+  GetIconsParams,
+  Icon,
+  ImportIconDataParams,
+  ImportResult,
+  PaginatedResponse,
+  RequestOptions,
+  UpdateIconParams,
+} from '../types'
 
 export class IconsResource {
   constructor(private readonly client: HttpClient) {}
@@ -48,6 +57,19 @@ export class IconsResource {
     return this.client.get<{ data: string[] }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/icons/tags`,
       undefined,
+      options?.headers
+    )
+  }
+
+  /** Imports an Iconify icon set. */
+  async importData(
+    spaceId: string,
+    payload: ImportIconDataParams,
+    options?: RequestOptions
+  ): Promise<ImportResult> {
+    return this.client.post<ImportResult>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/icons/import`,
+      payload,
       options?.headers
     )
   }

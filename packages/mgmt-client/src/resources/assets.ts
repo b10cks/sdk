@@ -1,6 +1,15 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { Asset, GetAssetsParams, LinkedAssetContent, PaginatedResponse, RequestOptions } from '../types'
+import type {
+  Asset,
+  AssetVersion,
+  GetAssetsParams,
+  LinkedAssetContent,
+  PaginatedResponse,
+  PaginationParams,
+  ReplaceAssetFileParams,
+  RequestOptions,
+} from '../types'
 
 export class AssetsResource {
   constructor(private readonly client: HttpClient) {}
@@ -81,6 +90,54 @@ export class AssetsResource {
     return this.client.post<unknown>(
       apiPath`/mgmt/v1/spaces/${spaceId}/assets/import`,
       payload,
+      options?.headers
+    )
+  }
+
+  /**
+   * Replaces an asset's file, keeping its id and references intact. The
+   * previous file is snapshotted as a version first.
+   */
+  async replaceFile(
+    spaceId: string,
+    assetId: string,
+    payload: ReplaceAssetFileParams,
+    options?: RequestOptions
+  ): Promise<Asset> {
+    return this.client.post<Asset>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}/replace-file`,
+      payload,
+      options?.headers
+    )
+  }
+
+  /** Lists an asset's file versions, most recent first. */
+  async listVersions(
+    spaceId: string,
+    assetId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<AssetVersion>> {
+    return this.client.get<PaginatedResponse<AssetVersion>>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}/versions`,
+      params,
+      options?.headers
+    )
+  }
+
+  /**
+   * Restores an asset to an earlier version. Non-destructive — the current
+   * file is snapshotted before being replaced.
+   */
+  async restoreVersion(
+    spaceId: string,
+    assetId: string,
+    versionId: string,
+    options?: RequestOptions
+  ): Promise<Asset> {
+    return this.client.post<Asset>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets/${assetId}/versions/${versionId}/restore`,
+      undefined,
       options?.headers
     )
   }

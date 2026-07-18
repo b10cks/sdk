@@ -29,6 +29,16 @@ export interface MgmtToolArguments {
   inviteId?: string
   noteId?: string
   iconId?: string
+  collectionId?: string
+  shareId?: string
+  packageId?: string
+  notificationId?: string
+  periodId?: string
+  roleId?: string
+  blueprintId?: string
+  provider?: string
+  token?: string
+  accessToken?: string
   params?: Record<string, unknown>
   payload?: Record<string, unknown>
 }
@@ -106,6 +116,18 @@ const backupId = (args: MgmtToolArguments): string => args.backupId ?? id(args)
 const inviteId = (args: MgmtToolArguments): string => args.inviteId ?? id(args)
 const noteId = (args: MgmtToolArguments): string => args.noteId ?? id(args)
 const iconId = (args: MgmtToolArguments): string => args.iconId ?? id(args)
+const teamId = (args: MgmtToolArguments): string => requireString(args, 'teamId')
+const userId = (args: MgmtToolArguments): string => requireString(args, 'userId')
+const collectionId = (args: MgmtToolArguments): string => args.collectionId ?? id(args)
+const shareId = (args: MgmtToolArguments): string => args.shareId ?? id(args)
+const packageId = (args: MgmtToolArguments): string => args.packageId ?? id(args)
+const notificationId = (args: MgmtToolArguments): string => args.notificationId ?? id(args)
+const periodId = (args: MgmtToolArguments): string => args.periodId ?? id(args)
+const roleId = (args: MgmtToolArguments): string => args.roleId ?? id(args)
+const blueprintId = (args: MgmtToolArguments): string => args.blueprintId ?? id(args)
+
+/** Pulls `asset_ids` out of an untrusted payload for the collection endpoints. */
+const assetIds = (args: MgmtToolArguments): string[] => (payload(args).asset_ids as string[]) ?? []
 
 export const operations: OperationDefinition[] = [
   // ─── System ─────────────────────────────────────────────────────────────────
@@ -1304,6 +1326,664 @@ operations.push(
     accepts: ['spaceId', 'dataSourceId', 'entryId'],
     handler: (client, args) =>
       client.dataSources.deleteEntry(spaceId(args), dataSourceId(args), entryId(args)),
+  }
+)
+
+// ─── Asset Collections ────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'assetCollections.list',
+    description: 'List asset collections in a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.assetCollections.list(spaceId(args), params(args)),
+  },
+  {
+    name: 'assetCollections.create',
+    description:
+      'Create an asset collection. Payload fields: name (required), description, icon, color, type (manual|smart), rules (required for smart), settings, cover_asset_id, external_id.',
+    required: ['spaceId', 'payload'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.assetCollections.create(spaceId(args), payload(args)),
+  },
+  {
+    name: 'assetCollections.get',
+    description: 'Get an asset collection by ID.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'collectionId'],
+    handler: (client, args) => client.assetCollections.get(spaceId(args), collectionId(args)),
+  },
+  {
+    name: 'assetCollections.update',
+    description: 'Update an asset collection.',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'collectionId', 'payload'],
+    handler: (client, args) =>
+      client.assetCollections.update(spaceId(args), collectionId(args), payload(args)),
+  },
+  {
+    name: 'assetCollections.delete',
+    description: 'Delete an asset collection. The assets themselves are kept.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'collectionId'],
+    handler: (client, args) => client.assetCollections.delete(spaceId(args), collectionId(args)),
+  },
+  {
+    name: 'assetCollections.listAssets',
+    description: 'List the assets in a collection.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'collectionId', 'params'],
+    handler: (client, args) =>
+      client.assetCollections.listAssets(spaceId(args), collectionId(args), params(args)),
+  },
+  {
+    name: 'assetCollections.addAssets',
+    description:
+      'Add assets to a manual collection. Payload fields: asset_ids (string[]). Smart collections reject this.',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'collectionId', 'payload'],
+    handler: (client, args) =>
+      client.assetCollections.addAssets(spaceId(args), collectionId(args), assetIds(args)),
+  },
+  {
+    name: 'assetCollections.removeAssets',
+    description:
+      'Remove assets from a manual collection. Payload fields: asset_ids (string[]). Smart collections reject this.',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'collectionId', 'payload'],
+    handler: (client, args) =>
+      client.assetCollections.removeAssets(spaceId(args), collectionId(args), assetIds(args)),
+  },
+  {
+    name: 'assetCollections.reorderAssets',
+    description:
+      'Reorder a manual collection. Payload fields: asset_ids (string[]) — the full ordered list.',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'collectionId', 'payload'],
+    handler: (client, args) =>
+      client.assetCollections.reorderAssets(spaceId(args), collectionId(args), assetIds(args)),
+  }
+)
+
+// ─── Asset Shares & Packages ──────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'assetShares.list',
+    description: 'List asset shares in a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.assetShares.list(spaceId(args), params(args)),
+  },
+  {
+    name: 'assetShares.create',
+    description:
+      'Create a public asset share. Payload fields: name (required), source_type (required: collection|selection|folder), collection_id / folder_id / asset_ids per source_type, description, password, expires_at, download_limit, allow_individual_downloads, settings.',
+    required: ['spaceId', 'payload'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.assetShares.create(spaceId(args), payload(args) as never),
+  },
+  {
+    name: 'assetShares.get',
+    description: 'Get an asset share by ID.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'shareId'],
+    handler: (client, args) => client.assetShares.get(spaceId(args), shareId(args)),
+  },
+  {
+    name: 'assetShares.update',
+    description:
+      'Update an asset share. Omit password to keep it, pass null to remove it. Changing the source rebuilds the package.',
+    required: ['spaceId', 'id', 'payload'],
+    accepts: ['spaceId', 'id', 'shareId', 'payload'],
+    handler: (client, args) =>
+      client.assetShares.update(spaceId(args), shareId(args), payload(args)),
+  },
+  {
+    name: 'assetShares.delete',
+    description: 'Delete an asset share.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'shareId'],
+    handler: (client, args) => client.assetShares.delete(spaceId(args), shareId(args)),
+  },
+  {
+    name: 'assetShares.revoke',
+    description: 'Revoke an asset share, blocking further public access.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'shareId'],
+    handler: (client, args) => client.assetShares.revoke(spaceId(args), shareId(args)),
+  },
+  {
+    name: 'assetPackages.list',
+    description: 'List asset packages (zip archives) in a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId', 'params'],
+    handler: (client, args) => client.assetPackages.list(spaceId(args), params(args)),
+  },
+  {
+    name: 'assetPackages.create',
+    description:
+      'Queue an asset package build. Payload fields: source_type (required: collection|selection|folder), collection_id / folder_id / asset_ids per source_type, name. Poll assetPackages.get until state is completed.',
+    required: ['spaceId', 'payload'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.assetPackages.create(spaceId(args), payload(args) as never),
+  },
+  {
+    name: 'assetPackages.get',
+    description: 'Get an asset package, including its build state and progress.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'packageId'],
+    handler: (client, args) => client.assetPackages.get(spaceId(args), packageId(args)),
+  },
+  {
+    name: 'assetPackages.delete',
+    description: 'Delete an asset package and its archive.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'packageId'],
+    handler: (client, args) => client.assetPackages.delete(spaceId(args), packageId(args)),
+  },
+  {
+    name: 'assetPackages.download',
+    description:
+      'Get a presigned download URL for a built package. Errors with 409 while it is still building.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'packageId'],
+    handler: (client, args) => client.assetPackages.download(spaceId(args), packageId(args)),
+  }
+)
+
+// ─── Public Shares ────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'shares.get',
+    description:
+      'Read a public share by space id and token. Password-protected shares return only the name unless accessToken is supplied.',
+    required: ['spaceId', 'token'],
+    accepts: ['spaceId', 'token', 'accessToken'],
+    handler: (client, args) =>
+      client.shares.get(spaceId(args), requireString(args, 'token'), args.accessToken),
+  },
+  {
+    name: 'shares.unlock',
+    description:
+      'Exchange a share password for a short-lived access token. Payload fields: password (string).',
+    required: ['spaceId', 'token', 'payload'],
+    accepts: ['spaceId', 'token', 'payload'],
+    handler: (client, args) =>
+      client.shares.unlock(
+        spaceId(args),
+        requireString(args, 'token'),
+        String(payload(args).password ?? '')
+      ),
+  },
+  {
+    name: 'shares.listAssets',
+    description: 'List the assets in a public share.',
+    required: ['spaceId', 'token'],
+    accepts: ['spaceId', 'token', 'accessToken', 'params'],
+    handler: (client, args) =>
+      client.shares.listAssets(
+        spaceId(args),
+        requireString(args, 'token'),
+        params(args),
+        args.accessToken
+      ),
+  },
+  {
+    name: 'shares.download',
+    description:
+      'Get a download URL for a public share archive. Returns build state while the archive is still being prepared.',
+    required: ['spaceId', 'token'],
+    accepts: ['spaceId', 'token', 'accessToken'],
+    handler: (client, args) =>
+      client.shares.download(spaceId(args), requireString(args, 'token'), args.accessToken),
+  },
+  {
+    name: 'shares.downloadAsset',
+    description: 'Get a download URL for one asset in a public share.',
+    required: ['spaceId', 'token', 'assetId'],
+    accepts: ['spaceId', 'token', 'assetId', 'accessToken'],
+    handler: (client, args) =>
+      client.shares.downloadAsset(
+        spaceId(args),
+        requireString(args, 'token'),
+        assetId(args),
+        args.accessToken
+      ),
+  }
+)
+
+// ─── Asset versions ───────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'assets.listVersions',
+    description: 'List an asset’s file versions, most recent first.',
+    required: ['spaceId', 'assetId'],
+    accepts: ['spaceId', 'assetId', 'params'],
+    handler: (client, args) => client.assets.listVersions(spaceId(args), assetId(args), params(args)),
+  },
+  {
+    name: 'assets.restoreVersion',
+    description:
+      'Restore an asset to an earlier version. The current file is snapshotted first, so this is reversible.',
+    required: ['spaceId', 'assetId', 'versionId'],
+    accepts: ['spaceId', 'assetId', 'versionId'],
+    handler: (client, args) =>
+      client.assets.restoreVersion(spaceId(args), assetId(args), versionId(args)),
+  },
+  {
+    name: 'assets.linkedContents',
+    description: 'List the contents that reference an asset.',
+    required: ['spaceId', 'assetId'],
+    accepts: ['spaceId', 'assetId'],
+    handler: (client, args) => client.assets.getLinkedContents(spaceId(args), assetId(args)),
+  },
+  {
+    name: 'assets.export',
+    description: 'Export asset metadata.',
+    required: ['spaceId'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.assets.exportData(spaceId(args), payload(args)),
+  }
+)
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'notifications.list',
+    description:
+      'List the authenticated user’s notifications. Params: unread_only (bool), type (string), page, per_page.',
+    accepts: ['params'],
+    handler: (client, args) => client.users.listNotifications(params(args)),
+  },
+  {
+    name: 'notifications.unreadCount',
+    description: 'Count the authenticated user’s unread notifications.',
+    handler: (client) => client.users.getUnreadNotificationCount(),
+  },
+  {
+    name: 'notifications.markRead',
+    description: 'Mark one notification as read.',
+    required: ['id'],
+    accepts: ['id', 'notificationId'],
+    handler: (client, args) => client.users.markNotificationAsRead(notificationId(args)),
+  },
+  {
+    name: 'notifications.markUnread',
+    description: 'Mark one notification as unread.',
+    required: ['id'],
+    accepts: ['id', 'notificationId'],
+    handler: (client, args) => client.users.markNotificationAsUnread(notificationId(args)),
+  },
+  {
+    name: 'notifications.markAllRead',
+    description: 'Mark every notification as read.',
+    handler: (client) => client.users.markAllNotificationsAsRead(),
+  },
+  {
+    name: 'notifications.delete',
+    description: 'Delete one notification.',
+    required: ['id'],
+    accepts: ['id', 'notificationId'],
+    handler: (client, args) => client.users.deleteNotification(notificationId(args)),
+  },
+  {
+    name: 'notifications.deleteRead',
+    description: 'Delete every notification that has already been read.',
+    handler: (client) => client.users.deleteReadNotifications(),
+  },
+  {
+    name: 'notifications.deleteAll',
+    description: 'Delete every notification, read or not.',
+    handler: (client) => client.users.deleteAllNotifications(),
+  }
+)
+
+// ─── Usage & billing ──────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'spaces.usage',
+    description: 'Read live usage for the current billing period.',
+    required: ['spaceId'],
+    accepts: ['spaceId'],
+    handler: (client, args) => client.spaces.getUsage(spaceId(args)),
+  },
+  {
+    name: 'spaces.usageHistory',
+    description: 'List usage rolled up per billing period, newest first.',
+    required: ['spaceId'],
+    accepts: ['spaceId'],
+    handler: (client, args) => client.spaces.getUsageHistory(spaceId(args)),
+  },
+  {
+    name: 'spaces.usageTimeseries',
+    description:
+      'Read day-bucketed usage for one billing period. Params: metric (traffic|requests, defaults to traffic).',
+    required: ['spaceId', 'periodId'],
+    accepts: ['spaceId', 'periodId', 'params'],
+    handler: (client, args) =>
+      client.spaces.getUsageTimeseries(spaceId(args), periodId(args), params(args)),
+  },
+  {
+    name: 'spaces.listInvoices',
+    description: 'List billing invoices for a space.',
+    required: ['spaceId'],
+    accepts: ['spaceId'],
+    handler: (client, args) => client.spaces.listInvoices(spaceId(args)),
+  },
+  {
+    name: 'spaces.updateOnboarding',
+    description:
+      'Dismiss or restore the space onboarding guide. Payload fields: dismissed (boolean, required).',
+    required: ['spaceId', 'payload'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.spaces.updateOnboarding(spaceId(args), payload(args) as never),
+  },
+  {
+    name: 'spaces.getMigration',
+    description: 'Get a space migration by ID.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'migrationId'],
+    handler: (client, args) => client.spaces.getMigration(spaceId(args), args.migrationId ?? id(args)),
+  },
+  {
+    name: 'spaces.deleteMigration',
+    description: 'Delete a space migration.',
+    required: ['spaceId', 'id'],
+    accepts: ['spaceId', 'id', 'migrationId'],
+    handler: (client, args) =>
+      client.spaces.deleteMigration(spaceId(args), args.migrationId ?? id(args)),
+  }
+)
+
+// ─── Contents export ──────────────────────────────────────────────────────────
+
+operations.push({
+  name: 'contents.export',
+  description:
+    'Export content. Payload fields: as (required: csv|excel|json|xliff|yaml) plus any content list filter.',
+  required: ['spaceId', 'payload'],
+  accepts: ['spaceId', 'payload'],
+  handler: (client, args) => client.contents.exportData(spaceId(args), payload(args) as never),
+})
+
+// ─── System ───────────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'system.plans',
+    description: 'List the available subscription plans.',
+    handler: (client) => client.system.getPlans(),
+  },
+  {
+    name: 'system.authorization',
+    description:
+      'Read the caller’s effective permissions. Params: team_id or space_id to resolve one context.',
+    accepts: ['params'],
+    handler: (client, args) => client.system.getAuthorization(params(args)),
+  },
+  {
+    name: 'system.spaceBlueprints',
+    description: 'List the space blueprints the caller can create a space from.',
+    accepts: ['params'],
+    handler: (client, args) => client.system.listSpaceBlueprints(params(args)),
+  },
+  {
+    name: 'system.getInvite',
+    description: 'Read a public invite by ID, without authenticating.',
+    required: ['id'],
+    accepts: ['id', 'inviteId'],
+    handler: (client, args) => client.system.getInvite(inviteId(args)),
+  }
+)
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'ai.models',
+    description: 'List the AI models configured for the caller.',
+    handler: (client) => client.ai.getModels(),
+  },
+  {
+    name: 'ai.contentInteraction',
+    description:
+      'Run an AI interaction against a content entry. Returns the raw server-sent event stream as text.',
+    required: ['payload'],
+    accepts: ['payload'],
+    handler: (client, args) => client.ai.contentInteractionStream(payload(args)),
+  },
+  {
+    name: 'ai.contentTreeInteraction',
+    description:
+      'Run an AI interaction against a content tree. Returns the raw server-sent event stream as text.',
+    required: ['payload'],
+    accepts: ['payload'],
+    handler: (client, args) => client.ai.contentTreeInteractionStream(payload(args)),
+  }
+)
+
+// ─── Teams ────────────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'teams.listMembers',
+    description:
+      'List team members. Params: role, name, email, q, isActive, sort, page, per_page.',
+    required: ['teamId'],
+    accepts: ['teamId', 'params'],
+    handler: (client, args) => client.teams.listMembers(teamId(args), queryOpts(args)),
+  },
+  {
+    name: 'teams.updateMember',
+    description: 'Update a team member’s role. Payload fields: role (string|null).',
+    required: ['teamId', 'userId', 'payload'],
+    accepts: ['teamId', 'userId', 'payload'],
+    handler: (client, args) => client.teams.updateMember(teamId(args), userId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.removeMember',
+    description: 'Remove a member from a team.',
+    required: ['teamId', 'userId'],
+    accepts: ['teamId', 'userId'],
+    handler: (client, args) => client.teams.removeMember(teamId(args), userId(args)),
+  },
+  {
+    name: 'teams.updateUser',
+    description: 'Update a team user.',
+    required: ['teamId', 'userId', 'payload'],
+    accepts: ['teamId', 'userId', 'payload'],
+    handler: (client, args) => client.teams.updateUser(teamId(args), userId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.listInvites',
+    description: 'List pending team invites.',
+    required: ['teamId'],
+    accepts: ['teamId', 'params'],
+    handler: (client, args) => client.teams.listInvites(teamId(args), queryOpts(args)),
+  },
+  {
+    name: 'teams.createInvite',
+    description: 'Invite someone to a team. Payload fields: email (required), role, message.',
+    required: ['teamId', 'payload'],
+    accepts: ['teamId', 'payload'],
+    handler: (client, args) => client.teams.createInvite(teamId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.deleteInvite',
+    description: 'Delete a team invite.',
+    required: ['teamId', 'inviteId'],
+    accepts: ['teamId', 'inviteId'],
+    handler: (client, args) => client.teams.deleteInvite(teamId(args), inviteId(args)),
+  },
+  {
+    name: 'teams.resendInvite',
+    description: 'Resend a team invite email.',
+    required: ['teamId', 'inviteId'],
+    accepts: ['teamId', 'inviteId'],
+    handler: (client, args) => client.teams.resendInvite(teamId(args), inviteId(args)),
+  },
+  {
+    name: 'teams.getSamlProvider',
+    description: 'Read a team’s SAML provider configuration.',
+    required: ['teamId'],
+    accepts: ['teamId'],
+    handler: (client, args) => client.teams.getSamlProvider(teamId(args)),
+  },
+  {
+    name: 'teams.upsertSamlProvider',
+    description: 'Create or replace a team’s SAML provider configuration.',
+    required: ['teamId', 'payload'],
+    accepts: ['teamId', 'payload'],
+    handler: (client, args) => client.teams.upsertSamlProvider(teamId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.deleteSamlProvider',
+    description: 'Delete a team’s SAML provider configuration.',
+    required: ['teamId'],
+    accepts: ['teamId'],
+    handler: (client, args) => client.teams.deleteSamlProvider(teamId(args)),
+  },
+  {
+    name: 'teams.listBlueprints',
+    description: 'List a team’s space blueprints.',
+    required: ['teamId'],
+    accepts: ['teamId', 'params'],
+    handler: (client, args) => client.teams.listBlueprints(teamId(args), queryOpts(args)),
+  },
+  {
+    name: 'teams.createBlueprint',
+    description: 'Create a space blueprint. Payload fields: name (required), icon, color, description, settings, data.',
+    required: ['teamId', 'payload'],
+    accepts: ['teamId', 'payload'],
+    handler: (client, args) => client.teams.createBlueprint(teamId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.getBlueprint',
+    description: 'Get a space blueprint by ID.',
+    required: ['teamId', 'id'],
+    accepts: ['teamId', 'id', 'blueprintId'],
+    handler: (client, args) => client.teams.getBlueprint(teamId(args), blueprintId(args)),
+  },
+  {
+    name: 'teams.updateBlueprint',
+    description: 'Update a space blueprint.',
+    required: ['teamId', 'id', 'payload'],
+    accepts: ['teamId', 'id', 'blueprintId', 'payload'],
+    handler: (client, args) =>
+      client.teams.updateBlueprint(teamId(args), blueprintId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.deleteBlueprint',
+    description: 'Delete a space blueprint.',
+    required: ['teamId', 'id'],
+    accepts: ['teamId', 'id', 'blueprintId'],
+    handler: (client, args) => client.teams.deleteBlueprint(teamId(args), blueprintId(args)),
+  },
+  {
+    name: 'teams.listSpaceRoles',
+    description: 'List the space roles defined for a team.',
+    required: ['teamId'],
+    accepts: ['teamId'],
+    handler: (client, args) => client.teams.listSpaceRoles(teamId(args)),
+  },
+  {
+    name: 'teams.createSpaceRole',
+    description: 'Create a space role. Payload fields: name (required), key, description, abilities.',
+    required: ['teamId', 'payload'],
+    accepts: ['teamId', 'payload'],
+    handler: (client, args) => client.teams.createSpaceRole(teamId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.updateSpaceRole',
+    description: 'Update a space role.',
+    required: ['teamId', 'id', 'payload'],
+    accepts: ['teamId', 'id', 'roleId', 'payload'],
+    handler: (client, args) =>
+      client.teams.updateSpaceRole(teamId(args), roleId(args), payload(args) as never),
+  },
+  {
+    name: 'teams.deleteSpaceRole',
+    description: 'Delete a space role.',
+    required: ['teamId', 'id'],
+    accepts: ['teamId', 'id', 'roleId'],
+    handler: (client, args) => client.teams.deleteSpaceRole(teamId(args), roleId(args)),
+  }
+)
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+operations.push(
+  {
+    name: 'users.updateSettings',
+    description: 'Update the authenticated user’s settings.',
+    required: ['payload'],
+    accepts: ['payload'],
+    handler: (client, args) => client.users.updateSettings(payload(args)),
+  },
+  {
+    name: 'users.updatePassword',
+    description:
+      'Change the authenticated user’s password. Payload fields: current_password, password, password_confirmation.',
+    required: ['payload'],
+    accepts: ['payload'],
+    handler: (client, args) => client.users.updatePassword(payload(args) as never),
+  },
+  {
+    name: 'users.listSocialLinks',
+    description: 'List the authenticated user’s linked social accounts.',
+    handler: (client) => client.users.listSocialLinks(),
+  },
+  {
+    name: 'users.deleteSocialLink',
+    description: 'Unlink a social account by provider name.',
+    required: ['provider'],
+    accepts: ['provider'],
+    handler: (client, args) => client.users.deleteSocialLink(requireString(args, 'provider')),
+  },
+  {
+    name: 'users.listTokens',
+    description: 'List the authenticated user’s personal access tokens.',
+    accepts: ['params'],
+    handler: (client, args) => client.users.listTokens(queryOpts(args)),
+  },
+  {
+    name: 'users.createToken',
+    description: 'Create a personal access token. Payload fields: name (required), abilities.',
+    required: ['payload'],
+    accepts: ['payload'],
+    handler: (client, args) => client.users.createToken(payload(args) as never),
+  },
+  {
+    name: 'users.deleteToken',
+    description: 'Delete a personal access token.',
+    required: ['id'],
+    accepts: ['id', 'tokenId'],
+    handler: (client, args) => client.users.deleteToken(tokenId(args)),
+  },
+  {
+    name: 'users.listInvites',
+    description: 'List invites addressed to the authenticated user.',
+    handler: (client) => client.users.listInvites(),
+  },
+  {
+    name: 'users.getInvite',
+    description: 'Get one invite addressed to the authenticated user.',
+    required: ['id'],
+    accepts: ['id', 'inviteId'],
+    handler: (client, args) => client.users.getInvite(inviteId(args)),
+  },
+  {
+    name: 'users.acceptInvite',
+    description: 'Accept an invite addressed to the authenticated user.',
+    required: ['id'],
+    accepts: ['id', 'inviteId'],
+    handler: (client, args) => client.users.acceptInvite(inviteId(args)),
   }
 )
 

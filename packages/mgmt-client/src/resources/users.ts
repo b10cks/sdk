@@ -2,7 +2,9 @@ import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   CreatePersonalAccessTokenParams,
+  GetNotificationsParams,
   Invite,
+  Notification,
   PaginatedResponse,
   PersonalAccessToken,
   RequestOptions,
@@ -104,5 +106,73 @@ export class UsersResource {
       undefined,
       options?.headers
     )
+  }
+
+  // ─── Notifications ─────────────────────────────────────────────────────────
+
+  async listNotifications(
+    params?: GetNotificationsParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Notification>> {
+    return this.client.get<PaginatedResponse<Notification>>(
+      '/mgmt/v1/users/me/notifications',
+      params,
+      options?.headers
+    )
+  }
+
+  async getUnreadNotificationCount(options?: RequestOptions): Promise<{ count: number }> {
+    return this.client.get<{ count: number }>(
+      '/mgmt/v1/users/me/notifications/unread-count',
+      undefined,
+      options?.headers
+    )
+  }
+
+  async markNotificationAsRead(
+    notificationId: string,
+    options?: RequestOptions
+  ): Promise<{ data: Notification }> {
+    return this.client.patch<{ data: Notification }>(
+      apiPath`/mgmt/v1/users/me/notifications/${notificationId}/read`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async markNotificationAsUnread(
+    notificationId: string,
+    options?: RequestOptions
+  ): Promise<{ data: Notification }> {
+    return this.client.patch<{ data: Notification }>(
+      apiPath`/mgmt/v1/users/me/notifications/${notificationId}/unread`,
+      undefined,
+      options?.headers
+    )
+  }
+
+  async markAllNotificationsAsRead(options?: RequestOptions): Promise<void> {
+    return this.client.post<void>(
+      '/mgmt/v1/users/me/notifications/read',
+      undefined,
+      options?.headers
+    )
+  }
+
+  async deleteNotification(notificationId: string, options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>(
+      apiPath`/mgmt/v1/users/me/notifications/${notificationId}`,
+      options?.headers
+    )
+  }
+
+  /** Deletes every notification that has already been read. */
+  async deleteReadNotifications(options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>('/mgmt/v1/users/me/notifications/read', options?.headers)
+  }
+
+  /** Deletes every notification, read or not. */
+  async deleteAllNotifications(options?: RequestOptions): Promise<void> {
+    return this.client.delete<void>('/mgmt/v1/users/me/notifications', options?.headers)
   }
 }

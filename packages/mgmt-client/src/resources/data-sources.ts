@@ -152,7 +152,7 @@ export class DataSourcesResource {
     options?: RequestOptions
   ): Promise<unknown> {
     return this.client.post<unknown>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/translate-missing-dimensions`,
+      apiPath`/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries/translate-missing-dimensions/stream`,
       payload,
       options?.headers
     )

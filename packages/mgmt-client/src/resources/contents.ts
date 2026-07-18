@@ -7,7 +7,10 @@ import type {
   ContentVersion,
   ContentVersionListItem,
   CreateContentParams,
+  ExportContentDataParams,
   GetContentsParams,
+  ImportContentDataParams,
+  ImportResult,
   MoveContentParams,
   PaginatedResponse,
   PublishContentParams,
@@ -223,6 +226,38 @@ export class ContentsResource {
     return this.client.post<void>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions/${versionId}/current`,
       undefined,
+      options?.headers
+    )
+  }
+
+  /**
+   * Exports content in `as` format (`csv`, `excel`, `json`, `xliff`, `yaml`).
+   * Any other payload key is applied as a content filter, mirroring `list()`.
+   */
+  async exportData(
+    spaceId: string,
+    payload: ExportContentDataParams,
+    options?: RequestOptions
+  ): Promise<unknown> {
+    return this.client.post<unknown>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/export`,
+      payload,
+      options?.headers
+    )
+  }
+
+  /**
+   * Imports content from a file. The format is detected from the filename
+   * extension, so `file` should carry one.
+   */
+  async importData(
+    spaceId: string,
+    payload: ImportContentDataParams,
+    options?: RequestOptions
+  ): Promise<ImportResult> {
+    return this.client.post<ImportResult>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/contents/import`,
+      payload,
       options?.headers
     )
   }

@@ -174,7 +174,8 @@ export class HttpClient {
     path: string,
     body?: unknown,
     params?: Record<string, unknown>,
-    customHeaders?: Record<string, string>
+    customHeaders?: Record<string, string>,
+    responseType: 'auto' | 'blob' = 'auto'
   ): Promise<T> {
     const url = new URL(path, this.baseUrl)
 
@@ -195,7 +196,7 @@ export class HttpClient {
 
     const headers: Record<string, string> = {
       ...this.defaultHeaders,
-      accept: 'application/json',
+      accept: responseType === 'blob' ? '*/*' : 'application/json',
       Authorization: `Bearer ${this.token}`,
       ...customHeaders,
     }
@@ -259,6 +260,12 @@ export class HttpClient {
         return undefined as T
       }
 
+      // Binary endpoints (image previews) must never go through text(), which
+      // would mangle the bytes.
+      if (responseType === 'blob') {
+        return (await response.blob()) as unknown as T
+      }
+
       const contentType = response.headers.get('content-type')
       if (contentType?.includes('application/json')) {
         return (await response.json()) as T
@@ -288,6 +295,15 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<T> {
     return this.request<T>('GET', path, undefined, params, headers)
+  }
+
+  /** GETs a binary response (e.g. an image) as a `Blob`, bypassing JSON parsing. */
+  async getBlob(
+    path: string,
+    params?: Record<string, unknown>,
+    headers?: Record<string, string>
+  ): Promise<Blob> {
+    return this.request<Blob>('GET', path, undefined, params, headers, 'blob')
   }
 
   async post<T>(path: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
