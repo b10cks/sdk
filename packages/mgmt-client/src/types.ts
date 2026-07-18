@@ -639,8 +639,14 @@ export interface Block {
   description: string | null
   icon: string | null
   color: string | null
+  preview_template?: string | null
+  preview_file?: string | null
   schema: Record<string, unknown>
+  editor?: unknown[] | null
+  tags?: string[] | null
   settings: Record<string, unknown> | null
+  templates_count?: number
+  folder?: BlockFolder | null
   folder_id: string | null
   space_id: string
   created_at: string
@@ -718,6 +724,53 @@ export interface BlockVersion {
 
 export interface UpdateBlockVersionParams {
   commit_message?: string | null
+}
+
+/** A full block definition as synced from a local schema file. */
+export interface SyncBlockDefinition {
+  external_id: string
+  name: string
+  slug: string
+  type: string
+  icon?: string | null
+  color?: string | null
+  description?: string | null
+  preview_template?: string | null
+  preview_file?: string | null
+  schema?: Record<string, unknown> | null
+  editor?: unknown[] | null
+  tags?: string[] | null
+  folder_id?: string | null
+}
+
+export interface SyncBlocksParams {
+  blocks: SyncBlockDefinition[]
+  /** Soft-delete blocks that exist in the space but not in the payload. */
+  prune?: boolean
+  /** Compute the plan without applying any changes. */
+  dry_run?: boolean
+  commit_message?: string | null
+}
+
+export type BlockSyncAction = 'created' | 'updated' | 'unchanged' | 'deleted'
+
+export interface BlockSyncResultEntry {
+  action: BlockSyncAction
+  /** null for blocks that would be created in a dry run */
+  id: string | null
+  external_id: string | null
+  slug: string
+  changed: string[]
+}
+
+export interface BlockSyncResult {
+  dry_run: boolean
+  results: BlockSyncResultEntry[]
+  summary: Record<BlockSyncAction, number>
+}
+
+export interface BlockSyncResponse {
+  data: BlockSyncResult
 }
 
 // ─── Contents ────────────────────────────────────────────────────────────────

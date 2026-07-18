@@ -4,6 +4,8 @@ import * as path from 'path'
 import type { Block } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
 
+import type { BlockDefinition } from '../schema/store.js'
+import { normalizeBlockSchema } from '../schema/normalizer.js'
 import BaseService from './BaseService.js'
 
 type BlockList = Record<string, { name: string; tags: string[] }>
@@ -35,13 +37,28 @@ export class TypesGeneratorService extends BaseService {
 
   public async generate(spaceId: string) {
     const { data } = await this.client.blocks.list(spaceId, { per_page: 9999 })
-    this.allBlocks = data.reduce<BlockList>((acc, block) => {
+    this.generateFromBlocks(data)
+  }
+
+  /**
+   * Generate types from local schema definitions (`b10cks/schema/*.block.json`)
+   * without touching the API — types always match the committed schema.
+   */
+  public generateFromDefinitions(definitions: BlockDefinition[]): void {
+    const blocks = definitions.map(
+      (definition) => ({ ...definition, schema: normalizeBlockSchema(definition.schema) }) as unknown as Block
+    )
+    this.generateFromBlocks(blocks)
+  }
+
+  private generateFromBlocks(blocks: Block[]): void {
+    this.allBlocks = blocks.reduce<BlockList>((acc, block) => {
       const tags: string[] = (block as any).tags ?? []
       acc[block.slug] = { name: this.getInterfaceName(block.slug), tags }
       return acc
     }, {})
 
-    this.generateTypes(data)
+    this.generateTypes(blocks)
     this.displayGeneratedTypes()
   }
 

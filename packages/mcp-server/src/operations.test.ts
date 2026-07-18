@@ -80,6 +80,15 @@ describe('operation dispatch', () => {
     expect(calls).toEqual([{ path: 'blocks.create', args: ['s1', payload] }])
   })
 
+  it('forwards spaceId and payload for blocks.sync', async () => {
+    const payload = {
+      blocks: [{ external_id: 'ext-1', name: 'Hero', slug: 'hero', type: 'nestable' }],
+      dry_run: true,
+    }
+    const calls = await run('blocks.sync', { spaceId: 's1', payload })
+    expect(calls).toEqual([{ path: 'blocks.sync', args: ['s1', payload] }])
+  })
+
   it('forwards the payload for top-level create operations', async () => {
     const payload = { name: 'Marketing' }
     const calls = await run('spaces.create', { payload })

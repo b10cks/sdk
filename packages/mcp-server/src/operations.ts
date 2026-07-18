@@ -545,6 +545,14 @@ export const operations: OperationDefinition[] = [
     accepts: ['spaceId', 'id', 'blockId'],
     handler: (client, args) => client.blocks.delete(spaceId(args), blockId(args)),
   },
+  {
+    name: 'blocks.sync',
+    description:
+      'Reconcile a full set of block definitions against the space in one transaction. Payload: blocks (array of complete block definitions, each REQUIRING external_id, name, slug, type — same block fields as blocks.create), dry_run (boolean — return the created/updated/unchanged/deleted plan without applying; run this first), prune (boolean — soft-delete remote blocks missing from the payload; destructive, only set when explicitly asked), commit_message (string, recorded on block versions). Blocks are matched by external_id, falling back to slug for adopting existing blocks. Updates automatically create restorable block versions. Unlike blocks.create/update this is a declarative full-set operation — always send every block that should exist, not just changed ones.',
+    required: ['spaceId', 'payload'],
+    accepts: ['spaceId', 'payload'],
+    handler: (client, args) => client.blocks.sync(spaceId(args), payload(args) as never),
+  },
   // Block Templates
   {
     name: 'blocks.listTemplates',

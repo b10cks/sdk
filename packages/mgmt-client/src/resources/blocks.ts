@@ -2,12 +2,14 @@ import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
 import type {
   Block,
+  BlockSyncResponse,
   BlockTemplate,
   BlockVersion,
   CreateBlockTemplateParams,
   GetBlocksParams,
   PaginatedResponse,
   RequestOptions,
+  SyncBlocksParams,
   UpdateBlockTemplateParams,
   UpdateBlockVersionParams,
 } from '../types'
@@ -47,6 +49,19 @@ export class BlocksResource {
   ): Promise<Block> {
     return this.client.put<Block>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/${blockId}`,
+      payload,
+      options?.headers
+    )
+  }
+
+  /**
+   * Reconcile a full set of block definitions against the space in one
+   * transaction, keyed by external_id. Use `dry_run` to get the plan without
+   * applying it and `prune` to soft-delete blocks absent from the payload.
+   */
+  async sync(spaceId: string, payload: SyncBlocksParams, options?: RequestOptions): Promise<BlockSyncResponse> {
+    return this.client.put<BlockSyncResponse>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/blocks/sync`,
       payload,
       options?.headers
     )

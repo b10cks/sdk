@@ -372,6 +372,33 @@ describe('ManagementClient', () => {
     })
   })
 
+  describe('Blocks resource', () => {
+    it('syncs block definitions via PUT blocks/sync', async () => {
+      const mockResult = {
+        data: {
+          dry_run: false,
+          results: [{ action: 'created', id: 'blk-1', external_id: 'ext-1', slug: 'hero', changed: [] }],
+          summary: { created: 1, updated: 0, unchanged: 0, deleted: 0 },
+        },
+      }
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(mockResult))
+
+      const client = new ManagementClient(mockConfig)
+      const result = await client.blocks.sync('space-1', {
+        blocks: [{ external_id: 'ext-1', name: 'Hero', slug: 'hero', type: 'nestable' }],
+        dry_run: false,
+        commit_message: 'initial sync',
+      })
+
+      const [url, init] = (global.fetch as any).mock.lastCall
+      expect(url).toContain('/mgmt/v1/spaces/space-1/blocks/sync')
+      expect(init.method).toBe('PUT')
+      expect(JSON.parse(init.body).blocks).toHaveLength(1)
+      expect(result.data.summary.created).toBe(1)
+      expect(result.data.results[0].action).toBe('created')
+    })
+  })
+
   describe('Asset collections resource', () => {
     it('removes assets via a DELETE that carries the ids in the body', async () => {
       ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse(undefined, 204))
