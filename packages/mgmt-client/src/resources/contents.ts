@@ -13,6 +13,7 @@ import type {
   ImportResult,
   MoveContentParams,
   PaginatedResponse,
+  PaginationParams,
   PublishContentParams,
   RequestOptions,
   ScheduleContentParams,
@@ -168,11 +169,12 @@ export class ContentsResource {
   async listVersions(
     spaceId: string,
     contentId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<ContentVersionListItem>> {
     return this.client.get<PaginatedResponse<ContentVersionListItem>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/versions`,
-      options?.query,
+      params,
       options?.headers
     )
   }

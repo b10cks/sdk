@@ -485,4 +485,41 @@ describe('ManagementClient', () => {
       expect((global.fetch as any).mock.lastCall[0]).toContain('/mgmt/v1/ai/meta-tags/stream')
     })
   })
+
+  describe('list pagination', () => {
+    // Every paginated `list*` method takes params in a dedicated argument ahead
+    // of RequestOptions. These previously varied per resource, so callers that
+    // passed pagination positionally had it silently swallowed as RequestOptions.
+    const listCalls: Array<[string, (c: ManagementClient) => Promise<unknown>]> = [
+      ['teams.list', (c) => c.teams.list({ page: 2, per_page: 20 })],
+      ['spaces.list', (c) => c.spaces.list({ page: 2, per_page: 20 })],
+      ['blocks.list', (c) => c.blocks.list('s1', { page: 2, per_page: 20 })],
+      ['blockFolders.list', (c) => c.blockFolders.list('s1', { page: 2, per_page: 20 })],
+      ['blockTags.list', (c) => c.blockTags.list('s1', { page: 2, per_page: 20 })],
+      ['assetFolders.list', (c) => c.assetFolders.list('s1', { page: 2, per_page: 20 })],
+      ['automations.list', (c) => c.automations.list('s1', { page: 2, per_page: 20 })],
+      ['dataSources.list', (c) => c.dataSources.list('s1', { page: 2, per_page: 20 })],
+      ['releases.list', (c) => c.releases.list('s1', { page: 2, per_page: 20 })],
+      ['tokens.list', (c) => c.tokens.list('s1', { page: 2, per_page: 20 })],
+      ['comments.list', (c) => c.comments.list('s1', 'c1', { page: 2, per_page: 20 })],
+      ['spaces.listMembers', (c) => c.spaces.listMembers('s1', { page: 2, per_page: 20 })],
+      ['spaces.listInvites', (c) => c.spaces.listInvites('s1', { page: 2, per_page: 20 })],
+      ['teams.listMembers', (c) => c.teams.listMembers('t1', { page: 2, per_page: 20 })],
+      ['teams.listInvites', (c) => c.teams.listInvites('t1', { page: 2, per_page: 20 })],
+      ['teams.listBlueprints', (c) => c.teams.listBlueprints('t1', { page: 2, per_page: 20 })],
+      ['users.listTokens', (c) => c.users.listTokens({ page: 2, per_page: 20 })],
+      ['users.listInvites', (c) => c.users.listInvites({ page: 2, per_page: 20 })],
+    ]
+
+    it.each(listCalls)('%s forwards page/per_page to the query string', async (_name, call) => {
+      const client = new ManagementClient(mockConfig)
+      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [] }))
+
+      await call(client)
+
+      const url = (global.fetch as any).mock.lastCall[0] as string
+      expect(url).toContain('page=2')
+      expect(url).toContain('per_page=20')
+    })
+  })
 })

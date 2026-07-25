@@ -10,6 +10,20 @@ import BaseService from './BaseService.js'
 
 type BlockList = Record<string, { name: string; tags: string[] }>
 
+/** The subset of a block field schema that type generation reads. */
+interface SchemaField {
+  type?: string
+  required?: boolean
+  restrict_blocks?: boolean
+  block_whitelist?: string[]
+  tag_whitelist?: string[]
+  options?: Array<{ value?: unknown }>
+  columns?: Array<{ key?: unknown; type?: string; options?: Array<{ value?: string }> }>
+  altitude?: boolean
+  key_style?: string
+  [attribute: string]: unknown
+}
+
 export class TypesGeneratorService extends BaseService {
   private readonly outputDir: string
   private readonly generatedFilePath: string
@@ -53,7 +67,7 @@ export class TypesGeneratorService extends BaseService {
 
   private generateFromBlocks(blocks: Block[]): void {
     this.allBlocks = blocks.reduce<BlockList>((acc, block) => {
-      const tags: string[] = (block as any).tags ?? []
+      const tags: string[] = block.tags ?? []
       acc[block.slug] = { name: this.getInterfaceName(block.slug), tags }
       return acc
     }, {})
@@ -286,7 +300,7 @@ export type B10cksPrice = Record<string, number | null>
     let content = `export interface ${typeName} extends B10cksItem {\n`
 
     if (block.schema) {
-      const properties = Object.entries(block.schema).map(([key, schema]: [string, any]) => {
+      const properties = Object.entries(block.schema as Record<string, SchemaField>).map(([key, schema]) => {
         const type = this.mapSchemaTypeToTsType(schema.type, key, block.slug, schema)
         const optional = !schema.required ? '?' : ''
         return `\t${key}${optional}: ${type}`
@@ -300,10 +314,10 @@ export type B10cksPrice = Record<string, number | null>
   }
 
   private mapSchemaTypeToTsType(
-    schemaType: string,
+    schemaType: string | undefined,
     _key: string,
     _blockSlug: string,
-    schema: any
+    schema: SchemaField
   ): string {
     switch (this.normalizeSchemaType(schemaType)) {
       case 'date':
@@ -329,15 +343,15 @@ export type B10cksPrice = Record<string, number | null>
         const whitelistTypes: string[] = []
         if (
           schema.restrict_blocks &&
-          (schema.block_whitelist?.length > 0 || schema.tag_whitelist?.length > 0)
+          ((schema.block_whitelist?.length ?? 0) > 0 || (schema.tag_whitelist?.length ?? 0) > 0)
         ) {
-          schema.block_whitelist?.forEach((blockSlug: string) => {
+          schema.block_whitelist?.forEach((blockSlug) => {
             if (this.allBlocks[blockSlug]) {
               whitelistTypes.push(this.allBlocks[blockSlug].name)
             }
           })
 
-          schema.tag_whitelist?.forEach((tag: string) => {
+          schema.tag_whitelist?.forEach((tag) => {
             const matchingBlocks = Object.entries(this.allBlocks)
               .filter(([_, block]) => block.tags?.includes(tag))
               .map(([_, block]) => block.name)
@@ -354,8 +368,8 @@ export type B10cksPrice = Record<string, number | null>
       case 'option':
         if (schema.options && Array.isArray(schema.options)) {
           const optionValues = schema.options
-            .filter((option: any) => option.value !== undefined)
-            .map((option: any) => JSON.stringify(String(option.value)))
+            .filter((option) => option.value !== undefined)
+            .map((option) => JSON.stringify(String(option.value)))
           if (optionValues.length > 0) return optionValues.join(' | ')
         }
         return 'string'
@@ -378,7 +392,7 @@ export type B10cksPrice = Record<string, number | null>
     }
   }
 
-  private resolveGeoType(schema: any): string {
+  private resolveGeoType(schema: SchemaField): string {
     const hasAltitude = schema.altitude !== false
     switch (schema.key_style) {
       case 'latitude_longitude':
@@ -396,8 +410,8 @@ export type B10cksPrice = Record<string, number | null>
     }
   }
 
-  private registerTableType(blockSlug: string, key: string, schema: any): string {
-    const columns = Array.isArray(schema?.columns) ? schema.columns : []
+  private registerTableType(blockSlug: string, key: string, schema: SchemaField): string {
+    const columns = schema.columns ?? []
     if (columns.length === 0) return 'B10cksTable'
 
     const baseTypeName = `B10cks${this.toPascalCase(blockSlug)}${this.toPascalCase(key)}`
@@ -407,16 +421,16 @@ export type B10cksPrice = Record<string, number | null>
     if (this.declaredAdditionalTypes.has(tableTypeName)) return tableTypeName
 
     const columnKeys = columns
-      .map((column: any) => column?.key)
+      .map((column) => column?.key)
       .filter((columnKey: unknown): columnKey is string => typeof columnKey === 'string' && columnKey !== '')
 
     if (columnKeys.length === 0) return 'B10cksTable'
 
     const headerKeyType = columnKeys.map((columnKey: string) => JSON.stringify(columnKey)).join(' | ')
     const cellProperties = columns
-      .filter((column: any): column is { key: string; type?: string; options?: Array<{ value?: string }> } =>
+      .filter((column): column is { key: string; type?: string; options?: Array<{ value?: string }> } =>
         typeof column?.key === 'string' && column.key !== '')
-      .map((column: any) => `    ${JSON.stringify(column.key)}?: ${this.mapTableColumnTypeToTsType(column)}`)
+      .map((column) => `    ${JSON.stringify(column.key)}?: ${this.mapTableColumnTypeToTsType(column)}`)
 
     this.additionalTypeDeclarations.push(`export interface ${rowTypeName} {
   id: string
@@ -459,7 +473,7 @@ export interface ${tableTypeName} {
     }
   }
 
-  private normalizeSchemaType(schemaType: string): string {
+  private normalizeSchemaType(schemaType: string | undefined): string {
     switch (schemaType) {
       case 'block':
         return 'blocks'
@@ -468,7 +482,7 @@ export interface ${tableTypeName} {
       case 'reference':
         return 'references'
       default:
-        return schemaType
+        return schemaType ?? ''
     }
   }
 

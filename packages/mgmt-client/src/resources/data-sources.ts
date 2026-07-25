@@ -1,14 +1,18 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { DataEntry, DataSource, PaginatedResponse, RequestOptions } from '../types'
+import type { DataEntry, DataSource, PaginatedResponse, PaginationParams, RequestOptions } from '../types'
 
 export class DataSourcesResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<DataSource>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<DataSource>> {
     return this.client.get<PaginatedResponse<DataSource>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/data-sources`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -58,11 +62,12 @@ export class DataSourcesResource {
   async listEntries(
     spaceId: string,
     dataSourceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<DataEntry>> {
     return this.client.get<PaginatedResponse<DataEntry>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/data-sources/${dataSourceId}/entries`,
-      options?.query,
+      params,
       options?.headers
     )
   }

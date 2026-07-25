@@ -79,7 +79,7 @@ export class InitCommand extends BaseCommand {
       .action(async (dir: string, options: InitOptions) => {
         try {
           await this.execute(dir, options)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 

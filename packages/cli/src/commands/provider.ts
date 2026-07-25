@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { CreateProviderNoteParams, UpdateProviderNoteParams } from '@b10cks/mgmt-client'
 
 export class ProviderCommand extends BaseCommand {
   register(program: Command): void {
@@ -18,7 +19,7 @@ export class ProviderCommand extends BaseCommand {
           const res = await this.client.provider.getStats()
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     const notes = ns.command('notes').description('manage provider notes')
@@ -34,9 +35,9 @@ export class ProviderCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No notes found')
           console.log(`\n${chalk.bold('Provider Notes:')}`)
           res.data.forEach((n) => {
-            console.log(`  ${chalk.yellow(n.id)}  ${chalk.bold((n as any).title ?? '')}  ${chalk.dim((n as any).created_at ?? '')}`)
+            console.log(`  ${chalk.yellow(n.id)}  ${chalk.bold(n.title ?? '')}  ${chalk.dim(n.created_at ?? '')}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     notes.command('get')
@@ -49,7 +50,7 @@ export class ProviderCommand extends BaseCommand {
           const res = await this.client.provider.getNote(noteId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     notes.command('create')
@@ -72,12 +73,12 @@ export class ProviderCommand extends BaseCommand {
             body = answers.body
           }
           if (!title) throw new Error('--title is required')
-          const payload: Record<string, unknown> = { title }
-          if (body) payload.body = body
-          const res = await this.client.provider.createNote(payload as any)
+          const payload: CreateProviderNoteParams = { title }
+          if (body) payload.content = body
+          const res = await this.client.provider.createNote(payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Note ${chalk.yellow(res.data.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     notes.command('update')
@@ -89,13 +90,13 @@ export class ProviderCommand extends BaseCommand {
       .action(async (noteId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: Record<string, unknown> = {}
+          const payload: UpdateProviderNoteParams = {}
           if (options.title) payload.title = options.title
-          if (options.body) payload.body = options.body
-          const res = await this.client.provider.updateNote(noteId, payload as any)
+          if (options.body) payload.content = options.body
+          const res = await this.client.provider.updateNote(noteId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Note ${chalk.yellow(noteId)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     notes.command('delete')
@@ -114,7 +115,7 @@ export class ProviderCommand extends BaseCommand {
         try {
           await this.client.provider.deleteNote(noteId)
           this.displaySuccess(`Note ${chalk.yellow(noteId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

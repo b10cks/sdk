@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { DataEntry, DataSource, PaginationParams } from '@b10cks/mgmt-client'
 
 export class DataSourcesCommand extends BaseCommand {
   register(program: Command): void {
@@ -27,7 +28,7 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.dataSources.list(spaceId, params)
@@ -35,7 +36,7 @@ export class DataSourcesCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No data sources found')
           console.log(`\n${chalk.bold('Data Sources:')}`)
           res.data.forEach((ds) => console.log(`  ${chalk.yellow(ds.id)}  ${chalk.bold(ds.name)}  ${chalk.dim(ds.slug ?? '')}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -50,7 +51,7 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          let payload: any = {}
+          let payload: Partial<DataSource> = {}
           if (options.interactive || !options.name) {
             const answers = await inquirer.prompt([
               { type: 'input', name: 'name', message: 'Data source name:', default: options.name, validate: (v) => v ? true : 'Required' },
@@ -68,7 +69,7 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`\n${chalk.green('✓')} Data source created`)
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(ds.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${ds.name}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -87,7 +88,7 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(ds.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${ds.name}`)
           console.log(`  ${chalk.bold('Slug:')} ${ds.slug ?? ''}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -102,13 +103,13 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
+          const payload: Partial<DataSource> = {}
           if (options.name) payload.name = options.name
           if (options.slug) payload.slug = options.slug
           const ds = await this.client.dataSources.update(spaceId, dataSourceId, payload)
           if (options.json) return this.outputJson(ds)
           this.displaySuccess(`Data source ${chalk.yellow(ds.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -130,7 +131,7 @@ export class DataSourcesCommand extends BaseCommand {
         try {
           await this.client.dataSources.delete(spaceId, dataSourceId)
           this.displaySuccess(`Data source ${chalk.yellow(dataSourceId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -147,7 +148,7 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.dataSources.listEntries(spaceId, dataSourceId, params)
@@ -157,7 +158,7 @@ export class DataSourcesCommand extends BaseCommand {
           res.data.forEach((e) => {
             console.log(`  ${chalk.yellow(e.id)}  ${chalk.bold(e.external_id ?? '')}  ${chalk.dim(JSON.stringify(e.data))}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('create')
@@ -194,7 +195,7 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}         ${chalk.yellow(entry.id)}`)
           console.log(`  ${chalk.bold('External ID:')} ${entry.external_id ?? ''}`)
           console.log(`  ${chalk.bold('Data:')}        ${JSON.stringify(entry.data)}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('get')
@@ -209,7 +210,7 @@ export class DataSourcesCommand extends BaseCommand {
           const entry = await this.client.dataSources.getEntry(spaceId, dataSourceId, entryId)
           if (options.json) return this.outputJson(entry)
           console.log(JSON.stringify(entry, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('update')
@@ -223,13 +224,14 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, entryId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
-          if (options.name) payload.name = options.name
-          if (options.value) payload.value = options.value
+          const data: Record<string, unknown> = {}
+          if (options.name) data.name = options.name
+          if (options.value) data.value = options.value
+          const payload: Partial<DataEntry> = { data }
           const entry = await this.client.dataSources.updateEntry(spaceId, dataSourceId, entryId, payload)
           if (options.json) return this.outputJson(entry)
           this.displaySuccess(`Entry ${chalk.yellow(entry.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('delete')
@@ -250,7 +252,7 @@ export class DataSourcesCommand extends BaseCommand {
         try {
           await this.client.dataSources.deleteEntry(spaceId, dataSourceId, entryId)
           this.displaySuccess(`Entry ${chalk.yellow(entryId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('export')
@@ -264,7 +266,7 @@ export class DataSourcesCommand extends BaseCommand {
           const res = await this.client.dataSources.exportEntries(spaceId, dataSourceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('import')
@@ -281,7 +283,7 @@ export class DataSourcesCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Entries imported')
           if (res) console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     entries.command('translate')
@@ -299,7 +301,7 @@ export class DataSourcesCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Translation started')
           if (res) console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

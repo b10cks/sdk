@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class CommentsCommand extends BaseCommand {
   register(program: Command): void {
@@ -19,7 +20,7 @@ export class CommentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.comments.list(spaceId, contentId, params)
@@ -27,11 +28,11 @@ export class CommentsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No comments found')
           console.log(`\n${chalk.bold('Comments:')}`)
           res.data.forEach((c) => {
-            const resolved = (c as any).resolved_at ? chalk.dim(' [resolved]') : ''
-            console.log(`  ${chalk.yellow(c.id)}  ${chalk.dim((c as any).created_at ?? '')}${resolved}`)
-            if ((c as any).body) console.log(`    ${(c as any).body}`)
+            const resolved = c.resolved_at ? chalk.dim(' [resolved]') : ''
+            console.log(`  ${chalk.yellow(c.id)}  ${chalk.dim(c.created_at ?? '')}${resolved}`)
+            if (c.body) console.log(`    ${c.body}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('create')
@@ -52,10 +53,10 @@ export class CommentsCommand extends BaseCommand {
             body = answers.body
           }
           if (!body) throw new Error('--body is required')
-          const res = await this.client.comments.create(spaceId, contentId, { body } as any)
+          const res = await this.client.comments.create(spaceId, contentId, { body })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Comment ${chalk.yellow(res.data.id)} added`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('get')
@@ -70,7 +71,7 @@ export class CommentsCommand extends BaseCommand {
           const res = await this.client.comments.get(spaceId, contentId, commentId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('update')
@@ -84,10 +85,10 @@ export class CommentsCommand extends BaseCommand {
         this.ensureAuthenticated()
         try {
           if (!options.body) throw new Error('--body is required')
-          const res = await this.client.comments.update(spaceId, contentId, commentId, { body: options.body } as any)
+          const res = await this.client.comments.update(spaceId, contentId, commentId, { body: options.body })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Comment ${chalk.yellow(commentId)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('delete')
@@ -108,7 +109,7 @@ export class CommentsCommand extends BaseCommand {
         try {
           await this.client.comments.delete(spaceId, contentId, commentId)
           this.displaySuccess(`Comment ${chalk.yellow(commentId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('resolve')
@@ -123,7 +124,7 @@ export class CommentsCommand extends BaseCommand {
           const res = await this.client.comments.resolve(spaceId, contentId, commentId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Comment ${chalk.yellow(commentId)} resolved`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('unresolve')
@@ -138,7 +139,7 @@ export class CommentsCommand extends BaseCommand {
           const res = await this.client.comments.unresolve(spaceId, contentId, commentId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Comment ${chalk.yellow(commentId)} unresolved`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     const reactions = ns.command('reactions').description('manage comment reactions')
@@ -154,15 +155,15 @@ export class CommentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, commentId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.comments.listReactions(spaceId, contentId, commentId, params)
+          const res = await this.client.comments.listReactions(spaceId, contentId, commentId, { query: params })
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No reactions')
           console.log(`\n${chalk.bold('Reactions:')}`)
-          res.data.forEach((r) => console.log(`  ${(r as any).emoji ?? r.id}  ${(r as any).user_id ?? ''}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((r) => console.log(`  ${r.emoji}  ${r.author?.name ?? ''}`))
+        } catch (e) { this.handleError(e) }
       })
 
     reactions.command('add')
@@ -175,10 +176,10 @@ export class CommentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, commentId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.comments.addReaction(spaceId, contentId, commentId, { emoji: options.emoji } as any)
+          const res = await this.client.comments.addReaction(spaceId, contentId, commentId, { emoji: options.emoji })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Reaction added`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     reactions.command('remove')
@@ -191,7 +192,7 @@ export class CommentsCommand extends BaseCommand {
         try {
           await this.client.comments.removeReaction(spaceId, contentId, commentId)
           this.displaySuccess('Reaction removed')
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

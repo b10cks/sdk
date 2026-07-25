@@ -48,7 +48,7 @@ export class KickstartCommand extends BaseCommand {
       .action(async (dir: string | undefined, options: KickstartOptions) => {
         try {
           await this.execute(dir, options)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 

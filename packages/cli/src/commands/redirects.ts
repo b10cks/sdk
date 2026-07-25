@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams, Redirect } from '@b10cks/mgmt-client'
 
 export class RedirectsCommand extends BaseCommand {
   register(program: Command): void {
@@ -18,7 +19,7 @@ export class RedirectsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.redirects.list(spaceId, Object.keys(params).length ? params : undefined)
@@ -26,9 +27,9 @@ export class RedirectsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No redirects found')
           console.log(`\n${chalk.bold('Redirects:')}`)
           res.data.forEach((r) => {
-            console.log(`  ${chalk.yellow(r.id)}  ${chalk.dim((r as any).from ?? '')}  →  ${(r as any).to ?? ''}`)
+            console.log(`  ${chalk.yellow(r.id)}  ${chalk.dim(r.source)}  →  ${r.destination}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('create')
@@ -53,10 +54,10 @@ export class RedirectsCommand extends BaseCommand {
           }
           if (!from) throw new Error('--from is required')
           if (!to) throw new Error('--to is required')
-          const res = await this.client.redirects.create(spaceId, { from, to } as any)
+          const res = await this.client.redirects.create(spaceId, { source: from, destination: to })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Redirect ${chalk.yellow(res.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('get')
@@ -70,7 +71,7 @@ export class RedirectsCommand extends BaseCommand {
           const res = await this.client.redirects.get(spaceId, redirectId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('update')
@@ -83,13 +84,13 @@ export class RedirectsCommand extends BaseCommand {
       .action(async (spaceId, redirectId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
-          if (options.from) payload.from = options.from
-          if (options.to) payload.to = options.to
+          const payload: Partial<Redirect> = {}
+          if (options.from) payload.source = options.from
+          if (options.to) payload.destination = options.to
           const res = await this.client.redirects.update(spaceId, redirectId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Redirect ${chalk.yellow(res.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('delete')
@@ -109,7 +110,7 @@ export class RedirectsCommand extends BaseCommand {
         try {
           await this.client.redirects.delete(spaceId, redirectId)
           this.displaySuccess(`Redirect ${chalk.yellow(redirectId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('reset')
@@ -123,7 +124,7 @@ export class RedirectsCommand extends BaseCommand {
           const res = await this.client.redirects.reset(spaceId, redirectId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Redirect ${chalk.yellow(redirectId)} reset`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('export')
@@ -136,7 +137,7 @@ export class RedirectsCommand extends BaseCommand {
           const res = await this.client.redirects.exportData(spaceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('import')
@@ -152,7 +153,7 @@ export class RedirectsCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Redirects imported')
           if (res) console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

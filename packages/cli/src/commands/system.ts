@@ -19,8 +19,9 @@ export class SystemCommand extends BaseCommand {
           if (res && typeof res === 'object') {
             console.log(JSON.stringify(res, null, 2))
           }
-        } catch (e: any) {
-          console.error(`${chalk.red('✖')} API health check failed: ${e.message}`)
+        } catch (e) {
+          const reason = e instanceof Error ? e.message : String(e)
+          console.error(`${chalk.red('✖')} API health check failed: ${reason}`)
           process.exit(1)
         }
       })
@@ -34,7 +35,7 @@ export class SystemCommand extends BaseCommand {
           const res = await this.client.system.getConfig()
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('plans')
@@ -49,7 +50,7 @@ export class SystemCommand extends BaseCommand {
           res.data.forEach((p) => {
             console.log(`  ${chalk.yellow(p.id)}  ${chalk.bold(p.name ?? '')}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

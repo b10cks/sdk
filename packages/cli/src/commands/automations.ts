@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class AutomationsCommand extends BaseCommand {
   register(program: Command): void {
@@ -27,7 +28,7 @@ export class AutomationsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.automations.list(spaceId, params)
@@ -35,10 +36,10 @@ export class AutomationsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No automations found')
           console.log(`\n${chalk.bold('Automations:')}`)
           res.data.forEach((a) => {
-            const enabled = (a as any).enabled ? chalk.green(' [on]') : chalk.dim(' [off]')
+            const enabled = a.is_active ? chalk.green(' [on]') : chalk.dim(' [off]')
             console.log(`  ${chalk.yellow(a.id)}  ${chalk.bold(a.name)}${enabled}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -54,7 +55,7 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.get(spaceId, automationId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -76,7 +77,7 @@ export class AutomationsCommand extends BaseCommand {
         try {
           await this.client.automations.delete(spaceId, automationId)
           this.displaySuccess(`Automation ${chalk.yellow(automationId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -92,7 +93,7 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.trigger(spaceId, automationId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Automation ${chalk.yellow(automationId)} triggered`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -108,7 +109,7 @@ export class AutomationsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.automations.listActions(spaceId, params)
@@ -116,7 +117,7 @@ export class AutomationsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No automation actions found')
           console.log(`\n${chalk.bold('Automation Actions:')}`)
           res.data.forEach((a) => console.log(`  ${chalk.yellow(a.id)}  ${a.name}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     actions.command('get')
@@ -130,7 +131,7 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.getAction(spaceId, actionId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     actions.command('delete')
@@ -150,7 +151,7 @@ export class AutomationsCommand extends BaseCommand {
         try {
           await this.client.automations.deleteAction(spaceId, actionId)
           this.displaySuccess(`Action ${chalk.yellow(actionId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -167,7 +168,7 @@ export class AutomationsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.automationId) params.automation_id = options.automationId
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
@@ -176,11 +177,11 @@ export class AutomationsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No executions found')
           console.log(`\n${chalk.bold('Executions:')}`)
           res.data.forEach((e) => {
-            const status = (e as any).status ?? ''
+            const status = e.status ?? ''
             const statusColor = status === 'success' ? chalk.green(status) : status === 'failed' ? chalk.red(status) : chalk.dim(status)
-            console.log(`  ${chalk.yellow(e.id)}  ${statusColor}  ${chalk.dim((e as any).created_at ?? '')}`)
+            console.log(`  ${chalk.yellow(e.id)}  ${statusColor}  ${chalk.dim(e.created_at ?? '')}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     exec.command('replay')
@@ -194,7 +195,7 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.replayExecution(spaceId, executionId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Execution ${chalk.yellow(executionId)} replayed`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

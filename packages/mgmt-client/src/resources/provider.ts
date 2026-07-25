@@ -3,6 +3,7 @@ import type { HttpClient } from '../http-client'
 import type {
   CreateProviderNoteParams,
   PaginatedResponse,
+  PaginationParams,
   ProviderNote,
   RequestOptions,
   UpdateProviderNoteParams,
@@ -15,10 +16,13 @@ export class ProviderResource {
     return this.client.get<unknown>('/mgmt/v1/provider/stats', undefined, options?.headers)
   }
 
-  async listNotes(options?: RequestOptions): Promise<PaginatedResponse<ProviderNote>> {
+  async listNotes(
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<ProviderNote>> {
     return this.client.get<PaginatedResponse<ProviderNote>>(
       '/mgmt/v1/provider/notes',
-      options?.query,
+      params,
       options?.headers
     )
   }

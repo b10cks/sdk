@@ -9,6 +9,7 @@ import type {
   CreateAutomationParams,
   GetAutomationExecutionsParams,
   PaginatedResponse,
+  PaginationParams,
   RequestOptions,
   UpdateAutomationActionParams,
   UpdateAutomationParams,
@@ -21,11 +22,12 @@ export class AutomationsResource {
 
   async listActions(
     spaceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<AutomationAction>> {
     return this.client.get<PaginatedResponse<AutomationAction>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automation-actions`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -84,10 +86,14 @@ export class AutomationsResource {
     )
   }
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Automation>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Automation>> {
     return this.client.get<PaginatedResponse<Automation>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automations`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -224,7 +230,7 @@ export class AutomationsResource {
   ): Promise<unknown> {
     return this.client.post<unknown>(
       apiPath`/mgmt/v1/spaces/${spaceId}/automation-executions/${executionId}/replay`,
-      options?.query,
+      undefined,
       options?.headers
     )
   }

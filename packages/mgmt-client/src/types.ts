@@ -8,8 +8,9 @@ export interface ClientConfig {
 export interface RequestOptions {
   headers?: Record<string, string>
   /**
-   * Query-string parameters (pagination, filtering, …) for list-style
-   * endpoints that do not take a dedicated params argument.
+   * Escape hatch for query-string parameters on the handful of non-paginated
+   * endpoints that accept them. Every paginated `list*` method takes a
+   * dedicated `params` argument instead — pass pagination and filters there.
    */
   query?: Record<string, unknown>
 }

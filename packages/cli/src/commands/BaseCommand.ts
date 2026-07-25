@@ -23,12 +23,14 @@ export abstract class BaseCommand {
     ensureLoggedIn()
   }
 
-  protected handleError(error: any): never {
-    if (error?.message) {
-      console.error(`${chalk.red('✖')} ${error.message}`)
-    } else {
-      console.error(`${chalk.red('✖')} An unexpected error occurred`)
-    }
+  protected handleError(error: unknown): never {
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as { message: unknown }).message)
+          : ''
+    console.error(`${chalk.red('✖')} ${message || 'An unexpected error occurred'}`)
     process.exit(1)
   }
 

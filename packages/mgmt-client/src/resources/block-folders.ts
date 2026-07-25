@@ -1,14 +1,18 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { BlockFolder, PaginatedResponse, RequestOptions } from '../types'
+import type { BlockFolder, PaginatedResponse, PaginationParams, RequestOptions } from '../types'
 
 export class BlockFoldersResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<BlockFolder>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<BlockFolder>> {
     return this.client.get<PaginatedResponse<BlockFolder>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/block-folders`,
-      options?.query,
+      params,
       options?.headers
     )
   }

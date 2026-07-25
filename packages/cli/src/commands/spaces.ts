@@ -1,10 +1,19 @@
 import type { Command } from 'commander'
-import type { CreateSpaceParams, UpdateSpaceParams } from '@b10cks/mgmt-client'
+import type { CreateSpaceParams, PaginationParams, Space, Team, UpdateSpaceParams } from '@b10cks/mgmt-client'
 
 import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+
+interface SpaceCommandOptions {
+  name?: string
+  slug?: string
+  teamId?: string
+  description?: string
+  icon?: string
+  color?: string
+}
 
 export class SpacesCommand extends BaseCommand {
   register(program: Command): void {
@@ -41,7 +50,7 @@ export class SpacesCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const response = await this.client.spaces.list(params)
@@ -52,7 +61,7 @@ export class SpacesCommand extends BaseCommand {
             const state = s.state !== 'active' ? chalk.dim(` [${s.state}]`) : ''
             console.log(`  ${chalk.yellow(s.id)}  ${chalk.bold(s.name)}  ${chalk.dim(s.slug)}${state}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -79,7 +88,7 @@ export class SpacesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(space.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${space.name}`)
           console.log(`  ${chalk.bold('Slug:')} ${space.slug}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -100,7 +109,7 @@ export class SpacesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('State:')}       ${space.state}`)
           if (space.team_id) console.log(`  ${chalk.bold('Team ID:')}     ${space.team_id}`)
           if (space.description) console.log(`  ${chalk.bold('Description:')} ${space.description}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -124,7 +133,7 @@ export class SpacesCommand extends BaseCommand {
           const space = await this.client.spaces.update(spaceId, payload)
           if (options.json) return this.outputJson(space)
           console.log(`${chalk.green('✓')} Space ${chalk.yellow(space.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -146,7 +155,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.delete(spaceId)
           this.displaySuccess(`Space ${chalk.yellow(spaceId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -159,7 +168,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.archive(spaceId)
           this.displaySuccess(`Space ${chalk.yellow(spaceId)} archived`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -176,7 +185,7 @@ export class SpacesCommand extends BaseCommand {
           ])
           if (options.json) return this.outputJson({ teams: teamsRes.data, spaces: spacesRes.data })
           this.printHierarchy(teamsRes.data, spacesRes.data)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -191,17 +200,17 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.spaces.listMembers(spaceId, { query: params })
+          const res = await this.client.spaces.listMembers(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No members found')
           console.log(`\n${chalk.bold('Members:')}`)
           res.data.forEach((m) => {
-            console.log(`  ${chalk.yellow(m.id)}  ${chalk.bold((m as any).name ?? '')}  ${chalk.dim((m as any).email ?? '')}  ${(m as any).role ?? ''}`)
+            console.log(`  ${chalk.yellow(m.id)}  ${chalk.bold(m.name ?? '')}  ${chalk.dim(m.email ?? '')}  ${m.role ?? ''}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     members.command('update')
@@ -216,7 +225,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.updateMember(spaceId, userId, { role: options.role })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Member ${chalk.yellow(userId)} role updated to ${options.role}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     members.command('remove')
@@ -237,7 +246,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.removeMember(spaceId, userId)
           this.displaySuccess(`Member ${chalk.yellow(userId)} removed`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -252,7 +261,7 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.spaces.listInvites(spaceId, params)
@@ -260,9 +269,9 @@ export class SpacesCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)
           res.data.forEach((inv) => {
-            console.log(`  ${chalk.yellow(inv.id)}  ${(inv as any).email ?? ''}  ${(inv as any).role ?? ''}`)
+            console.log(`  ${chalk.yellow(inv.id)}  ${inv.email ?? ''}  ${inv.role ?? ''}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     invites.command('create')
@@ -288,7 +297,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.createInvite(spaceId, { email, role })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Invite sent to ${email}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     invites.command('delete')
@@ -300,7 +309,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.deleteInvite(spaceId, inviteId)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     invites.command('resend')
@@ -312,7 +321,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.resendInvite(spaceId, inviteId)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} resent`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -327,15 +336,15 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.spaces.listBackups(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No backups found')
           console.log(`\n${chalk.bold('Backups:')}`)
-          res.data.forEach((b) => console.log(`  ${chalk.yellow(b.id)}  ${(b as any).name ?? ''}  ${chalk.dim((b as any).created_at ?? '')}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((b) => console.log(`  ${chalk.yellow(b.id)}  ${b.name ?? ''}  ${chalk.dim(b.created_at ?? '')}`))
+        } catch (e) { this.handleError(e) }
       })
 
     backups.command('create')
@@ -349,7 +358,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.createBackup(spaceId, { name: options.name ?? '' })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Backup ${chalk.yellow(res.data.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     backups.command('get')
@@ -363,7 +372,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getBackup(spaceId, backupId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     backups.command('delete')
@@ -383,7 +392,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.deleteBackup(spaceId, backupId)
           this.displaySuccess(`Backup ${chalk.yellow(backupId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -398,15 +407,15 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.spaces.listMigrations(spaceId, params)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No migrations found')
           console.log(`\n${chalk.bold('Migrations:')}`)
-          res.data.forEach((m) => console.log(`  ${chalk.yellow(m.id)}  ${chalk.dim((m as any).created_at ?? '')}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((m) => console.log(`  ${chalk.yellow(m.id)}  ${chalk.dim(m.created_at ?? '')}`))
+        } catch (e) { this.handleError(e) }
       })
 
     mig.command('get')
@@ -420,7 +429,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getMigration(spaceId, migrationId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     mig.command('create')
@@ -435,7 +444,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.createMigration(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Migration ${chalk.yellow(res.data.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     mig.command('delete')
@@ -455,7 +464,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.deleteMigration(spaceId, migrationId)
           this.displaySuccess(`Migration ${chalk.yellow(migrationId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -470,15 +479,15 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.spaces.listSubscriptions(spaceId, params)
+          const res = await this.client.spaces.listSubscriptions(spaceId, { query: params })
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No subscriptions found')
           console.log(`\n${chalk.bold('Subscriptions:')}`)
-          res.data.forEach((s) => console.log(`  ${chalk.yellow(s.id)}  ${(s as any).plan ?? ''}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((s) => console.log(`  ${chalk.yellow(s.id)}  ${s.plan ?? ''}`))
+        } catch (e) { this.handleError(e) }
       })
 
     subs.command('current')
@@ -492,7 +501,7 @@ export class SpacesCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           if (!res.data) return console.log('No active subscription')
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     subs.command('cancel')
@@ -511,7 +520,7 @@ export class SpacesCommand extends BaseCommand {
         try {
           const res = await this.client.spaces.cancelSubscription(spaceId)
           this.displaySuccess(res.message)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -528,7 +537,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getAiSettings(spaceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ai.command('update')
@@ -543,7 +552,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.updateAiSettings(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess('AI settings updated')
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -557,17 +566,17 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.spaces.getAuditLogs(spaceId, Object.keys(params).length ? params : undefined)
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No audit log entries')
           console.log(`\n${chalk.bold('Audit Logs:')}`)
-          res.data.forEach((entry: any) => {
-            console.log(`  ${chalk.dim(entry.created_at ?? '')}  ${chalk.bold(entry.action ?? '')}  ${entry.user_id ?? ''}`)
+          res.data.forEach((entry) => {
+            console.log(`  ${chalk.dim(entry.created_at ?? '')}  ${chalk.bold(entry.operation)}  ${entry.owner_name ?? entry.owner_id ?? ''}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -582,7 +591,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getStats(spaceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -597,7 +606,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getContentMenu(spaceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -612,7 +621,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getAiUsage(spaceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -628,7 +637,7 @@ export class SpacesCommand extends BaseCommand {
           const payload = JSON.parse(options.data)
           await this.client.spaces.updateIcon(spaceId, payload)
           if (!options.json) this.displaySuccess(`Icon updated for space ${chalk.yellow(spaceId)}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -647,7 +656,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.updateSearch(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Search configuration updated')
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     search.command('reindex')
@@ -660,7 +669,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.reindexSearch(spaceId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Reindex triggered for space ${chalk.yellow(spaceId)}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -676,15 +685,15 @@ export class SpacesCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
-          const res = await this.client.spaces.listAiConfigs(spaceId, params)
+          const res = await this.client.spaces.listAiConfigs(spaceId, { query: params })
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No AI configs found')
           console.log(`\n${chalk.bold('AI Configs:')}`)
-          res.data.forEach((c) => console.log(`  ${chalk.yellow(c.id)}  ${(c as any).name ?? ''}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((c) => console.log(`  ${chalk.yellow(c.id)}  ${c.name ?? ''}`))
+        } catch (e) { this.handleError(e) }
       })
 
     configs.command('get')
@@ -698,7 +707,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.getAiConfig(spaceId, configId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     configs.command('create')
@@ -713,7 +722,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.createAiConfig(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`AI config ${chalk.yellow(res.data.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     configs.command('update')
@@ -729,7 +738,7 @@ export class SpacesCommand extends BaseCommand {
           const res = await this.client.spaces.updateAiConfig(spaceId, configId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`AI config ${chalk.yellow(configId)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     configs.command('delete')
@@ -749,13 +758,13 @@ export class SpacesCommand extends BaseCommand {
         try {
           await this.client.spaces.deleteAiConfig(spaceId, configId)
           this.displaySuccess(`AI config ${chalk.yellow(configId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
-  private async promptCreateSpace(opts: any): Promise<CreateSpaceParams> {
+  private async promptCreateSpace(opts: SpaceCommandOptions): Promise<CreateSpaceParams> {
     const answers = await inquirer.prompt([
       {
         type: 'input', name: 'name', message: 'Space name:', default: opts.name,
@@ -774,7 +783,7 @@ export class SpacesCommand extends BaseCommand {
     return payload
   }
 
-  private buildCreatePayload(opts: any): CreateSpaceParams {
+  private buildCreatePayload(opts: SpaceCommandOptions): CreateSpaceParams {
     if (!opts.name) throw new Error('--name is required')
     if (!opts.slug) throw new Error('--slug is required')
     const payload: CreateSpaceParams = { name: opts.name, slug: opts.slug }
@@ -785,7 +794,7 @@ export class SpacesCommand extends BaseCommand {
     return payload
   }
 
-  private async promptUpdateSpace(opts: any): Promise<UpdateSpaceParams> {
+  private async promptUpdateSpace(opts: SpaceCommandOptions): Promise<UpdateSpaceParams> {
     const answers = await inquirer.prompt([
       { type: 'input', name: 'name', message: 'New name (leave blank to keep):', default: opts.name || '' },
       { type: 'input', name: 'slug', message: 'New slug (leave blank to keep):', default: opts.slug || '' },
@@ -798,7 +807,7 @@ export class SpacesCommand extends BaseCommand {
     return payload
   }
 
-  private buildUpdatePayload(opts: any): UpdateSpaceParams {
+  private buildUpdatePayload(opts: SpaceCommandOptions): UpdateSpaceParams {
     const payload: UpdateSpaceParams = {}
     if (opts.name) payload.name = opts.name
     if (opts.slug) payload.slug = opts.slug
@@ -808,7 +817,7 @@ export class SpacesCommand extends BaseCommand {
     return payload
   }
 
-  private printHierarchy(teams: any[], spaces: any[], indent = 0): void {
+  private printHierarchy(teams: Team[], spaces: Space[], indent = 0): void {
     if (indent === 0) {
       console.log(`\n${chalk.bold('Hierarchy:')}`)
       const rootTeams = teams.filter((t) => !t.parent_id)
@@ -820,7 +829,7 @@ export class SpacesCommand extends BaseCommand {
     }
   }
 
-  private printTeamNode(team: any, allTeams: any[], allSpaces: any[], indent: number): void {
+  private printTeamNode(team: Team, allTeams: Team[], allSpaces: Space[], indent: number): void {
     console.log(`${'  '.repeat(indent)}${chalk.blue('▸')} ${chalk.bold(team.name)} ${chalk.dim(team.id)}`)
     const teamSpaces = allSpaces.filter((s) => s.team_id === team.id)
     teamSpaces.forEach((s) => {

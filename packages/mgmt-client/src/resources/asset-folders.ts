@@ -1,14 +1,18 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { AssetFolder, PaginatedResponse, RequestOptions } from '../types'
+import type { AssetFolder, PaginatedResponse, PaginationParams, RequestOptions } from '../types'
 
 export class AssetFoldersResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<AssetFolder>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<AssetFolder>> {
     return this.client.get<PaginatedResponse<AssetFolder>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/asset-folders`,
-      options?.query,
+      params,
       options?.headers
     )
   }

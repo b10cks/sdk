@@ -14,29 +14,30 @@ import type {
   Invoice,
   Migration,
   PaginatedResponse,
+  PaginationParams,
   RequestOptions,
   Space,
-  SpaceUsage,
-  SubscriptionPeriod,
-  UpdateSpaceOnboardingParams,
-  UsageTimeseries,
-  UsageTimeseriesMetric,
   SpaceAiConfig,
   SpaceAiSettings,
   SpaceMember,
+  SpaceUsage,
   Subscription,
+  SubscriptionPeriod,
   UpdateBackupParams,
   UpdateSpaceAiConfigParams,
   UpdateSpaceAiSettingsParams,
   UpdateSpaceIconParams,
+  UpdateSpaceOnboardingParams,
   UpdateSpaceParams,
+  UsageTimeseries,
+  UsageTimeseriesMetric,
 } from '../types'
 
 export class SpacesResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(options?: RequestOptions): Promise<PaginatedResponse<Space>> {
-    return this.client.get<PaginatedResponse<Space>>('/mgmt/v1/spaces', options?.query, options?.headers)
+  async list(params?: PaginationParams, options?: RequestOptions): Promise<PaginatedResponse<Space>> {
+    return this.client.get<PaginatedResponse<Space>>('/mgmt/v1/spaces', params, options?.headers)
   }
 
   async create(params: CreateSpaceParams, options?: RequestOptions): Promise<Space> {
@@ -156,11 +157,12 @@ export class SpacesResource {
 
   async listMembers(
     spaceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<SpaceMember>> {
     return this.client.get<PaginatedResponse<SpaceMember>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/members`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -189,11 +191,12 @@ export class SpacesResource {
 
   async listInvites(
     spaceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/invites`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -402,11 +405,12 @@ export class SpacesResource {
 
   async listBackups(
     spaceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<Backup>> {
     return this.client.get<PaginatedResponse<Backup>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/backups`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -459,11 +463,12 @@ export class SpacesResource {
 
   async listMigrations(
     spaceId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<Migration>> {
     return this.client.get<PaginatedResponse<Migration>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/migrations`,
-      options?.query,
+      params,
       options?.headers
     )
   }

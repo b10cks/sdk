@@ -1,14 +1,18 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { BlockTag, PaginatedResponse, RequestOptions } from '../types'
+import type { BlockTag, PaginatedResponse, PaginationParams, RequestOptions } from '../types'
 
 export class BlockTagsResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<BlockTag>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<BlockTag>> {
     return this.client.get<PaginatedResponse<BlockTag>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/block-tags`,
-      options?.query,
+      params,
       options?.headers
     )
   }

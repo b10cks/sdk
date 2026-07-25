@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class BlockTagsCommand extends BaseCommand {
   register(program: Command): void {
@@ -18,7 +19,7 @@ export class BlockTagsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.blockTags.list(spaceId, params)
@@ -26,7 +27,7 @@ export class BlockTagsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No block tags found')
           console.log(`\n${chalk.bold('Block Tags:')}`)
           res.data.forEach((t) => console.log(`  ${chalk.yellow(t.id)}  ${t.name}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('create')
@@ -40,7 +41,7 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.create(spaceId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block tag ${chalk.yellow(res.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('get')
@@ -54,7 +55,7 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.get(spaceId, tagId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('update')
@@ -69,7 +70,7 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.update(spaceId, tagId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block tag ${chalk.yellow(res.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('delete')
@@ -89,7 +90,7 @@ export class BlockTagsCommand extends BaseCommand {
         try {
           await this.client.blockTags.delete(spaceId, tagId)
           this.displaySuccess(`Block tag ${chalk.yellow(tagId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

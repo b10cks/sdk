@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { BlockFolder, PaginationParams } from '@b10cks/mgmt-client'
 
 export class BlockFoldersCommand extends BaseCommand {
   register(program: Command): void {
@@ -18,7 +19,7 @@ export class BlockFoldersCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.blockFolders.list(spaceId, params)
@@ -26,7 +27,7 @@ export class BlockFoldersCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No block folders found')
           console.log(`\n${chalk.bold('Block Folders:')}`)
           res.data.forEach((f) => console.log(`  ${chalk.yellow(f.id)}  ${f.name}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('create')
@@ -38,12 +39,12 @@ export class BlockFoldersCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = { name: options.name }
+          const payload: Partial<BlockFolder> = { name: options.name }
           if (options.parentId) payload.parent_id = options.parentId
           const res = await this.client.blockFolders.create(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block folder ${chalk.yellow(res.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('get')
@@ -57,7 +58,7 @@ export class BlockFoldersCommand extends BaseCommand {
           const res = await this.client.blockFolders.get(spaceId, folderId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('update')
@@ -72,7 +73,7 @@ export class BlockFoldersCommand extends BaseCommand {
           const res = await this.client.blockFolders.update(spaceId, folderId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block folder ${chalk.yellow(res.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('delete')
@@ -92,7 +93,7 @@ export class BlockFoldersCommand extends BaseCommand {
         try {
           await this.client.blockFolders.delete(spaceId, folderId)
           this.displaySuccess(`Block folder ${chalk.yellow(folderId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

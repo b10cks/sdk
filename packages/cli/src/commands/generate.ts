@@ -38,7 +38,7 @@ export class GenerateCommand extends BaseCommand {
           console.log(`\n${chalk.bold('Generating types from local schema:')} ${chalk.cyan(dir)}`)
           console.log(`${chalk.dim('Output path:')} ${options.out}\n`)
           service.generateFromDefinitions(definitions)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

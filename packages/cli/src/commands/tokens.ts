@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class TokensCommand extends BaseCommand {
   register(program: Command): void {
@@ -18,7 +19,7 @@ export class TokensCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.tokens.list(spaceId, params)
@@ -28,7 +29,7 @@ export class TokensCommand extends BaseCommand {
           res.data.forEach((t) => {
             console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('create')
@@ -53,11 +54,11 @@ export class TokensCommand extends BaseCommand {
           console.log(`\n${chalk.green('✓')} Token created`)
           console.log(`  ${chalk.bold('ID:')}    ${chalk.yellow(token.id)}`)
           console.log(`  ${chalk.bold('Name:')}  ${token.name}`)
-          if ((token as any).token) {
-            console.log(`\n  ${chalk.bold('Token:')} ${chalk.cyan((token as any).token)}`)
+          if (token.token) {
+            console.log(`\n  ${chalk.bold('Token:')} ${chalk.cyan(token.token)}`)
             console.log(`  ${chalk.yellow('Copy this token — it will not be shown again.')}`)
           }
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('delete')
@@ -77,7 +78,7 @@ export class TokensCommand extends BaseCommand {
         try {
           await this.client.tokens.delete(spaceId, tokenId)
           this.displaySuccess(`Token ${chalk.yellow(tokenId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

@@ -19,9 +19,9 @@ export class AiCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No AI models available')
           console.log(`\n${chalk.bold('Available AI Models:')}`)
           res.data.forEach((m) => {
-            console.log(`  ${chalk.yellow(m.id)}  ${chalk.bold((m as any).name ?? m.id)}  ${chalk.dim((m as any).provider ?? '')}`)
+            console.log(`  ${chalk.yellow(m.id)}  ${chalk.bold(m.name ?? m.id)}  ${chalk.dim(m.provider ?? '')}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('translate')
@@ -38,7 +38,7 @@ export class AiCommand extends BaseCommand {
           const res = await this.client.ai.translate(payload)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ns.command('meta-tags')
@@ -55,7 +55,7 @@ export class AiCommand extends BaseCommand {
           const res = await this.client.ai.generateMetaTags(payload)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

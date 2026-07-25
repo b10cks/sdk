@@ -6,6 +6,7 @@ import type {
   Invite,
   Notification,
   PaginatedResponse,
+  PaginationParams,
   PersonalAccessToken,
   RequestOptions,
   SocialLink,
@@ -58,11 +59,12 @@ export class UsersResource {
   // ─── Personal Access Tokens ────────────────────────────────────────────────
 
   async listTokens(
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<PersonalAccessToken>> {
     return this.client.get<PaginatedResponse<PersonalAccessToken>>(
       '/mgmt/v1/users/me/tokens',
-      undefined,
+      params,
       options?.headers
     )
   }
@@ -84,10 +86,13 @@ export class UsersResource {
 
   // ─── Invites ───────────────────────────────────────────────────────────────
 
-  async listInvites(options?: RequestOptions): Promise<PaginatedResponse<Invite>> {
+  async listInvites(
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
       '/mgmt/v1/users/me/invites',
-      undefined,
+      params,
       options?.headers
     )
   }

@@ -4,6 +4,7 @@ import type {
   AssignReleaseVersionParams,
   CreateReleaseParams,
   PaginatedResponse,
+  PaginationParams,
   Release,
   RemoveReleaseVersionParams,
   RequestOptions,
@@ -13,10 +14,14 @@ import type {
 export class ReleasesResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, options?: RequestOptions): Promise<PaginatedResponse<Release>> {
+  async list(
+    spaceId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Release>> {
     return this.client.get<PaginatedResponse<Release>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/releases`,
-      options?.query,
+      params,
       options?.headers
     )
   }

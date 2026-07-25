@@ -8,6 +8,7 @@ import type {
   CreateBlockTemplateParams,
   GetBlocksParams,
   PaginatedResponse,
+  PaginationParams,
   RequestOptions,
   SyncBlocksParams,
   UpdateBlockTemplateParams,
@@ -79,11 +80,12 @@ export class BlocksResource {
   async listTemplates(
     spaceId: string,
     blockId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<BlockTemplate>> {
     return this.client.get<PaginatedResponse<BlockTemplate>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/${blockId}/templates`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -145,11 +147,12 @@ export class BlocksResource {
   async listVersions(
     spaceId: string,
     blockId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<BlockVersion>> {
     return this.client.get<PaginatedResponse<BlockVersion>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/${blockId}/versions`,
-      options?.query,
+      params,
       options?.headers
     )
   }

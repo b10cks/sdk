@@ -6,6 +6,7 @@ import type {
   CreateCommentParams,
   CreateCommentReactionParams,
   PaginatedResponse,
+  PaginationParams,
   RequestOptions,
   UpdateCommentParams,
 } from '../types'
@@ -16,11 +17,12 @@ export class CommentsResource {
   async list(
     spaceId: string,
     contentId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<Comment>> {
     return this.client.get<PaginatedResponse<Comment>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/comments`,
-      options?.query,
+      params,
       options?.headers
     )
   }

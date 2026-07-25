@@ -105,22 +105,22 @@ describe('operation dispatch', () => {
     expect(withParams).toEqual([{ path: 'blocks.list', args: ['s1', { page: 2 }] }])
   })
 
-  it('routes params through the query option for RequestOptions-only list operations', async () => {
+  it('passes params in the dedicated params slot of list operations', async () => {
     const withParams = await run('teams.list', { params: { page: 2 } })
-    expect(withParams).toEqual([{ path: 'teams.list', args: [{ query: { page: 2 } }] }])
+    expect(withParams).toEqual([{ path: 'teams.list', args: [{ page: 2 }] }])
 
     const withoutParams = await run('teams.list', {})
-    expect(withoutParams).toEqual([{ path: 'teams.list', args: [{ query: {} }] }])
+    expect(withoutParams).toEqual([{ path: 'teams.list', args: [undefined] }])
   })
 
   it('never lets a params.headers key reach the request options', async () => {
     const calls = await run('teams.list', {
       params: { headers: { Authorization: 'Bearer attacker' }, page: 1 } as never,
     })
-    // headers is carried inside `query` (a harmless query param), never at the
-    // top level where it would be spread into request headers.
+    // headers lands in the params slot, which the client serialises into the
+    // query string — never into the options object that supplies real headers.
     expect(calls).toEqual([
-      { path: 'teams.list', args: [{ query: { headers: { Authorization: 'Bearer attacker' }, page: 1 } }] },
+      { path: 'teams.list', args: [{ headers: { Authorization: 'Bearer attacker' }, page: 1 }] },
     ])
   })
 
@@ -129,7 +129,7 @@ describe('operation dispatch', () => {
     // MCP payload would arrive over the wire.
     const params = JSON.parse('{"__proto__":{"polluted":true},"page":1}')
     const calls = await run('teams.list', { params })
-    expect(calls).toEqual([{ path: 'teams.list', args: [{ query: { page: 1 } }] }])
+    expect(calls).toEqual([{ path: 'teams.list', args: [{ page: 1 }] }])
   })
 
   it('resolves the id via the generic `id` argument', async () => {

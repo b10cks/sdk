@@ -77,7 +77,7 @@ export class SchemaCommand extends BaseCommand {
               `${chalk.yellow('!')} Assigned new external_ids to: ${adopted.join(', ')} — run ${chalk.bold('b10cks schema push')} to persist them`
             )
           }
-        } catch (e: any) {
+        } catch (e) {
           this.handleError(e)
         }
       })
@@ -111,7 +111,7 @@ export class SchemaCommand extends BaseCommand {
           }
 
           if (options.ci && diff.dirty) process.exit(1)
-        } catch (e: any) {
+        } catch (e) {
           this.handleError(e)
         }
       })
@@ -183,7 +183,7 @@ export class SchemaCommand extends BaseCommand {
             const changed = entry.changed.length > 0 ? chalk.dim(` (${entry.changed.join(', ')})`) : ''
             console.log(`  ${chalk.cyan(entry.action.padEnd(9))} ${chalk.bold(entry.slug)}${changed}`)
           }
-        } catch (e: any) {
+        } catch (e) {
           this.handleError(e)
         }
       })

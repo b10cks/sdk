@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { CreateContentParams, MoveContentParams, PaginationParams, UpdateContentParams } from '@b10cks/mgmt-client'
 
 export class ContentsCommand extends BaseCommand {
   register(program: Command): void {
@@ -32,7 +33,7 @@ export class ContentsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = { per_page: Number(options.perPage) }
+          const params: PaginationParams = { per_page: Number(options.perPage) }
           if (options.block) params.block = options.block
           if (options.page) params.page = Number(options.page)
           const res = await this.client.contents.list(spaceId, params)
@@ -40,10 +41,10 @@ export class ContentsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No content entries found')
           console.log(`\n${chalk.bold('Contents:')}`)
           res.data.forEach((c) => {
-            const status = (c as any).published_at ? chalk.green(' [published]') : chalk.dim(' [draft]')
-            console.log(`  ${chalk.yellow(c.id)}  ${chalk.bold(c.name)}  ${chalk.dim((c as any).slug ?? '')}${status}`)
+            const status = c.published_at ? chalk.green(' [published]') : chalk.dim(' [draft]')
+            console.log(`  ${chalk.yellow(c.id)}  ${chalk.bold(c.name)}  ${chalk.dim(c.slug ?? '')}${status}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -53,29 +54,25 @@ export class ContentsCommand extends BaseCommand {
       .argument('<spaceId>', 'space ID')
       .option('-n, --name <name>', 'content name')
       .option('-s, --slug <slug>', 'content slug')
-      .option('-b, --block <blockSlug>', 'block slug to use')
+      .option('-b, --block-id <blockId>', 'block ID to use')
       .option('--parent-id <parentId>', 'parent content ID')
       .option('-i, --interactive', 'prompt for inputs')
       .option('--json', 'output as JSON')
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          let payload: any = {}
-          if (options.interactive || !options.name || !options.block) {
+          let payload: CreateContentParams
+          if (options.interactive || !options.name || !options.blockId || !options.slug) {
             const answers = await inquirer.prompt([
               { type: 'input', name: 'name', message: 'Content name:', default: options.name, validate: (v) => v ? true : 'Required' },
-              { type: 'input', name: 'slug', message: 'Slug:', default: options.slug },
-              { type: 'input', name: 'block', message: 'Block slug:', default: options.block, validate: (v) => v ? true : 'Required' },
+              { type: 'input', name: 'slug', message: 'Slug:', default: options.slug, validate: (v) => v ? true : 'Required' },
+              { type: 'input', name: 'block_id', message: 'Block ID:', default: options.blockId, validate: (v) => v ? true : 'Required' },
               { type: 'input', name: 'parent_id', message: 'Parent content ID (optional):', default: options.parentId || '' },
             ])
-            payload = { name: answers.name, block: answers.block }
-            if (answers.slug) payload.slug = answers.slug
+            payload = { name: answers.name, slug: answers.slug, block_id: answers.block_id }
             if (answers.parent_id) payload.parent_id = answers.parent_id
           } else {
-            if (!options.name) throw new Error('--name is required')
-            if (!options.block) throw new Error('--block is required')
-            payload = { name: options.name, block: options.block }
-            if (options.slug) payload.slug = options.slug
+            payload = { name: options.name, slug: options.slug, block_id: options.blockId }
             if (options.parentId) payload.parent_id = options.parentId
           }
           const content = await this.client.contents.create(spaceId, payload)
@@ -83,7 +80,7 @@ export class ContentsCommand extends BaseCommand {
           console.log(`\n${chalk.green('✓')} Content created`)
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(content.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${content.name}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -101,11 +98,11 @@ export class ContentsCommand extends BaseCommand {
           console.log(`\n${chalk.bold('Content:')}`)
           console.log(`  ${chalk.bold('ID:')}    ${chalk.yellow(content.id)}`)
           console.log(`  ${chalk.bold('Name:')}  ${content.name}`)
-          console.log(`  ${chalk.bold('Slug:')}  ${(content as any).slug ?? ''}`)
-          console.log(`  ${chalk.bold('Block:')} ${(content as any).block ?? ''}`)
-          const status = (content as any).published_at ? chalk.green('published') : chalk.dim('draft')
+          console.log(`  ${chalk.bold('Slug:')}  ${content.slug ?? ''}`)
+          console.log(`  ${chalk.bold('Block:')} ${content.block ?? ''}`)
+          const status = content.published_at ? chalk.green('published') : chalk.dim('draft')
           console.log(`  ${chalk.bold('Status:')} ${status}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -120,13 +117,13 @@ export class ContentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
+          const payload: UpdateContentParams = {}
           if (options.name) payload.name = options.name
           if (options.slug) payload.slug = options.slug
           const content = await this.client.contents.update(spaceId, contentId, payload)
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(content.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -148,7 +145,7 @@ export class ContentsCommand extends BaseCommand {
         try {
           await this.client.contents.delete(spaceId, contentId)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -164,7 +161,7 @@ export class ContentsCommand extends BaseCommand {
           const content = await this.client.contents.publish(spaceId, contentId)
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} published`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -180,7 +177,7 @@ export class ContentsCommand extends BaseCommand {
           const content = await this.client.contents.unpublish(spaceId, contentId)
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} unpublished`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -197,7 +194,7 @@ export class ContentsCommand extends BaseCommand {
           const content = await this.client.contents.schedule(spaceId, contentId, { scheduled_at: options.publishAt })
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} scheduled for ${options.publishAt}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -212,13 +209,13 @@ export class ContentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
+          const payload: MoveContentParams = {} as MoveContentParams
           if (options.parentId !== undefined) payload.parent_id = options.parentId
           if (options.position !== undefined) payload.position = Number(options.position)
           const content = await this.client.contents.move(spaceId, contentId, payload)
           if (options.json) return this.outputJson(content)
           this.displaySuccess(`Content ${chalk.yellow(contentId)} moved`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -235,7 +232,7 @@ export class ContentsCommand extends BaseCommand {
       .action(async (spaceId, contentId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.contents.listVersions(spaceId, contentId, params)
@@ -243,9 +240,9 @@ export class ContentsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No versions found')
           console.log(`\n${chalk.bold('Versions:')}`)
           res.data.forEach((v) => {
-            console.log(`  ${chalk.yellow(v.id)}  ${chalk.dim((v as any).created_at ?? '')}  ${(v as any).message ? chalk.dim(`"${(v as any).message}"`) : ''}`)
+            console.log(`  ${chalk.yellow(v.id)}  ${chalk.dim(v.created_at ?? '')}  ${v.message ? chalk.dim(`"${v.message}"`) : ''}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ver.command('get')
@@ -260,7 +257,7 @@ export class ContentsCommand extends BaseCommand {
           const res = await this.client.contents.getVersion(spaceId, contentId, versionId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ver.command('publish')
@@ -273,7 +270,7 @@ export class ContentsCommand extends BaseCommand {
         try {
           await this.client.contents.publishVersion(spaceId, contentId, versionId)
           this.displaySuccess(`Version ${chalk.yellow(versionId)} published`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     ver.command('set-current')
@@ -286,7 +283,7 @@ export class ContentsCommand extends BaseCommand {
         try {
           await this.client.contents.setVersionAsCurrent(spaceId, contentId, versionId)
           this.displaySuccess(`Version ${chalk.yellow(versionId)} set as current`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

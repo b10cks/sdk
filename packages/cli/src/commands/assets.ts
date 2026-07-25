@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { Asset, AssetFolder, AssetMetadata, PaginationParams } from '@b10cks/mgmt-client'
 
 export class AssetsCommand extends BaseCommand {
   register(program: Command): void {
@@ -28,7 +29,7 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.assets.list(spaceId, params)
@@ -39,7 +40,7 @@ export class AssetsCommand extends BaseCommand {
             console.log(`  ${chalk.yellow(a.id)}  ${chalk.bold(a.filename ?? '')}  ${chalk.dim(a.mime_type ?? '')}`)
           })
           console.log(`\n${chalk.dim(`Total: ${res.data.length}`)}`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -58,8 +59,8 @@ export class AssetsCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}        ${chalk.yellow(asset.id)}`)
           console.log(`  ${chalk.bold('Filename:')}  ${asset.filename ?? ''}`)
           console.log(`  ${chalk.bold('MIME type:')} ${asset.mime_type ?? ''}`)
-          console.log(`  ${chalk.bold('URL:')}        ${(asset as any).url ?? ''}`)
-        } catch (e: any) { this.handleError(e) }
+          console.log(`  ${chalk.bold('URL:')}        ${asset.url ?? ''}`)
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -74,13 +75,15 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, assetId, options) => {
         this.ensureAuthenticated()
         try {
-          const payload: any = {}
-          if (options.alt !== undefined) payload.alt = options.alt
-          if (options.title !== undefined) payload.title = options.title
+          // alt/title are not top-level Asset fields — they belong in `metadata`.
+          const metadata: AssetMetadata = {}
+          if (options.alt !== undefined) metadata.alt = options.alt
+          if (options.title !== undefined) metadata.title = options.title
+          const payload: Partial<Asset> = { metadata }
           const asset = await this.client.assets.update(spaceId, assetId, payload)
           if (options.json) return this.outputJson(asset)
           this.displaySuccess(`Asset ${chalk.yellow(asset.id)} updated`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -102,7 +105,7 @@ export class AssetsCommand extends BaseCommand {
         try {
           await this.client.assets.delete(spaceId, assetId)
           this.displaySuccess(`Asset ${chalk.yellow(assetId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -119,8 +122,8 @@ export class AssetsCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No linked contents')
           console.log(`\n${chalk.bold('Linked Contents:')}`)
-          res.data.forEach((c) => console.log(`  ${chalk.yellow(c.id)}  ${(c as any).name ?? ''}`))
-        } catch (e: any) { this.handleError(e) }
+          res.data.forEach((c) => console.log(`  ${chalk.yellow(c.id)}  ${c.name ?? ''}`))
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -136,7 +139,7 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.assetFolders.list(spaceId, params)
@@ -144,7 +147,7 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No folders found')
           console.log(`\n${chalk.bold('Asset Folders:')}`)
           res.data.forEach((f) => console.log(`  ${chalk.yellow(f.id)}  ${f.name}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     folders.command('get')
@@ -158,7 +161,7 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetFolders.get(spaceId, folderId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     folders.command('create')
@@ -171,12 +174,12 @@ export class AssetsCommand extends BaseCommand {
         this.ensureAuthenticated()
         try {
           if (!options.name) throw new Error('--name is required')
-          const payload: any = { name: options.name }
+          const payload: Partial<AssetFolder> = { name: options.name }
           if (options.parentId) payload.parent_id = options.parentId
           const res = await this.client.assetFolders.create(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Folder ${chalk.yellow(res.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     folders.command('delete')
@@ -196,7 +199,7 @@ export class AssetsCommand extends BaseCommand {
         try {
           await this.client.assetFolders.delete(spaceId, folderId)
           this.displaySuccess(`Folder ${chalk.yellow(folderId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -212,7 +215,7 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.assetTags.list(spaceId, params)
@@ -220,7 +223,7 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No tags found')
           console.log(`\n${chalk.bold('Asset Tags:')}`)
           res.data.forEach((t) => console.log(`  ${chalk.yellow(t.id)}  ${t.name}`))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     tags.command('create')
@@ -234,7 +237,7 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetTags.create(spaceId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Tag ${chalk.yellow(res.id)} created`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     tags.command('get')
@@ -248,7 +251,7 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetTags.get(spaceId, tagId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     tags.command('delete')
@@ -268,7 +271,7 @@ export class AssetsCommand extends BaseCommand {
         try {
           await this.client.assetTags.delete(spaceId, tagId)
           this.displaySuccess(`Tag ${chalk.yellow(tagId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }

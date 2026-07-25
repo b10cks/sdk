@@ -7,6 +7,7 @@ import type {
   CreateTeamParams,
   Invite,
   PaginatedResponse,
+  PaginationParams,
   RequestOptions,
   Role,
   SpaceBlueprint,
@@ -23,8 +24,8 @@ import type {
 export class TeamsResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(options?: RequestOptions): Promise<PaginatedResponse<Team>> {
-    return this.client.get<PaginatedResponse<Team>>('/mgmt/v1/teams', options?.query, options?.headers)
+  async list(params?: PaginationParams, options?: RequestOptions): Promise<PaginatedResponse<Team>> {
+    return this.client.get<PaginatedResponse<Team>>('/mgmt/v1/teams', params, options?.headers)
   }
 
   async create(params: CreateTeamParams, options?: RequestOptions): Promise<Team> {
@@ -51,11 +52,12 @@ export class TeamsResource {
 
   async listMembers(
     teamId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<TeamMember>> {
     return this.client.get<PaginatedResponse<TeamMember>>(
       apiPath`/mgmt/v1/teams/${teamId}/members`,
-      options?.query,
+      params,
       options?.headers
     )
   }
@@ -106,10 +108,14 @@ export class TeamsResource {
 
   // ─── Invites ───────────────────────────────────────────────────────────────
 
-  async listInvites(teamId: string, options?: RequestOptions): Promise<PaginatedResponse<Invite>> {
+  async listInvites(
+    teamId: string,
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Invite>> {
     return this.client.get<PaginatedResponse<Invite>>(
       apiPath`/mgmt/v1/teams/${teamId}/invites`,
-      undefined,
+      params,
       options?.headers
     )
   }
@@ -174,11 +180,12 @@ export class TeamsResource {
 
   async listBlueprints(
     teamId: string,
+    params?: PaginationParams,
     options?: RequestOptions
   ): Promise<PaginatedResponse<SpaceBlueprint>> {
     return this.client.get<PaginatedResponse<SpaceBlueprint>>(
       apiPath`/mgmt/v1/teams/${teamId}/blueprints`,
-      undefined,
+      params,
       options?.headers
     )
   }
@@ -236,7 +243,7 @@ export class TeamsResource {
   async listSpaceRoles(teamId: string, options?: RequestOptions): Promise<{ data: Role[] }> {
     return this.client.get<{ data: Role[] }>(
       apiPath`/mgmt/v1/teams/${teamId}/roles/space`,
-      undefined,
+      options?.query,
       options?.headers
     )
   }

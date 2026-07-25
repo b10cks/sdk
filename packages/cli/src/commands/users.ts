@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
+import type { PaginationParams, UpdateUserParams } from '@b10cks/mgmt-client'
 
 export class UsersCommand extends BaseCommand {
   register(program: Command): void {
@@ -28,32 +29,36 @@ export class UsersCommand extends BaseCommand {
           const u = res.data
           console.log(`\n${chalk.bold('Profile:')}`)
           console.log(`  ${chalk.bold('ID:')}    ${chalk.yellow(u.id)}`)
-          console.log(`  ${chalk.bold('Name:')}  ${(u as any).name ?? ''}`)
-          console.log(`  ${chalk.bold('Email:')} ${(u as any).email ?? ''}`)
-        } catch (e: any) { this.handleError(e) }
+          console.log(`  ${chalk.bold('Name:')}  ${[u.firstname, u.lastname].filter(Boolean).join(' ')}`)
+          console.log(`  ${chalk.bold('Email:')} ${u.email ?? ''}`)
+        } catch (e) { this.handleError(e) }
       })
 
     me.command('update')
       .description('update your profile')
-      .option('--name <name>', 'display name')
+      .option('--firstname <firstname>', 'given name')
+      .option('--lastname <lastname>', 'family name')
       .option('-i, --interactive', 'prompt for inputs')
       .option('--json', 'output as JSON')
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          let payload: any = {}
+          const payload: UpdateUserParams = {}
           if (options.interactive) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Display name:', default: options.name },
+              { type: 'input', name: 'firstname', message: 'Given name:', default: options.firstname },
+              { type: 'input', name: 'lastname', message: 'Family name:', default: options.lastname },
             ])
-            if (answers.name) payload.name = answers.name
+            if (answers.firstname) payload.firstname = answers.firstname
+            if (answers.lastname) payload.lastname = answers.lastname
           } else {
-            if (options.name) payload.name = options.name
+            if (options.firstname) payload.firstname = options.firstname
+            if (options.lastname) payload.lastname = options.lastname
           }
           const res = await this.client.users.updateMe(payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Profile updated')
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -68,7 +73,7 @@ export class UsersCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.users.listTokens(params)
@@ -76,10 +81,10 @@ export class UsersCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No personal access tokens found')
           console.log(`\n${chalk.bold('Personal Access Tokens:')}`)
           res.data.forEach((t) => {
-            const lastUsed = (t as any).last_used_at ? chalk.dim(` (last used: ${(t as any).last_used_at})`) : ''
-            console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}${lastUsed}`)
+            const expires = t.expires_at ? chalk.dim(` (expires: ${t.expires_at})`) : ''
+            console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}${expires}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     tokens.command('create')
@@ -108,7 +113,7 @@ export class UsersCommand extends BaseCommand {
             console.log(`\n  ${chalk.bold('Token:')} ${chalk.cyan(t.token)}`)
             console.log(`  ${chalk.yellow('Copy this token — it will not be shown again.')}`)
           }
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     tokens.command('delete')
@@ -127,7 +132,7 @@ export class UsersCommand extends BaseCommand {
         try {
           await this.client.users.deleteToken(tokenId)
           this.displaySuccess(`Token ${chalk.yellow(tokenId)} deleted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 
@@ -142,7 +147,7 @@ export class UsersCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const params: any = {}
+          const params: PaginationParams = {}
           if (options.perPage) params.per_page = Number(options.perPage)
           if (options.page) params.page = Number(options.page)
           const res = await this.client.users.listInvites(params)
@@ -150,9 +155,9 @@ export class UsersCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)
           res.data.forEach((inv) => {
-            console.log(`  ${chalk.yellow(inv.id)}  ${(inv as any).space_name ?? (inv as any).team_name ?? ''}`)
+            console.log(`  ${chalk.yellow(inv.id)}  ${inv.space_id ?? inv.team_id ?? ''}`)
           })
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     invites.command('get')
@@ -165,7 +170,7 @@ export class UsersCommand extends BaseCommand {
           const res = await this.client.users.getInvite(inviteId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
 
     invites.command('accept')
@@ -178,7 +183,7 @@ export class UsersCommand extends BaseCommand {
           const res = await this.client.users.acceptInvite(inviteId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} accepted`)
-        } catch (e: any) { this.handleError(e) }
+        } catch (e) { this.handleError(e) }
       })
   }
 }
