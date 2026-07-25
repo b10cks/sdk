@@ -2,8 +2,23 @@
   "name": "@b10cks/react",
   "version": "0.5.3",
   "description": "React SDK for integrating b10cks into React applications",
+  "keywords": [
+    "b10cks",
+    "cms",
+    "headless-cms",
+    "react",
+    "sdk"
+  ],
+  "homepage": "https://www.b10cks.com",
+  "bugs": {
+    "url": "https://github.com/b10cks/sdk/issues"
+  },
   "license": "MIT",
-  "author": "Michael Wallner @ Coder's Cantina",
+  "author": {
+    "name": "Michael Wallner",
+    "email": "m.wallner@coderscantina.com",
+    "url": "https://github.com/b10cks"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
@@ -11,7 +26,9 @@
   },
   "source": "src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "sideEffects": false,
@@ -37,6 +54,10 @@
     "lint:fix": "oxlint --fix src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
+  },
   "dependencies": {
     "@b10cks/client": "workspace:^",
     "@b10cks/richtext": "workspace:^"
@@ -49,13 +70,12 @@
     "vite-plugin-dts": "^5.0.3",
     "vitest": "^4.1.9"
   },
-  "peerDependencies": {
-    "react": "^18.3.0 || ^19.0.0",
-    "react-dom": "^18.3.0 || ^19.0.0"
-  },
   "release": {
     "branches": [
       "main"
     ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

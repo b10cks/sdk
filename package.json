@@ -27,12 +27,10 @@
     "changeset:publish": "changeset publish",
     "release": "pnpm run build && pnpm run changeset:publish"
   },
-  "dependencies": {
-    "@vitejs/plugin-vue": "^6.0.7"
-  },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
+    "@vitejs/plugin-vue": "^6.0.7",
     "ajv": "^8.20.0",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",

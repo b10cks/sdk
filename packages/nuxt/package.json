@@ -2,15 +2,34 @@
   "name": "@b10cks/nuxt",
   "version": "3.2.3",
   "description": "b10cks Nuxt client SDK",
+  "keywords": [
+    "b10cks",
+    "cms",
+    "headless-cms",
+    "nuxt",
+    "nuxt-module",
+    "sdk",
+    "vue"
+  ],
+  "homepage": "https://www.b10cks.com",
+  "bugs": {
+    "url": "https://github.com/b10cks/sdk/issues"
+  },
   "license": "MIT",
-  "author": "Michael Wallner @ Coder's Cantina",
+  "author": {
+    "name": "Michael Wallner",
+    "email": "m.wallner@coderscantina.com",
+    "url": "https://github.com/b10cks"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
     "directory": "packages/nuxt"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "main": "./dist/module.mjs",
@@ -49,5 +68,8 @@
     "branches": [
       "main"
     ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

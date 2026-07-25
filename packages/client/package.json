@@ -2,8 +2,25 @@
   "name": "@b10cks/client",
   "version": "1.7.0",
   "description": "Core b10cks API client",
+  "keywords": [
+    "api-client",
+    "b10cks",
+    "cms",
+    "content-delivery",
+    "content-management",
+    "headless-cms",
+    "sdk"
+  ],
+  "homepage": "https://www.b10cks.com",
+  "bugs": {
+    "url": "https://github.com/b10cks/sdk/issues"
+  },
   "license": "MIT",
-  "author": "Michael Wallner @ Coder's Cantina",
+  "author": {
+    "name": "Michael Wallner",
+    "email": "m.wallner@coderscantina.com",
+    "url": "https://github.com/b10cks"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/b10cks/sdk.git",
@@ -11,7 +28,9 @@
   },
   "source": "src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "sideEffects": false,
@@ -50,5 +69,8 @@
     "branches": [
       "main"
     ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
