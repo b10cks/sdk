@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/mcp-server",
   "version": "0.14.0",
-  "description": "MCP server for the b10cks headless CMS Management API \u2014 block definitions, content, redirects, data sources, releases, automations and more",
+  "description": "MCP server for the b10cks headless CMS Management API — block definitions, content, redirects, data sources, releases, automations and more",
   "keywords": [
     "ai",
     "b10cks",
@@ -66,11 +66,11 @@
     "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.58.7",
-    "@types/node": "^26.1.0",
-    "vite": "^8.1.3",
+    "@microsoft/api-extractor": "^7.58.12",
+    "@types/node": "^26.1.1",
+    "vite": "^8.1.5",
     "vite-plugin-dts": "^5.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "release": {
     "branches": [
