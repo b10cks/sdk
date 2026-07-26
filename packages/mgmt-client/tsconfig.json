@@ -13,7 +13,6 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "@b10cks/mgmt-client": ["./src"]
     }

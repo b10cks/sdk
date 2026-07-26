@@ -12,7 +12,6 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "types": ["svelte"],
-    "baseUrl": ".",
     "paths": {
       "@b10cks/client": ["../client/src"],
       "@b10cks/richtext": ["../richtext/src"],

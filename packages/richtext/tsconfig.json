@@ -13,7 +13,6 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "baseUrl": ".",
     "paths": {
       "@b10cks/client": ["../client/src"],
       "@b10cks/richtext": ["./src"]
