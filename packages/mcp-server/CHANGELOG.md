@@ -1,5 +1,28 @@
 # @b10cks/mcp-server
 
+## 0.14.1
+
+### Patch Changes
+
+- 577aae8: Pass list params through the dedicated `params` argument now that
+  `@b10cks/mgmt-client` exposes one on every paginated method, instead of wrapping
+  them in `RequestOptions.query`. Untrusted params are still sanitised and still
+  reach the API only as query-string values, never as request headers.
+- 4040149: Normalise package metadata across the workspace.
+
+  - Add the missing `LICENSE` file to `cli`, `mcp-server`, `next`, `react`,
+    `richtext` and `svelte`. `mcp-server` listed `LICENSE` in its `files` array
+    but shipped without one.
+  - Add `keywords`, `homepage` and `bugs` to every package; previously only
+    `mcp-server` had them, so the rest were undiscoverable on npm.
+  - Use the structured `author` object everywhere instead of a free-text string.
+  - Declare `publishConfig.access` and `engines` consistently. `cli` now requires
+    Node `>=20` (was `>=18`, which is past end-of-life) to match the others.
+
+- Updated dependencies [577aae8]
+- Updated dependencies [4040149]
+  - @b10cks/mgmt-client@2.0.0
+
 ## 0.14.0
 
 ### Minor Changes

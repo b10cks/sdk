@@ -1,5 +1,26 @@
 # @b10cks/nuxt
 
+## 3.2.4
+
+### Patch Changes
+
+- 356f1a6: Bump the `@nuxt/kit` runtime dependency to `^4.5.0`.
+- 4040149: Normalise package metadata across the workspace.
+
+  - Add the missing `LICENSE` file to `cli`, `mcp-server`, `next`, `react`,
+    `richtext` and `svelte`. `mcp-server` listed `LICENSE` in its `files` array
+    but shipped without one.
+  - Add `keywords`, `homepage` and `bugs` to every package; previously only
+    `mcp-server` had them, so the rest were undiscoverable on npm.
+  - Use the structured `author` object everywhere instead of a free-text string.
+  - Declare `publishConfig.access` and `engines` consistently. `cli` now requires
+    Node `>=20` (was `>=18`, which is past end-of-life) to match the others.
+
+- Updated dependencies [4040149]
+  - @b10cks/richtext@0.6.1
+  - @b10cks/client@1.7.1
+  - @b10cks/vue@2.4.4
+
 ## 3.2.3
 
 ### Patch Changes

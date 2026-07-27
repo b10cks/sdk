@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/svelte",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Svelte SDK for integrating b10cks into Svelte applications",
   "keywords": [
     "b10cks",
