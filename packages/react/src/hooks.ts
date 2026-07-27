@@ -254,23 +254,32 @@ function useAsyncTask<T>(
   const taskRef = useRef(task)
   taskRef.current = task
 
+  // Monotonic call id so an older in-flight request cannot overwrite the state
+  // of a newer one — the latest `execute` call wins.
+  const callIdRef = useRef(0)
+
   const execute = useCallback(async () => {
+    const id = ++callIdRef.current
     setPending(true)
     setError(null)
 
     try {
       const value = await taskRef.current()
-      setData(value)
+      if (id === callIdRef.current) {
+        setData(value)
+        setPending(false)
+      }
       return value
     } catch (caughtError) {
       const normalizedError =
         caughtError instanceof Error
           ? caughtError
           : new Error(`B10cks request failed: ${String(caughtError)}`)
-      setError(normalizedError)
+      if (id === callIdRef.current) {
+        setError(normalizedError)
+        setPending(false)
+      }
       throw normalizedError
-    } finally {
-      setPending(false)
     }
   }, dependencies)
 

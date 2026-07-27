@@ -7,6 +7,7 @@ import {
   createResolver,
   defineNuxtModule,
 } from '@nuxt/kit'
+import { defu } from 'defu'
 
 import type { ModuleOptions } from './types'
 
@@ -33,12 +34,15 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.build.transpile.push(resolver.resolve('@b10cks/vue'))
     nuxt.options.build.transpile.push(resolver.resolve('@b10cks/client'))
 
-    nuxt.options.runtimeConfig.public.b10cks = {
+    // Merge instead of overwrite so values set directly in
+    // `runtimeConfig.public.b10cks` (or via NUXT_PUBLIC_B10CKS_* env) win over
+    // the module options.
+    nuxt.options.runtimeConfig.public.b10cks = defu(nuxt.options.runtimeConfig.public.b10cks, {
       accessToken: options.accessToken,
       apiUrl: options.apiUrl,
       scrollOffset: options.scrollOffset,
       allowedOrigins: options.allowedOrigins,
-    }
+    })
 
     addPlugin(resolver.resolve('./runtime/plugin'))
 

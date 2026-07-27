@@ -1,6 +1,28 @@
+<script lang="ts">
+import type { BlockComponentResolver } from '../types'
+import type { Component } from 'vue'
+
+// Cache async component definitions per resolver and name, at module scope so
+// every B10cksComponent instance shares one definition. Without this, every
+// recompute of `resolvedComponent` (e.g. a live-preview CONTENT_UPDATE) returns
+// a brand-new component type, so <component :is> unmounts and remounts the
+// whole subtree — losing focus/state and re-running child onMounted hooks —
+// and each block instance re-runs the resolver's loader.
+const asyncComponentCaches = new WeakMap<BlockComponentResolver, Map<string, Component>>()
+
+function getAsyncComponentCache(resolver: BlockComponentResolver): Map<string, Component> {
+  let cache = asyncComponentCaches.get(resolver)
+  if (!cache) {
+    cache = new Map()
+    asyncComponentCaches.set(resolver, cache)
+  }
+  return cache
+}
+</script>
+
 <script setup lang="ts">
 import type { IBContent } from '@b10cks/client'
-import { computed, type Component, defineAsyncComponent, inject, resolveDynamicComponent } from 'vue'
+import { computed, defineAsyncComponent, inject, resolveDynamicComponent } from 'vue'
 
 import { B10cksComponentResolverKey } from '../types'
 import B10cksFallback from './B10cksFallback.vue'
@@ -10,12 +32,6 @@ const props = defineProps<{
 }>()
 
 const customResolver = inject(B10cksComponentResolverKey, null)
-
-// Cache async component definitions per name. Without this, every recompute of
-// `resolvedComponent` (e.g. a live-preview CONTENT_UPDATE) returns a brand-new
-// component type, so <component :is> unmounts and remounts the whole subtree —
-// losing focus/state and re-running child onMounted hooks.
-const asyncComponentCache = new Map<string, Component>()
 
 // Convert component name to PascalCase synchronously
 function toPascalCase(name: string): string {
@@ -43,7 +59,8 @@ const resolvedComponent = computed(() => {
   // resolveDynamicComponent returns a string if component not found
   if (typeof component === 'string') {
     if (customResolver) {
-      const cached = asyncComponentCache.get(pascalCaseName)
+      const cache = getAsyncComponentCache(customResolver)
+      const cached = cache.get(pascalCaseName)
       if (cached) {
         return cached
       }
@@ -54,7 +71,7 @@ const resolvedComponent = computed(() => {
           return B10cksFallback
         }
       })
-      asyncComponentCache.set(pascalCaseName, asyncComponent)
+      cache.set(pascalCaseName, asyncComponent)
       return asyncComponent
     }
 
@@ -67,8 +84,6 @@ const resolvedComponent = computed(() => {
 
   return component
 })
-
-const componentName = computed(() => props.block?.block || null)
 </script>
 
 <template>

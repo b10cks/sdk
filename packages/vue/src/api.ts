@@ -206,28 +206,39 @@ function createAsyncState<T>(fetcher: () => Promise<T>, immediate: boolean): Asy
   const data = ref<T | null>(null) as Ref<T | null>
   const pending = ref(false)
   const error = ref<Error | null>(null)
+  // Monotonic call id so an older in-flight request cannot overwrite the state
+  // of a newer one — the latest `execute` call wins.
+  let callId = 0
 
   const execute = async (): Promise<T> => {
+    const id = ++callId
     pending.value = true
     error.value = null
 
     try {
       const value = await fetcher()
-      data.value = value
+      if (id === callId) {
+        data.value = value
+        pending.value = false
+      }
       return value
     } catch (caughtError) {
       const normalizedError =
         caughtError instanceof Error
           ? caughtError
           : new Error(`B10cks request failed: ${String(caughtError)}`)
-      error.value = normalizedError
+      if (id === callId) {
+        error.value = normalizedError
+        pending.value = false
+      }
       throw normalizedError
-    } finally {
-      pending.value = false
     }
   }
 
-  if (immediate) {
+  // Skip the auto-fetch on the server: it is fire-and-forget, so its result can
+  // never reach the rendered output — only a wasted upstream request. SSR data
+  // fetching should await `execute()` (or use the Nuxt composables).
+  if (immediate && typeof window !== 'undefined') {
     // The error is already captured in `error`; swallow the rethrow here so the
     // immediate fetch does not surface as an unhandled promise rejection.
     void execute().catch(() => {})

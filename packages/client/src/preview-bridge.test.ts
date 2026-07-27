@@ -126,6 +126,37 @@ describe('origin trust', () => {
 
     expect(cb).not.toHaveBeenCalled()
   })
+
+  it('adopts allowedOrigins from a later init when the first had none', () => {
+    // A child component (whose effect runs before its provider's) may init
+    // the bridge without options; the provider's configured allowlist must
+    // still take effect.
+    previewBridge.init()
+    previewBridge.init({ allowedOrigins: [EDITOR_ORIGIN] })
+    const cb = vi.fn()
+    previewBridge.on('SELECT_UPDATE', cb)
+
+    dispatchMessage({ type: 'SELECT_UPDATE', payload: { selectedItem: 'a' } }, OTHER_ORIGIN)
+    dispatchMessage({ type: 'SELECT_UPDATE', payload: { selectedItem: 'b' } }, EDITOR_ORIGIN)
+
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(cb).toHaveBeenCalledWith({ selectedItem: 'b' })
+  })
+
+  it('drops a trust-on-first-use origin not covered by a later allowlist', () => {
+    previewBridge.init()
+    // TOFU locks onto the attacker origin before the provider init runs.
+    dispatchMessage({ type: 'SELECT_UPDATE', payload: { selectedItem: 'a' } }, OTHER_ORIGIN)
+    previewBridge.init({ allowedOrigins: [EDITOR_ORIGIN] })
+    const cb = vi.fn()
+    previewBridge.on('SELECT_UPDATE', cb)
+
+    dispatchMessage({ type: 'SELECT_UPDATE', payload: { selectedItem: 'b' } }, OTHER_ORIGIN)
+    dispatchMessage({ type: 'SELECT_UPDATE', payload: { selectedItem: 'c' } }, EDITOR_ORIGIN)
+
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(cb).toHaveBeenCalledWith({ selectedItem: 'c' })
+  })
 })
 
 describe('outgoing messages', () => {

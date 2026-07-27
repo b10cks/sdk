@@ -183,19 +183,28 @@ function createAsyncStore<T>(task: () => Promise<T>, immediate: boolean): AsyncS
     error: null,
   })
 
+  // Monotonic call id so an older in-flight request cannot overwrite the state
+  // of a newer one — the latest `execute` call wins.
+  let callId = 0
+
   const execute = async () => {
+    const id = ++callId
     store.update((state) => ({ ...state, pending: true, error: null }))
 
     try {
       const value = await task()
-      store.set({ data: value, pending: false, error: null })
+      if (id === callId) {
+        store.set({ data: value, pending: false, error: null })
+      }
       return value
     } catch (caughtError) {
       const normalizedError =
         caughtError instanceof Error
           ? caughtError
           : new Error(`B10cks request failed: ${String(caughtError)}`)
-      store.update((state) => ({ ...state, pending: false, error: normalizedError }))
+      if (id === callId) {
+        store.update((state) => ({ ...state, pending: false, error: normalizedError }))
+      }
       throw normalizedError
     }
   }

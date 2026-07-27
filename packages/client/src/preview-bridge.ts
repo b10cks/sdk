@@ -97,7 +97,20 @@ export class PreviewBridge {
   }
 
   init(options: PreviewBridgeInitOptions = {}) {
-    if (!this.isInPreviewMode() || this.initialized) {
+    if (!this.isInPreviewMode()) {
+      return
+    }
+
+    if (this.initialized) {
+      // A later init may carry the configured allowlist (e.g. a provider whose
+      // effect runs after a child component already initialized the bridge).
+      // Adopt it, and drop a trust-on-first-use origin it does not cover.
+      if (options.allowedOrigins && !this.allowedOrigins) {
+        this.allowedOrigins = options.allowedOrigins
+        if (this.parentOrigin && !this.allowedOrigins.includes(this.parentOrigin)) {
+          this.parentOrigin = null
+        }
+      }
       return
     }
 
