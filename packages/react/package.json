@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/react",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "React SDK for integrating b10cks into React applications",
   "keywords": [
     "b10cks",

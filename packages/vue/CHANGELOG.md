@@ -1,5 +1,14 @@
 # @b10cks/vue
 
+## 2.4.5
+
+### Patch Changes
+
+- Framework SDK review fixes: latest-wins guard for overlapping async requests in the Vue/React/Svelte state helpers, no fire-and-forget immediate fetches during Vue SSR, preview bridge adopts a late `allowedOrigins` init (and drops an uncovered trust-on-first-use origin), shared module-scope async component cache in the Vue `B10cksComponent`, and the Nuxt module now merges `runtimeConfig.public.b10cks` instead of overwriting it.
+
+- Updated dependencies []:
+  - @b10cks/client@1.7.2
+
 ## 2.4.4
 
 ### Patch Changes

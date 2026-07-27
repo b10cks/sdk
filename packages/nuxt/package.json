@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/nuxt",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "b10cks Nuxt client SDK",
   "keywords": [
     "b10cks",
