@@ -6,7 +6,7 @@ overrides:
 
 # Dependencies allowed to run install scripts. pnpm 11 fails the install instead
 # of warning when a package with a build script is not listed here.
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - esbuild
-  - sharp
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  sharp: true
