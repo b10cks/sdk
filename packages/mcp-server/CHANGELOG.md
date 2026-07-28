@@ -1,5 +1,11 @@
 # @b10cks/mcp-server
 
+## 0.14.3
+
+### Patch Changes
+
+- [#3](https://github.com/b10cks/sdk/pull/3) [`cea9c1e`](https://github.com/b10cks/sdk/commit/cea9c1ef37db17c6eb82d3e2ec1de95b9305d053) Thanks [@badmike](https://github.com/badmike)! - Update dependencies (`@modelcontextprotocol/sdk`, `@nuxt/kit`, bundled `chalk`)
+
 ## 0.14.2
 
 ### Patch Changes
