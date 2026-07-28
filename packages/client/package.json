@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.12",
-    "chalk": "^5.6.2",
+    "chalk": "^6.0.0",
     "happy-dom": "^20.11.1",
     "vite": "^8.1.5",
     "vite-plugin-banner": "^0.8.1",
