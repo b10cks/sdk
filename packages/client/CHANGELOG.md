@@ -1,5 +1,16 @@
 # @b10cks/client
 
+## 1.9.0
+
+### Minor Changes
+
+- Support the dedicated breadcrumb endpoint (`/breadcrumbs/{slug}`)
+
+  The CMS now serves the ancestor trail of an entry in one request, resolved per level through its own i18n family — an untranslated ancestor falls back and is flagged rather than dropped, while unpublished ancestors are omitted entirely.
+
+  - `@b10cks/client`: new `getBreadcrumb(slug, params)` and `getBreadcrumbResponse(slug, params)`, the `breadcrumbs/{slug}` endpoint, the `IBBreadcrumbLevel`/`IBBreadcrumbMeta`/`IBBreadcrumbResponse`/`IBBreadcrumbParams` types, and a `breadcrumbJsonLd` helper that renders a trail as a schema.org `BreadcrumbList`.
+  - `@b10cks/vue`, `@b10cks/react`, `@b10cks/svelte`, `@b10cks/nuxt`: new `useBreadcrumb(slug, params, options)`.
+
 ## 1.8.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @b10cks/next
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/client@1.9.0
+  - @b10cks/react@0.7.0
+
 ## 0.4.4
 
 ### Patch Changes

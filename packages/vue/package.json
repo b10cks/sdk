@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/vue",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "SDK to integrate b10cks into your vue applications",
   "keywords": [
     "b10cks",
