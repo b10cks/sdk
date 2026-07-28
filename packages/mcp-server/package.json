@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@b10cks/mgmt-client": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.30.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.12",
