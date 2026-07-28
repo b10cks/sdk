@@ -1,5 +1,22 @@
 # @b10cks/nuxt
 
+## 3.3.0
+
+### Minor Changes
+
+- Support named per-type sitemaps (`/sitemaps/{name}`)
+
+  - `@b10cks/client`: new `getNamedSitemap(name, params, options)` and `sitemaps/{name}` endpoint; `filterSitemapEntries` now also drops `robots: none`, matching the API's exclusion.
+  - `@b10cks/vue`, `@b10cks/react`, `@b10cks/svelte`, `@b10cks/nuxt`: new `useNamedSitemap(name, params, options)`.
+  - `@b10cks/mgmt-client`: `SpaceSettings.sitemaps` and the `SpaceNamedSitemap` type.
+  - `@b10cks/mcp-server`: `spaces.update` now documents its payload fields, including both sitemap settings shapes.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/client@1.8.0
+  - @b10cks/vue@2.5.0
+
 ## 3.2.5
 
 ### Patch Changes
