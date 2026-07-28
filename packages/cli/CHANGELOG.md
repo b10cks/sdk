@@ -1,5 +1,11 @@
 # @b10cks/cli
 
+## 2.0.2
+
+### Patch Changes
+
+- [#3](https://github.com/b10cks/sdk/pull/3) [`cea9c1e`](https://github.com/b10cks/sdk/commit/cea9c1ef37db17c6eb82d3e2ec1de95b9305d053) Thanks [@badmike](https://github.com/badmike)! - Update dependencies (`@modelcontextprotocol/sdk`, `@nuxt/kit`, bundled `chalk`)
+
 ## 2.0.1
 
 ### Patch Changes
