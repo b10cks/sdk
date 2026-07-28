@@ -1,5 +1,8 @@
 # b10cks SDK
 
+[![CI](https://github.com/b10cks/sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/b10cks/sdk/actions/workflows/ci.yml)
+[![Release](https://github.com/b10cks/sdk/actions/workflows/release.yml/badge.svg)](https://github.com/b10cks/sdk/actions/workflows/release.yml)
+
 Official JavaScript/TypeScript SDKs for [b10cks](https://b10cks.com) – a modern headless CMS and content management platform.
 
 This monorepo contains multiple packages that enable seamless integration of b10cks into your web applications.
@@ -148,7 +151,7 @@ const blocks = await dataApi.getBlocks()
 ### Prerequisites
 
 - Node.js 24.7.0 or higher
-- pnpm 10.15.1 or higher
+- pnpm 11 or higher (pinned via `packageManager`, so pnpm installs the right version for you)
 
 ### Setup
 
@@ -172,14 +175,74 @@ pnpm run lint:fix
 sdk/
 ├── packages/
 │   ├── client/       # Core API client
+│   ├── mgmt-client/  # Management API client
+│   ├── cli/          # b10cks CLI
+│   ├── mcp-server/   # MCP server
+│   ├── richtext/     # Rich text renderer
 │   ├── vue/          # Vue 3 plugin
 │   ├── react/        # React SDK
 │   ├── svelte/       # Svelte SDK
 │   ├── nuxt/         # Nuxt module
 │   └── next/         # Next.js integration
 ├── scripts/          # Build and utility scripts
-└── .changeset/       # Changesets for versioning
+├── .changeset/       # Pending changesets for the next release
+└── .github/
+    ├── workflows/ci.yml       # Lint, format, build, typecheck, test
+    └── workflows/release.yml  # Version PR + npm publish
 ```
+
+## 🚢 Versioning & Releasing
+
+All packages are versioned and published from CI using
+[changesets](https://github.com/changesets/changesets). **Never run `changeset version` or
+`pnpm publish` from your machine** – the version bumps, git tags, GitHub releases and npm publishes
+are all handled by [`.github/workflows/release.yml`](./.github/workflows/release.yml).
+
+Each package is versioned independently (semver), and internal `workspace:` dependencies are bumped
+for you when a dependency changes.
+
+### 1. Describe your change
+
+Every pull request that changes a package needs a changeset:
+
+```bash
+pnpm changeset
+```
+
+Select the affected packages, choose the bump type, and write a short user-facing summary – it ends
+up verbatim in the package's `CHANGELOG.md` and GitHub release notes.
+
+| Bump      | Use it for                                              |
+| --------- | ------------------------------------------------------- |
+| **patch** | Bug fixes, internal refactors, dependency bumps         |
+| **minor** | New features and options that stay backwards-compatible |
+| **major** | Breaking API changes                                    |
+
+Commit the generated file in `.changeset/` alongside your code. CI fails a PR that touches a package
+without one; if the change genuinely needs no release (docs, CI, tests), add the `skip-changeset`
+label to the PR or record an explicit no-op with `pnpm changeset add --empty`.
+
+### 2. Merge into `main`
+
+The release workflow collects all pending changesets and opens (or updates) a **`🔖 Version packages`**
+pull request. That PR applies the version bumps, rewrites the changelogs, and deletes the consumed
+changeset files. It stays open and keeps updating itself as more changesets land, so it doubles as a
+preview of the next release.
+
+### 3. Merge the version PR to ship
+
+Merging it triggers the publish: `pnpm release` builds every package and runs `changeset publish`,
+which pushes the git tags and creates one GitHub release per package.
+
+Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers) via OIDC, so no
+npm token is involved and every tarball ships with a provenance attestation.
+
+```
+your PR (+ changeset) ──▶ main ──▶ "🔖 Version packages" PR ──▶ main ──▶ npm + GitHub releases
+```
+
+Repository and npm settings required for this to work are documented in
+[CONTRIBUTING.md](./CONTRIBUTING.md#one-time-repository-setup).
 
 ## 🤝 Contributing
 
