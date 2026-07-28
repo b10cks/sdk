@@ -5,6 +5,8 @@ import type {
   GetConfigOptions,
   IBBaseQueryParams,
   IBBlock,
+  IBBreadcrumbLevel,
+  IBBreadcrumbParams,
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
@@ -83,6 +85,19 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
     const { allPages = false, immediate = false, transform } = options
     return createAsyncStore(async () => {
       const value = await dataApi.getContents<T>(params, { allPages })
+      return transform ? transform(value) : value
+    }, immediate)
+  }
+
+  /** The ancestor trail of an entry, root first, addressed by full slug or id. */
+  const useBreadcrumb = <T = Record<string, unknown>>(
+    slug: string,
+    params: IBBreadcrumbParams = {},
+    options: Omit<UseB10cksApiOptions<IBBreadcrumbLevel<T>[]>, 'params'> = {}
+  ): AsyncStore<IBBreadcrumbLevel<T>[]> => {
+    const { immediate = true, transform } = options
+    return createAsyncStore(async () => {
+      const value = await dataApi.getBreadcrumb<T>(slug, params)
       return transform ? transform(value) : value
     }, immediate)
   }
@@ -177,6 +192,7 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
     useApiCollection,
     useContent,
     useContents,
+    useBreadcrumb,
     useBlocks,
     useSitemap,
     useNamedSitemap,

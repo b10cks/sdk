@@ -6,6 +6,7 @@ export type FetchClient = (
 export type Endpoint =
   | 'blocks'
   | `blocks/${string}`
+  | `breadcrumbs/${string}`
   | 'contents'
   | `contents/${string}`
   | `datasources/${string}/entries`
@@ -93,6 +94,98 @@ export interface IBContent<Content = IBContentBlock<string> & { [index: string]:
 export interface IBContentBlock<T extends string> {
   id?: string
   block?: T
+}
+
+/** A published sibling translation of a breadcrumb level. */
+export interface IBBreadcrumbTranslation {
+  language_iso: string
+  name: string | null
+  /** Stored path of the translation, without a locale segment. */
+  full_slug: string
+  /** Delivery path of the translation, with its own locale segment applied. */
+  path: string
+}
+
+/**
+ * One level of a breadcrumb trail.
+ *
+ * A level is resolved through its own i18n family, so an untranslated ancestor
+ * is served from the fallback language and flagged (`is_fallback`) rather than
+ * dropped.
+ */
+export interface IBBreadcrumbLevel<
+  Content = IBContentBlock<string> & { [index: string]: unknown },
+> {
+  id: string
+  external_id: string | null
+  name: string
+  slug: string
+  /** Stored path of this level, without a locale segment. */
+  full_slug: string
+  /** Delivery path, with the *requested* language's locale segment applied. */
+  path: string
+  /** Slug of the assigned block definition. */
+  block: string | null
+  parent_id: string | null
+  position: number
+  /**
+   * Depth in the content tree, 0 for the root — not the index in the trail. A
+   * gap in the sequence is where an unpublished ancestor was dropped.
+   */
+  depth: number
+  is_root: boolean
+  /** True for the entry the trail was requested for. */
+  is_current: boolean
+  /** The requested language. */
+  language_iso: string
+  /** The language this level was actually served from. */
+  resolved_language_iso: string
+  is_fallback: boolean
+  is_published: boolean
+  published_at: string | null
+  updated_at: string | null
+  /** Only present when requested with `include_content`. */
+  content?: Content
+  /** Only present when requested with `translations`. */
+  translations?: IBBreadcrumbTranslation[]
+}
+
+export interface IBBreadcrumbMeta {
+  language_iso: string
+  fallback_language_iso: string | null
+  i18n_mode: 'overlay' | 'independent'
+  levels: number
+  root_id: string | null
+  current_id: string | null
+}
+
+export interface IBBreadcrumbResponse<
+  Content = IBContentBlock<string> & { [index: string]: unknown },
+> {
+  /** The trail, ordered from the tree root down to the requested entry. */
+  breadcrumb: IBBreadcrumbLevel<Content>[]
+  meta: IBBreadcrumbMeta
+  rv?: string | number
+}
+
+export interface IBBreadcrumbParams {
+  /** Language every level is resolved for. Unknown values fall back to the space default. */
+  language?: string
+  language_iso?: string
+  /** A version id is not accepted here — every level is a different entry. */
+  vid?: 'published' | 'draft'
+  /** Include the requested entry as the last level. Defaults to `true`. */
+  include_self?: boolean
+  /** `all` keeps unpublished ancestors, which are dropped by default. */
+  ancestors?: 'published' | 'all'
+  /** Add published sibling translations to every level. */
+  translations?: boolean
+  /** Add the resolved `content` payload to every level; honors `take`/`except`. */
+  include_content?: boolean
+  /** Comma-separated field whitelist for `include_content`. */
+  take?: string
+  /** Comma-separated field blacklist for `include_content`. */
+  except?: string
 }
 
 export interface IBDataEntry {

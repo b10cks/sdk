@@ -3,6 +3,8 @@ import type {
   GetConfigOptions,
   IBBaseQueryParams,
   IBBlock,
+  IBBreadcrumbLevel,
+  IBBreadcrumbParams,
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
@@ -73,6 +75,10 @@ export type UseNuxtB10cksContentsOptions<T> = UseNuxtB10cksCollectionOptions<
   IBGetContentsParams
 >
 
+export type UseNuxtB10cksBreadcrumbOptions<T> = AsyncDataCollectionConfig<IBBreadcrumbLevel<T>> & {
+  transform?: (value: IBBreadcrumbLevel<T>[]) => IBBreadcrumbLevel<T>[]
+}
+
 export type UseNuxtB10cksRedirectsOptions = AsyncDataConfig<RedirectMap> & {
   allPages?: boolean
   params?: QueryParams
@@ -86,6 +92,7 @@ export type NuxtB10cksApi = Omit<
   | 'useApiCollection'
   | 'useContent'
   | 'useContents'
+  | 'useBreadcrumb'
   | 'useBlocks'
   | 'useDataEntries'
   | 'useDataSources'
@@ -112,6 +119,11 @@ export type NuxtB10cksApi = Omit<
     params?: IBGetContentsParams,
     options?: UseNuxtB10cksContentsOptions<T>
   ) => Promise<AwaitedContentsAsyncData<T>>
+  useBreadcrumb: <T = Record<string, unknown>>(
+    slug: string,
+    params?: IBBreadcrumbParams,
+    options?: UseNuxtB10cksBreadcrumbOptions<T>
+  ) => Promise<AwaitedCollectionAsyncData<IBBreadcrumbLevel<T>>>
   useBlocks: (
     params?: QueryParams,
     options?: UseNuxtB10cksCollectionOptions<IBBlock>
@@ -207,6 +219,24 @@ export const useB10cksApi = (): NuxtB10cksApi => {
       key ?? createAsyncDataKey('contents', { allPages, params }),
       async () => {
         const value = await api.dataApi.getContents<T>(params, { allPages })
+        return transform ? transform(value) : value
+      },
+      asyncDataOptions
+    )
+  }
+
+  /** The ancestor trail of an entry, root first, addressed by full slug or id. */
+  const useBreadcrumb = async <T = Record<string, unknown>>(
+    slug: string,
+    params: IBBreadcrumbParams = {},
+    options: UseNuxtB10cksBreadcrumbOptions<T> = {}
+  ): Promise<AwaitedCollectionAsyncData<IBBreadcrumbLevel<T>>> => {
+    const { key, transform, ...asyncDataOptions } = options
+
+    return await useAsyncData<IBBreadcrumbLevel<T>[] | undefined, Error>(
+      key ?? createAsyncDataKey('breadcrumb', { slug, params }),
+      async () => {
+        const value = await api.dataApi.getBreadcrumb<T>(slug, params)
         return transform ? transform(value) : value
       },
       asyncDataOptions
@@ -384,6 +414,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     useApiCollection,
     useContent,
     useContents,
+    useBreadcrumb,
     useBlocks,
     useDataEntries,
     useDataSources,

@@ -3,6 +3,9 @@ import type {
   Endpoint,
   IBBaseQueryParams,
   IBBlock,
+  IBBreadcrumbLevel,
+  IBBreadcrumbParams,
+  IBBreadcrumbResponse,
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
@@ -160,6 +163,41 @@ export class B10cksDataApi {
       buildParamsWithFilter(rest, filter, sort),
       options
     )
+  }
+
+  /**
+   * The ancestor trail of an entry, ordered from the tree root down to the
+   * entry itself. Addressed by full slug or by content id.
+   *
+   * Unpublished ancestors are omitted rather than blanked, so the position in
+   * the trail is not the position in the tree — read `depth` for that, and pass
+   * `ancestors: 'all'` when structural levels are never published by design.
+   */
+  async getBreadcrumb<T = Record<string, unknown>>(
+    slug: string,
+    params: IBBreadcrumbParams = {}
+  ): Promise<IBBreadcrumbLevel<T>[]> {
+    const response = await this.getBreadcrumbResponse<T>(slug, params)
+    return response?.breadcrumb ?? []
+  }
+
+  /**
+   * Like {@link getBreadcrumb}, but keeps the response's `meta` block — the
+   * resolved language, its fallback, the space's i18n mode, and the root and
+   * current ids.
+   */
+  async getBreadcrumbResponse<T = Record<string, unknown>>(
+    slug: string,
+    params: IBBreadcrumbParams = {}
+  ): Promise<IBBreadcrumbResponse<T>> {
+    // Leading slashes are stripped so a `full_slug` taken straight off an entry
+    // (`/products/shoes`) does not produce a double slash in the URL.
+    const response = await this.client.get<IBBreadcrumbResponse<T>>(
+      `breadcrumbs/${slug.replace(/^\/+/, '')}`,
+      params as ApiQueryParams
+    )
+
+    return this.unwrapResource(response)
   }
 
   async getBlock(blockId: string, params: ApiQueryParams = {}): Promise<IBBlock> {

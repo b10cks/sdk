@@ -82,6 +82,15 @@ const { data: people } = await useContents({
 ```
 
 ```typescript
+// Breadcrumb trail of an entry, root first — one request, no tree walking
+const { useBreadcrumb } = useB10cksApi()
+const { data: trail } = await useBreadcrumb('products/shoes', { language: 'de' })
+
+// Each level carries `name`, `path`, `depth`, `is_root`, `is_current` and
+// `is_fallback` (true when the level had no translation and fell back).
+```
+
+```typescript
 // Redirects and config
 const { useRedirects, useB10cksConfig } = useB10cksApi()
 const redirects = await useRedirects()

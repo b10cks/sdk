@@ -5,6 +5,8 @@ import type {
   GetConfigOptions,
   IBBaseQueryParams,
   IBBlock,
+  IBBreadcrumbLevel,
+  IBBreadcrumbParams,
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
@@ -107,6 +109,19 @@ export function useB10cksApi() {
     }, immediate)
   }
 
+  /** The ancestor trail of an entry, root first, addressed by full slug or id. */
+  const useBreadcrumb = <T = Record<string, unknown>>(
+    slug: string,
+    params: IBBreadcrumbParams = {},
+    options: Omit<UseB10cksApiOptions<IBBreadcrumbLevel<T>[]>, 'params'> = {}
+  ): AsyncState<IBBreadcrumbLevel<T>[]> => {
+    const { immediate = true, transform } = options
+    return createAsyncState(async () => {
+      const value = await dataApi.getBreadcrumb<T>(slug, params)
+      return transform ? transform(value) : value
+    }, immediate)
+  }
+
   const useSitemap = (
     params: Omit<IBContentQueryParams, 'token'> = {},
     options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[]>, 'params'> = {}
@@ -202,6 +217,7 @@ export function useB10cksApi() {
     useApiCollection,
     useContent,
     useContents,
+    useBreadcrumb,
     useSitemap,
     useNamedSitemap,
     useBlocks,

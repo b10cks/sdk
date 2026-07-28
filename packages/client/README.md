@@ -132,6 +132,8 @@ const params = serializeFilter({
 |---|---|
 | `getContent(slug, params)` | Single content entry by full slug |
 | `getContents(params, options)` | List of content entries |
+| `getBreadcrumb(slug, params)` | Ancestor trail of an entry, root first |
+| `getBreadcrumbResponse(slug, params)` | Same trail, with the response's `meta` block |
 | `getBlock(blockId, params)` | Single block by ID |
 | `getBlocks(params, options)` | List of blocks |
 | `search(params)` | Full-text content search (`q`, `limit`, `offset`, `language`) |
@@ -212,6 +214,7 @@ const result = await client.post('redirects/lookup', { source: '/old' })
 |---|---|
 | `blocks` | GET (list) |
 | `blocks/{id}` | GET (single) |
+| `breadcrumbs/{slug}` | GET (single) |
 | `contents` | GET (list) |
 | `contents/{slug}` | GET (single) |
 | `datasources` | GET (list) |
@@ -264,6 +267,41 @@ const xml = renderSitemapXml(filtered, 'https://example.com')
 
 // Render <sitemapindex> XML for multi-sitemap setups
 const index = renderSitemapIndex(['/sitemap-en.xml', '/sitemap-de.xml'], 'https://example.com')
+```
+
+## Breadcrumbs
+
+`getBreadcrumb(slug, params)` returns the ancestor trail of an entry, ordered from the tree root down to the entry itself. The entry is addressed by full slug or by content id.
+
+```typescript
+const trail = await dataApi.getBreadcrumb('products/shoes', { language: 'de' })
+
+trail.map((level) => [level.name, level.path])
+// → [['Startseite', '/de/startseite'], ['Produkte', '/de/startseite/produkte'], …]
+```
+
+Every level is resolved through its own i18n family, so an ancestor without a translation is served from the fallback language and flagged with `is_fallback` — `resolved_language_iso` says which language it actually came from, while `path` always carries the *requested* locale segment.
+
+Unpublished ancestors are omitted from the trail rather than blanked, so the position in the array is not the position in the tree: read `depth` for that, and pass `ancestors: 'all'` when structural levels are never published by design.
+
+| Parameter | Default | Description |
+|---|---|---|
+| `language` / `language_iso` | space default | Language every level is resolved for |
+| `vid` | `published` | `published` or `draft` — a version id is not accepted |
+| `include_self` | `true` | Include the requested entry as the last level |
+| `ancestors` | `published` | `all` also returns unpublished ancestors |
+| `translations` | `false` | Add published sibling translations per level |
+| `include_content` | `false` | Add the resolved `content` payload per level; honors `take`/`except` |
+
+Use `getBreadcrumbResponse` when you need the `meta` block (resolved language, its fallback, the space's i18n mode, and the root/current ids).
+
+`breadcrumbJsonLd` renders a trail as a schema.org `BreadcrumbList` for an `application/ld+json` script tag. It numbers items consecutively, independent of the `depth` gaps a dropped ancestor leaves behind:
+
+```typescript
+import { breadcrumbJsonLd } from '@b10cks/client'
+
+const jsonLd = breadcrumbJsonLd(trail, { siteUrl: 'https://example.com' })
+// { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [...] }
 ```
 
 ## Preview bridge & visual editing

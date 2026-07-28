@@ -230,6 +230,40 @@ describe('B10cksDataApi', () => {
     expect(client.getAll).toHaveBeenCalledWith('sitemaps/my%20sitemap', {})
   })
 
+  it('returns the breadcrumb trail and strips a leading slash from the slug', async () => {
+    const breadcrumb = [
+      { id: 'a', name: 'Home', path: '/en', depth: 0, is_root: true, is_current: false },
+      { id: 'b', name: 'Shoes', path: '/en/shoes', depth: 1, is_root: false, is_current: true },
+    ]
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({ breadcrumb, meta: { levels: 2 }, rv: 7 }),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    const levels = await dataApi.getBreadcrumb('/products/shoes', { language: 'en' })
+
+    expect(client.get).toHaveBeenCalledWith('breadcrumbs/products/shoes', { language: 'en' })
+    expect(levels).toEqual(breadcrumb)
+  })
+
+  it('keeps the breadcrumb meta block when asked for the full response', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({ breadcrumb: [], meta: { levels: 0 }, rv: 7 }),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    const response = await dataApi.getBreadcrumbResponse('home', { vid: 'draft' })
+
+    expect(client.get).toHaveBeenCalledWith('breadcrumbs/home', { vid: 'draft' })
+    expect(response.meta).toEqual({ levels: 0 })
+  })
+
   it('includes vid in config cache keys and forwards it to config requests', async () => {
     const client: DataApiClient = {
       get: vi

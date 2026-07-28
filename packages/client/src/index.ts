@@ -36,6 +36,7 @@ const isRetryableStatus = (status: number): boolean =>
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 
+export * from './breadcrumb'
 export * from './content'
 export * from './data-api'
 export * from './editable'
