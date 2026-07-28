@@ -136,6 +136,7 @@ export type {
   SpaceEnvironment,
   SpaceLanguage,
   SpaceMember,
+  SpaceNamedSitemap,
   SpacePlanSummary,
   SpaceSettings,
   SpaceSettingsAi,

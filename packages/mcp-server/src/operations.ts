@@ -238,7 +238,11 @@ export const operations: OperationDefinition[] = [
   },
   {
     name: 'spaces.update',
-    description: 'Update a space.',
+    description:
+      'Update a space. Payload fields: name, slug, icon, color, description, state (active|archived|draft), settings. ' +
+      'settings is merged; sitemap config lives in settings.sitemap.types (the default /sitemap, an array of ' +
+      '{block, path}) and settings.sitemaps (named sitemaps served under /sitemaps/{slug}, an array of ' +
+      '{slug, types: [{block, path}]}), where block is a content block slug and path the dot path to its SEO meta object.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
     handler: (client, args) => client.spaces.update(spaceId(args), payload(args) as never),

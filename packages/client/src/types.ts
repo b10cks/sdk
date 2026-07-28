@@ -13,6 +13,7 @@ export type Endpoint =
   | 'redirects'
   | 'search'
   | 'sitemap'
+  | `sitemaps/${string}`
   | 'spaces/me'
 
 export interface IBResponse<T> {

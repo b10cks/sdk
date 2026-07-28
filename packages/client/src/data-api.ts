@@ -207,11 +207,28 @@ export class B10cksDataApi {
     return response as unknown as IBSearchResponse<T>
   }
 
+  /** The default sitemap, covering every block type configured in `settings.sitemap.types`. */
   async getSitemap(
     params: Omit<IBContentQueryParams, 'token'> = {},
     options: CollectionFetchOptions = {}
   ): Promise<IBSitemapEntry[]> {
     return this.getCollection<IBSitemapEntry>('sitemap', params, options)
+  }
+
+  /**
+   * A named sitemap from `settings.sitemaps`, e.g. one sitemap for pages and a
+   * separate one for news. Unknown names respond with 404.
+   */
+  async getNamedSitemap(
+    name: string,
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: CollectionFetchOptions = {}
+  ): Promise<IBSitemapEntry[]> {
+    return this.getCollection<IBSitemapEntry>(
+      `sitemaps/${encodeURIComponent(name)}`,
+      params,
+      options
+    )
   }
 
   async getDataEntries(

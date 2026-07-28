@@ -90,6 +90,7 @@ export type NuxtB10cksApi = Omit<
   | 'useDataEntries'
   | 'useDataSources'
   | 'useSitemap'
+  | 'useNamedSitemap'
   | 'useSpace'
   | 'useRedirects'
   | 'useB10cksConfig'
@@ -124,6 +125,11 @@ export type NuxtB10cksApi = Omit<
     options?: UseNuxtB10cksCollectionOptions<IBDataSource>
   ) => Promise<AwaitedCollectionAsyncData<IBDataSource>>
   useSitemap: (
+    params?: Omit<IBContentQueryParams, 'token'>,
+    options?: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>>
+  ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
+  useNamedSitemap: (
+    name: string,
     params?: Omit<IBContentQueryParams, 'token'>,
     options?: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>>
   ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
@@ -274,6 +280,27 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     )
   }
 
+  /** A named sitemap from the space's `settings.sitemaps`, e.g. `news`. */
+  const useNamedSitemap = async (
+    name: string,
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: UseNuxtB10cksCollectionOptions<
+      IBSitemapEntry,
+      Omit<IBContentQueryParams, 'token'>
+    > = {}
+  ): Promise<AwaitedCollectionAsyncData<IBSitemapEntry>> => {
+    const { allPages = false, key, transform, ...asyncDataOptions } = options
+
+    return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
+      key ?? createAsyncDataKey('sitemap', { allPages, name, params }),
+      async () => {
+        const value = await api.dataApi.getNamedSitemap(name, params, { allPages })
+        return transform ? transform(value) : value
+      },
+      asyncDataOptions
+    )
+  }
+
   const useSpace = async (
     options: UseNuxtB10cksApiOptions<IBSpace> = {}
   ): Promise<AwaitedAsyncData<IBSpace>> => {
@@ -362,6 +389,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     useDataSources,
     useSpace,
     useSitemap,
+    useNamedSitemap,
     useRedirects,
     useB10cksConfig,
     client: api.client,

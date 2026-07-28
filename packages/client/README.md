@@ -139,7 +139,8 @@ const params = serializeFilter({
 | `getRedirects(params, options)` | Redirect map (cached when `allPages: true`) |
 | `getDataEntries(source, params, options)` | Entries for a data source slug |
 | `getDataSources(params, options)` | List of data sources |
-| `getSitemap(params, options)` | Sitemap entries |
+| `getSitemap(params, options)` | Sitemap entries (default sitemap) |
+| `getNamedSitemap(name, params, options)` | Entries of a named sitemap from `settings.sitemaps` |
 | `getSpace(params)` | Current space info |
 | `getConfig(options)` | Config content entry (cached) |
 | `syncRevision(fallbackRv)` | Sync local RV from the space |
@@ -219,6 +220,7 @@ const result = await client.post('redirects/lookup', { source: '/old' })
 | `redirects/lookup` | POST |
 | `search` | GET |
 | `sitemap` | GET (list) |
+| `sitemaps/{name}` | GET (list) |
 | `spaces/me` | GET |
 
 ## Link resolution

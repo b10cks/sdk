@@ -135,6 +135,23 @@ export function useB10cksApi() {
     )
   }
 
+  /** A named sitemap from the space's `settings.sitemaps`, e.g. `news`. */
+  const useNamedSitemap = (
+    name: string,
+    params: Omit<IBContentQueryParams, 'token'> = {},
+    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[]>, 'params'> = {}
+  ): AsyncState<IBSitemapEntry[]> => {
+    const { allPages = false, immediate = false, transform } = options
+    return useAsyncTask(
+      async () => {
+        const value = await dataApi.getNamedSitemap(name, params, { allPages })
+        return transform ? transform(value) : value
+      },
+      [allPages, dataApi, name, stableKey(params)],
+      immediate
+    )
+  }
+
   const useDataEntries = (
     source: string,
     params: QueryParams = {},
@@ -221,6 +238,7 @@ export function useB10cksApi() {
     useContents,
     useBlocks,
     useSitemap,
+    useNamedSitemap,
     useDataEntries,
     useDataSources,
     useSpace,

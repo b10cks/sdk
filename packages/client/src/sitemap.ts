@@ -59,7 +59,9 @@ export interface SitemapFilterOptions {
 }
 
 /**
- * Filters sitemap entries by locale, deduplicates by resolved URL, and drops `noindex` entries.
+ * Filters sitemap entries by locale, deduplicates by resolved URL, and drops
+ * entries whose robots value contains `noindex` or `none` — matching the API's
+ * own exclusion, for entries assembled from other sources.
  */
 export function filterSitemapEntries(
   entries: IBSitemapEntry[],
@@ -70,7 +72,8 @@ export function filterSitemapEntries(
 
   return entries.filter((entry) => {
     if (locale && entry.language_iso !== locale) return false
-    if (entry.meta?.robots?.toLowerCase().includes('noindex')) return false
+    const robots = entry.meta?.robots?.toLowerCase()
+    if (robots?.includes('noindex') || robots?.includes('none')) return false
 
     const path = buildLocalizedPath(entry.full_slug, entry.language_iso)
     const key = siteUrl ? (toAbsoluteUrl(path, siteUrl) ?? path) : path

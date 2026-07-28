@@ -214,6 +214,22 @@ describe('B10cksDataApi', () => {
     expect(client.getAll).not.toHaveBeenCalled()
   })
 
+  it('requests named sitemaps under their own endpoint', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({ data: [] }),
+      getAll: vi.fn().mockResolvedValue([]),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    await dataApi.getNamedSitemap('news', { language_iso: 'en' })
+    await dataApi.getNamedSitemap('my sitemap', {}, { allPages: true })
+
+    expect(client.get).toHaveBeenCalledWith('sitemaps/news', { language_iso: 'en' })
+    expect(client.getAll).toHaveBeenCalledWith('sitemaps/my%20sitemap', {})
+  })
+
   it('includes vid in config cache keys and forwards it to config requests', async () => {
     const client: DataApiClient = {
       get: vi

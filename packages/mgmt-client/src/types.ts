@@ -271,6 +271,15 @@ export interface SpaceSitemapType {
   path: string
 }
 
+/**
+ * A named sitemap served under `/api/v1/sitemaps/{slug}` with its own
+ * block-to-meta-path mappings, e.g. one sitemap for pages and one for news.
+ */
+export interface SpaceNamedSitemap {
+  slug: string
+  types: SpaceSitemapType[]
+}
+
 export interface SpaceSettingsAi {
   enabled?: boolean | null
   model?: string | null
@@ -301,6 +310,7 @@ export interface SpaceSettings {
   onboarding_dismissed_at: string | null
   ai: SpaceSettingsAi
   sitemap: { types: SpaceSitemapType[] }
+  sitemaps: SpaceNamedSitemap[]
   [key: string]: unknown
 }
 
