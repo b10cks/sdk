@@ -95,7 +95,8 @@ export const createServer = (client: ManagementClient | Error): Server => {
       },
       {
         name: 'b10cks_mgmt_call',
-        description: 'Execute a b10cks Management API operation. Before creating or updating blocks, call b10cks_content_model_guide to understand best practices for block types, field types, tag hierarchy, and editor layout.',
+        description:
+          'Execute a b10cks Management API operation. Before creating or updating blocks, call b10cks_content_model_guide to understand best practices for block types, field types, tag hierarchy, and editor layout.',
         inputSchema: {
           type: 'object',
           additionalProperties: false,
@@ -190,7 +191,10 @@ export const createServer = (client: ManagementClient | Error): Server => {
     }
 
     if (client instanceof Error) {
-      throw new McpError(ErrorCode.InternalError, `b10cks MCP server misconfigured: ${client.message}`)
+      throw new McpError(
+        ErrorCode.InternalError,
+        `b10cks MCP server misconfigured: ${client.message}`
+      )
     }
 
     const args = toolArguments as unknown as MgmtToolArguments
@@ -236,9 +240,8 @@ export const createServer = (client: ManagementClient | Error): Server => {
 }
 
 export const runStdioServer = async (configOrError: ServerConfig | Error): Promise<void> => {
-  const client = configOrError instanceof Error
-    ? configOrError
-    : createManagementClient(configOrError)
+  const client =
+    configOrError instanceof Error ? configOrError : createManagementClient(configOrError)
   const server = createServer(client)
   const transport = new StdioServerTransport()
 

@@ -418,7 +418,7 @@ export type StringFilter =
   | { like: string }
   | { '!like': string }
   | { '^like': string }
-  | { 'like$': string }
+  | { like$: string }
   | { null: true }
   | { '!null': true }
 
@@ -491,8 +491,9 @@ export interface IBGetRedirectsParams extends Omit<IBBaseQueryParams, 'token'> {
   filter?: IBRedirectFilter
 }
 
-export interface IBSearchResult<Content = IBContentBlock<string> & { [index: string]: unknown }>
-  extends IBContent<Content> {
+export interface IBSearchResult<
+  Content = IBContentBlock<string> & { [index: string]: unknown },
+> extends IBContent<Content> {
   relevance_score: number
 }
 

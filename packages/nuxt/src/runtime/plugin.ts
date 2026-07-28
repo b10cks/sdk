@@ -1,4 +1,3 @@
-import { useState } from '#app'
 import type { FetchClient } from '@b10cks/client'
 // ApiClient/createB10cksDataApi are imported directly from @b10cks/client (a
 // direct dependency) so the emitted module type can name them portably.
@@ -6,6 +5,8 @@ import { ApiClient, createB10cksDataApi } from '@b10cks/client'
 import { B10cksClientKey, B10cksDataApiKey, B10cksVue } from '@b10cks/vue'
 import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
 import type { InjectionKey } from 'vue'
+
+import { useState } from '#app'
 
 // In this monorepo @b10cks/client is reachable both as source (this package's
 // resolution) and as built types (via @b10cks/vue's published d.ts). The two

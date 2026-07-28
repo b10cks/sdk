@@ -242,7 +242,10 @@ function viteConfig(framework: KickstartFramework): string {
   const plugin = {
     vue: { importLine: "import vue from '@vitejs/plugin-vue'", call: 'vue()' },
     react: { importLine: "import react from '@vitejs/plugin-react'", call: 'react()' },
-    svelte: { importLine: "import { svelte } from '@sveltejs/vite-plugin-svelte'", call: 'svelte()' },
+    svelte: {
+      importLine: "import { svelte } from '@sveltejs/vite-plugin-svelte'",
+      call: 'svelte()',
+    },
     vanilla: null,
   }[framework]
 
@@ -250,7 +253,9 @@ function viteConfig(framework: KickstartFramework): string {
     "import { defineConfig } from 'vite'",
     ...(plugin ? [plugin.importLine] : []),
     // A field plugin uploads as ONE file: inline component CSS into the bundle.
-    ...(framework === 'vanilla' ? [] : ["import cssInjectedByJs from 'vite-plugin-css-injected-by-js'"]),
+    ...(framework === 'vanilla'
+      ? []
+      : ["import cssInjectedByJs from 'vite-plugin-css-injected-by-js'"]),
   ]
   const plugins = [
     ...(plugin ? [plugin.call] : []),
@@ -260,12 +265,13 @@ function viteConfig(framework: KickstartFramework): string {
   // React resolves its dev/prod build via process.env.NODE_ENV, which Vite
   // does not define in library mode — without this the bundle ships React's
   // development build (~4x larger, console warnings in production).
-  const define = framework === 'react'
-    ? `  define: {
+  const define =
+    framework === 'react'
+      ? `  define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
 `
-    : ''
+      : ''
 
   return `${imports.join('\n')}
 
@@ -693,7 +699,12 @@ export function templateFiles(
     case 'vue':
       return { ...shared, 'src/main.ts': VUE_MAIN, 'src/App.vue': VUE_APP }
     case 'react':
-      return { ...shared, 'src/main.tsx': REACT_MAIN, 'src/App.tsx': REACT_APP, 'src/app.css': APP_CSS }
+      return {
+        ...shared,
+        'src/main.tsx': REACT_MAIN,
+        'src/App.tsx': REACT_APP,
+        'src/app.css': APP_CSS,
+      }
     case 'svelte':
       return {
         ...shared,

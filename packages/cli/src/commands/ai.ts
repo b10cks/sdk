@@ -1,6 +1,5 @@
-import type { Command } from 'commander'
-
 import chalk from 'chalk'
+import type { Command } from 'commander'
 
 import { BaseCommand } from './BaseCommand.js'
 
@@ -19,9 +18,13 @@ export class AiCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No AI models available')
           console.log(`\n${chalk.bold('Available AI Models:')}`)
           res.data.forEach((m) => {
-            console.log(`  ${chalk.yellow(m.id)}  ${chalk.bold(m.name ?? m.id)}  ${chalk.dim(m.provider ?? '')}`)
+            console.log(
+              `  ${chalk.yellow(m.id)}  ${chalk.bold(m.name ?? m.id)}  ${chalk.dim(m.provider ?? '')}`
+            )
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('translate')
@@ -33,12 +36,17 @@ export class AiCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const payload: Record<string, unknown> = { text: options.text, target_locale: options.target }
+          const payload: Record<string, unknown> = {
+            text: options.text,
+            target_locale: options.target,
+          }
           if (options.source) payload.source_locale = options.source
           const res = await this.client.ai.translate(payload)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('meta-tags')
@@ -50,12 +58,17 @@ export class AiCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const payload: Record<string, unknown> = { title: options.title, content: options.content }
+          const payload: Record<string, unknown> = {
+            title: options.title,
+            content: options.content,
+          }
           if (options.locale) payload.locale = options.locale
           const res = await this.client.ai.generateMetaTags(payload)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

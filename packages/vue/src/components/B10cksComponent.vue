@@ -1,6 +1,7 @@
 <script lang="ts">
-import type { BlockComponentResolver } from '../types'
 import type { Component } from 'vue'
+
+import type { BlockComponentResolver } from '../types'
 
 // Cache async component definitions per resolver and name, at module scope so
 // every B10cksComponent instance shares one definition. Without this, every

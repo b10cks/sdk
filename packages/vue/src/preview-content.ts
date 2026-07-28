@@ -1,5 +1,12 @@
 import { bindPreviewStore, PreviewStore, previewBridge } from '@b10cks/client'
-import { onScopeDispose, shallowRef, toValue, watch, type MaybeRefOrGetter, type ShallowRef } from 'vue'
+import {
+  onScopeDispose,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type ShallowRef,
+} from 'vue'
 
 /**
  * Returns a reactive ref to the content tree that live-updates while editing in

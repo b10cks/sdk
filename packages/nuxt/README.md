@@ -167,7 +167,8 @@ onBeforeRouteLeave(() => clear())
     v-for="(path, lang) in translations"
     :key="lang"
     :to="path"
-  >{{ lang }}</NuxtLink>
+    >{{ lang }}</NuxtLink
+  >
 </template>
 ```
 

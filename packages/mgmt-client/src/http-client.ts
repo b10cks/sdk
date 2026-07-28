@@ -16,10 +16,7 @@ export class ManagementApiError extends Error {
  * identifiers cannot inject path segments (`../`), query strings, or fragments
  * into the request path.
  */
-export function apiPath(
-  strings: TemplateStringsArray,
-  ...values: Array<string | number>
-): string {
+export function apiPath(strings: TemplateStringsArray, ...values: Array<string | number>): string {
   let result = strings[0] ?? ''
   for (let i = 0; i < values.length; i++) {
     result += encodeURIComponent(String(values[i])) + (strings[i + 1] ?? '')
@@ -318,11 +315,7 @@ export class HttpClient {
     return this.request<T>('PATCH', path, data, undefined, headers)
   }
 
-  async delete<T>(
-    path: string,
-    headers?: Record<string, string>,
-    data?: unknown
-  ): Promise<T> {
+  async delete<T>(path: string, headers?: Record<string, string>, data?: unknown): Promise<T> {
     return this.request<T>('DELETE', path, data, undefined, headers)
   }
 }

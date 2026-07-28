@@ -4,8 +4,8 @@ import * as path from 'path'
 import type { Block } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
 
-import type { BlockDefinition } from '../schema/store.js'
 import { normalizeBlockSchema } from '../schema/normalizer.js'
+import type { BlockDefinition } from '../schema/store.js'
 import BaseService from './BaseService.js'
 
 type BlockList = Record<string, { name: string; tags: string[] }>
@@ -60,7 +60,8 @@ export class TypesGeneratorService extends BaseService {
    */
   public generateFromDefinitions(definitions: BlockDefinition[]): void {
     const blocks = definitions.map(
-      (definition) => ({ ...definition, schema: normalizeBlockSchema(definition.schema) }) as unknown as Block
+      (definition) =>
+        ({ ...definition, schema: normalizeBlockSchema(definition.schema) }) as unknown as Block
     )
     this.generateFromBlocks(blocks)
   }
@@ -300,11 +301,13 @@ export type B10cksPrice = Record<string, number | null>
     let content = `export interface ${typeName} extends B10cksItem {\n`
 
     if (block.schema) {
-      const properties = Object.entries(block.schema as Record<string, SchemaField>).map(([key, schema]) => {
-        const type = this.mapSchemaTypeToTsType(schema.type, key, block.slug, schema)
-        const optional = !schema.required ? '?' : ''
-        return `\t${key}${optional}: ${type}`
-      })
+      const properties = Object.entries(block.schema as Record<string, SchemaField>).map(
+        ([key, schema]) => {
+          const type = this.mapSchemaTypeToTsType(schema.type, key, block.slug, schema)
+          const optional = !schema.required ? '?' : ''
+          return `\t${key}${optional}: ${type}`
+        }
+      )
 
       content += `${properties.join('\n')}\n`
     }
@@ -422,15 +425,24 @@ export type B10cksPrice = Record<string, number | null>
 
     const columnKeys = columns
       .map((column) => column?.key)
-      .filter((columnKey: unknown): columnKey is string => typeof columnKey === 'string' && columnKey !== '')
+      .filter(
+        (columnKey: unknown): columnKey is string =>
+          typeof columnKey === 'string' && columnKey !== ''
+      )
 
     if (columnKeys.length === 0) return 'B10cksTable'
 
-    const headerKeyType = columnKeys.map((columnKey: string) => JSON.stringify(columnKey)).join(' | ')
+    const headerKeyType = columnKeys
+      .map((columnKey: string) => JSON.stringify(columnKey))
+      .join(' | ')
     const cellProperties = columns
-      .filter((column): column is { key: string; type?: string; options?: Array<{ value?: string }> } =>
-        typeof column?.key === 'string' && column.key !== '')
-      .map((column) => `    ${JSON.stringify(column.key)}?: ${this.mapTableColumnTypeToTsType(column)}`)
+      .filter(
+        (column): column is { key: string; type?: string; options?: Array<{ value?: string }> } =>
+          typeof column?.key === 'string' && column.key !== ''
+      )
+      .map(
+        (column) => `    ${JSON.stringify(column.key)}?: ${this.mapTableColumnTypeToTsType(column)}`
+      )
 
     this.additionalTypeDeclarations.push(`export interface ${rowTypeName} {
   id: string

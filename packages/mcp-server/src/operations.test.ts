@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vitest'
-
 import type { ManagementClient } from '@b10cks/mgmt-client'
+import { describe, expect, it } from 'vitest'
 
 import { operationMap, operations, type MgmtToolArguments } from './operations'
 
@@ -170,7 +169,9 @@ describe('operation dispatch', () => {
       collectionId: 'c1',
       payload: { asset_ids: ['a1', 'a2'] },
     })
-    expect(calls).toEqual([{ path: 'assetCollections.addAssets', args: ['s1', 'c1', ['a1', 'a2']] }])
+    expect(calls).toEqual([
+      { path: 'assetCollections.addAssets', args: ['s1', 'c1', ['a1', 'a2']] },
+    ])
   })
 
   it('passes the share token and access token positionally', async () => {
@@ -219,9 +220,7 @@ describe('operation dispatch', () => {
 
 describe('required argument validation', () => {
   it('rejects when a required string argument is missing', async () => {
-    await expect(run('spaces.get', {})).rejects.toThrow(
-      'Missing required string argument: spaceId'
-    )
+    await expect(run('spaces.get', {})).rejects.toThrow('Missing required string argument: spaceId')
   })
 
   it('rejects when a required argument is an empty string', async () => {

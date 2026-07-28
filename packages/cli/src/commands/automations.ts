@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class AutomationsCommand extends BaseCommand {
   register(program: Command): void {
@@ -39,7 +38,9 @@ export class AutomationsCommand extends BaseCommand {
             const enabled = a.is_active ? chalk.green(' [on]') : chalk.dim(' [off]')
             console.log(`  ${chalk.yellow(a.id)}  ${chalk.bold(a.name)}${enabled}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -55,7 +56,9 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.get(spaceId, automationId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -68,16 +71,22 @@ export class AutomationsCommand extends BaseCommand {
       .action(async (spaceId, automationId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete automation ${chalk.yellow(automationId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete automation ${chalk.yellow(automationId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.automations.delete(spaceId, automationId)
           this.displaySuccess(`Automation ${chalk.yellow(automationId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -93,14 +102,17 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.trigger(spaceId, automationId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Automation ${chalk.yellow(automationId)} triggered`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerActionsGroup(ns: Command): void {
     const actions = ns.command('actions').description('manage automation actions')
 
-    actions.command('list')
+    actions
+      .command('list')
       .description('list automation actions')
       .argument('<spaceId>', 'space ID')
       .option('-p, --page <page>', 'page number')
@@ -117,10 +129,13 @@ export class AutomationsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No automation actions found')
           console.log(`\n${chalk.bold('Automation Actions:')}`)
           res.data.forEach((a) => console.log(`  ${chalk.yellow(a.id)}  ${a.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    actions.command('get')
+    actions
+      .command('get')
       .description('get an automation action')
       .argument('<spaceId>', 'space ID')
       .argument('<actionId>', 'action ID')
@@ -131,10 +146,13 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.getAction(spaceId, actionId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    actions.command('delete')
+    actions
+      .command('delete')
       .description('delete an automation action')
       .argument('<spaceId>', 'space ID')
       .argument('<actionId>', 'action ID')
@@ -142,23 +160,30 @@ export class AutomationsCommand extends BaseCommand {
       .action(async (spaceId, actionId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete action ${chalk.yellow(actionId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete action ${chalk.yellow(actionId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.automations.deleteAction(spaceId, actionId)
           this.displaySuccess(`Action ${chalk.yellow(actionId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerExecutionsGroup(ns: Command): void {
     const exec = ns.command('executions').description('view automation executions')
 
-    exec.command('list')
+    exec
+      .command('list')
       .description('list automation executions')
       .argument('<spaceId>', 'space ID')
       .option('--automation-id <id>', 'filter by automation ID')
@@ -178,13 +203,21 @@ export class AutomationsCommand extends BaseCommand {
           console.log(`\n${chalk.bold('Executions:')}`)
           res.data.forEach((e) => {
             const status = e.status ?? ''
-            const statusColor = status === 'success' ? chalk.green(status) : status === 'failed' ? chalk.red(status) : chalk.dim(status)
+            const statusColor =
+              status === 'success'
+                ? chalk.green(status)
+                : status === 'failed'
+                  ? chalk.red(status)
+                  : chalk.dim(status)
             console.log(`  ${chalk.yellow(e.id)}  ${statusColor}  ${chalk.dim(e.created_at ?? '')}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    exec.command('replay')
+    exec
+      .command('replay')
       .description('replay an execution')
       .argument('<spaceId>', 'space ID')
       .argument('<executionId>', 'execution ID')
@@ -195,7 +228,9 @@ export class AutomationsCommand extends BaseCommand {
           const res = await this.client.automations.replayExecution(spaceId, executionId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Execution ${chalk.yellow(executionId)} replayed`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

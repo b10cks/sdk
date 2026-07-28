@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { DataEntry, DataSource, PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { DataEntry, DataSource, PaginationParams } from '@b10cks/mgmt-client'
 
 export class DataSourcesCommand extends BaseCommand {
   register(program: Command): void {
@@ -35,8 +34,14 @@ export class DataSourcesCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No data sources found')
           console.log(`\n${chalk.bold('Data Sources:')}`)
-          res.data.forEach((ds) => console.log(`  ${chalk.yellow(ds.id)}  ${chalk.bold(ds.name)}  ${chalk.dim(ds.slug ?? '')}`))
-        } catch (e) { this.handleError(e) }
+          res.data.forEach((ds) =>
+            console.log(
+              `  ${chalk.yellow(ds.id)}  ${chalk.bold(ds.name)}  ${chalk.dim(ds.slug ?? '')}`
+            )
+          )
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -54,7 +59,13 @@ export class DataSourcesCommand extends BaseCommand {
           let payload: Partial<DataSource> = {}
           if (options.interactive || !options.name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Data source name:', default: options.name, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Data source name:',
+                default: options.name,
+                validate: (v) => (v ? true : 'Required'),
+              },
               { type: 'input', name: 'slug', message: 'Slug:', default: options.slug },
             ])
             payload = { name: answers.name }
@@ -69,7 +80,9 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`\n${chalk.green('✓')} Data source created`)
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(ds.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${ds.name}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -88,7 +101,9 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(ds.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${ds.name}`)
           console.log(`  ${chalk.bold('Slug:')} ${ds.slug ?? ''}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -109,7 +124,9 @@ export class DataSourcesCommand extends BaseCommand {
           const ds = await this.client.dataSources.update(spaceId, dataSourceId, payload)
           if (options.json) return this.outputJson(ds)
           this.displaySuccess(`Data source ${chalk.yellow(ds.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -122,23 +139,30 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete data source ${chalk.yellow(dataSourceId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete data source ${chalk.yellow(dataSourceId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.dataSources.delete(spaceId, dataSourceId)
           this.displaySuccess(`Data source ${chalk.yellow(dataSourceId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerEntriesGroup(ns: Command): void {
     const entries = ns.command('entries').description('manage data source entries')
 
-    entries.command('list')
+    entries
+      .command('list')
       .description('list entries in a data source')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -156,12 +180,17 @@ export class DataSourcesCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No entries found')
           console.log(`\n${chalk.bold('Data Source Entries:')}`)
           res.data.forEach((e) => {
-            console.log(`  ${chalk.yellow(e.id)}  ${chalk.bold(e.external_id ?? '')}  ${chalk.dim(JSON.stringify(e.data))}`)
+            console.log(
+              `  ${chalk.yellow(e.id)}  ${chalk.bold(e.external_id ?? '')}  ${chalk.dim(JSON.stringify(e.data))}`
+            )
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('create')
+    entries
+      .command('create')
       .description('create an entry in a data source')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -176,9 +205,20 @@ export class DataSourcesCommand extends BaseCommand {
           const data: Record<string, unknown> = {}
           if (options.interactive || !options.name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Entry name:', default: options.name, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Entry name:',
+                default: options.name,
+                validate: (v) => (v ? true : 'Required'),
+              },
               { type: 'input', name: 'value', message: 'Value:', default: options.value },
-              { type: 'input', name: 'dimension', message: 'Dimension (optional):', default: options.dimension || '' },
+              {
+                type: 'input',
+                name: 'dimension',
+                message: 'Dimension (optional):',
+                default: options.dimension || '',
+              },
             ])
             data.name = answers.name
             data.value = answers.value
@@ -195,10 +235,13 @@ export class DataSourcesCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}         ${chalk.yellow(entry.id)}`)
           console.log(`  ${chalk.bold('External ID:')} ${entry.external_id ?? ''}`)
           console.log(`  ${chalk.bold('Data:')}        ${JSON.stringify(entry.data)}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('get')
+    entries
+      .command('get')
       .description('get a data source entry')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -210,10 +253,13 @@ export class DataSourcesCommand extends BaseCommand {
           const entry = await this.client.dataSources.getEntry(spaceId, dataSourceId, entryId)
           if (options.json) return this.outputJson(entry)
           console.log(JSON.stringify(entry, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('update')
+    entries
+      .command('update')
       .description('update a data source entry')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -228,13 +274,21 @@ export class DataSourcesCommand extends BaseCommand {
           if (options.name) data.name = options.name
           if (options.value) data.value = options.value
           const payload: Partial<DataEntry> = { data }
-          const entry = await this.client.dataSources.updateEntry(spaceId, dataSourceId, entryId, payload)
+          const entry = await this.client.dataSources.updateEntry(
+            spaceId,
+            dataSourceId,
+            entryId,
+            payload
+          )
           if (options.json) return this.outputJson(entry)
           this.displaySuccess(`Entry ${chalk.yellow(entry.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('delete')
+    entries
+      .command('delete')
       .description('delete a data source entry')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -243,19 +297,26 @@ export class DataSourcesCommand extends BaseCommand {
       .action(async (spaceId, dataSourceId, entryId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete entry ${chalk.yellow(entryId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete entry ${chalk.yellow(entryId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.dataSources.deleteEntry(spaceId, dataSourceId, entryId)
           this.displaySuccess(`Entry ${chalk.yellow(entryId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('export')
+    entries
+      .command('export')
       .description('export data source entries as JSON')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -266,10 +327,13 @@ export class DataSourcesCommand extends BaseCommand {
           const res = await this.client.dataSources.exportEntries(spaceId, dataSourceId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('import')
+    entries
+      .command('import')
       .description('import entries into a data source (pass payload via --data)')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -283,10 +347,13 @@ export class DataSourcesCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Entries imported')
           if (res) console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    entries.command('translate')
+    entries
+      .command('translate')
       .description('AI-translate missing locale dimensions in a data source')
       .argument('<spaceId>', 'space ID')
       .argument('<dataSourceId>', 'data source ID')
@@ -297,11 +364,17 @@ export class DataSourcesCommand extends BaseCommand {
         try {
           const payload: Record<string, unknown> = {}
           if (options.locale) payload.locale = options.locale
-          const res = await this.client.dataSources.translateMissingDimensions(spaceId, dataSourceId, payload)
+          const res = await this.client.dataSources.translateMissingDimensions(
+            spaceId,
+            dataSourceId,
+            payload
+          )
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Translation started')
           if (res) console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

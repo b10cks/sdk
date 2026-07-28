@@ -65,7 +65,10 @@ import { B10cksNextProvider } from '@b10cks/next/client'
 export function App({ children }: { children: React.ReactNode }) {
   return (
     <B10cksNextProvider
-      apiClientOptions={{ token: process.env.NEXT_PUBLIC_B10CKS_TOKEN || '', baseUrl: 'https://api.b10cks.com/api' }}
+      apiClientOptions={{
+        token: process.env.NEXT_PUBLIC_B10CKS_TOKEN || '',
+        baseUrl: 'https://api.b10cks.com/api',
+      }}
       // Offset so selection clears a fixed app header (number → px, or '5rem').
       scrollOffset={80}
       // Restrict the preview bridge handshake to known editor origins.

@@ -1,7 +1,6 @@
-import type { Command } from 'commander'
-
 import { ManagementClient } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 
 import credentials from '../utils/credentials.js'
 import { ensureLoggedIn } from '../utils/refreshTokenIfNeeded.js'

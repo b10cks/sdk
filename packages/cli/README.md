@@ -60,12 +60,12 @@ You can bypass `.netrc` by setting:
 B10CKS_LOGIN=sanctum B10CKS_TOKEN=<your-token> b10cks spaces list
 ```
 
-| Variable           | Purpose                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| `B10CKS_LOGIN`     | Login for the Management API (use `sanctum` with a PAT)         |
-| `B10CKS_TOKEN`     | Personal access token, bypassing `~/.netrc`                     |
-| `B10CKS_API_DOMAIN`| Management API host (default `https://api.b10cks.com`)          |
-| `B10CKS_API_URL`   | Content API URL written by `init` (default `…/api`)             |
+| Variable            | Purpose                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `B10CKS_LOGIN`      | Login for the Management API (use `sanctum` with a PAT) |
+| `B10CKS_TOKEN`      | Personal access token, bypassing `~/.netrc`             |
+| `B10CKS_API_DOMAIN` | Management API host (default `https://api.b10cks.com`)  |
+| `B10CKS_API_URL`    | Content API URL written by `init` (default `…/api`)     |
 
 Both are read at runtime, so they work with the published binary.
 
@@ -82,30 +82,30 @@ b10cks init my-app --template gh:b10cks/nuxt-boilerplate
 b10cks init --dry-run                                  # preview, write nothing
 ```
 
-| Option                   | Description                                                        |
-| ------------------------ | ------------------------------------------------------------------ |
+| Option                   | Description                                                         |
+| ------------------------ | ------------------------------------------------------------------- |
 | `-f, --framework <name>` | `nuxt`, `next`, `react`, `vue`, or `svelte` (skips detection)       |
 | `-T, --template <ref>`   | Scaffold from any [giget](https://github.com/unjs/giget) ref        |
-| `-s, --space <spaceId>`  | Space to link (default: pick from a list)                          |
-| `-t, --token <token>`    | Access token (default: create one, or prompt)                      |
+| `-s, --space <spaceId>`  | Space to link (default: pick from a list)                           |
+| `-t, --token <token>`    | Access token (default: create one, or prompt)                       |
 | `--pm <pm>`              | `npm`, `pnpm`, `yarn`, or `bun` (default: detected from lockfile)   |
-| `--no-install`           | Write files but skip installing dependencies                       |
-| `--types`                | Run `generate types` after wiring                                  |
+| `--no-install`           | Write files but skip installing dependencies                        |
+| `--types`                | Run `generate types` after wiring                                   |
 | `-y, --yes`              | Never prompt (for CI); needs `--token`, or `--space` when logged in |
-| `--dry-run`              | Print planned changes without writing                              |
+| `--dry-run`              | Print planned changes without writing                               |
 
 ### Supported frameworks
 
 Detection uses `package.json` dependencies and config files. Meta-frameworks win
 over the UI library they build on, so a Nuxt app is never mistaken for Vue.
 
-| Framework | Packages installed                                       | Wiring                                                       |
-| --------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| Nuxt      | `@b10cks/nuxt @b10cks/vue @b10cks/client @b10cks/richtext` | `modules` + `b10cks` block in `nuxt.config.ts`               |
-| Next.js   | `@b10cks/next @b10cks/react @b10cks/client @b10cks/richtext` | `withB10cks()` in `next.config.ts` + a provider component  |
-| React     | `@b10cks/react @b10cks/client @b10cks/richtext`           | Provider component, wrapped around your app                  |
-| Vue       | `@b10cks/vue @b10cks/client @b10cks/richtext`             | `app.use(B10cksVue, …)` in `src/main.ts`                     |
-| Svelte    | `@b10cks/svelte @b10cks/client @b10cks/richtext`          | `createB10cksContext(…)` snippet                             |
+| Framework | Packages installed                                           | Wiring                                                    |
+| --------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| Nuxt      | `@b10cks/nuxt @b10cks/vue @b10cks/client @b10cks/richtext`   | `modules` + `b10cks` block in `nuxt.config.ts`            |
+| Next.js   | `@b10cks/next @b10cks/react @b10cks/client @b10cks/richtext` | `withB10cks()` in `next.config.ts` + a provider component |
+| React     | `@b10cks/react @b10cks/client @b10cks/richtext`              | Provider component, wrapped around your app               |
+| Vue       | `@b10cks/vue @b10cks/client @b10cks/richtext`                | `app.use(B10cksVue, …)` in `src/main.ts`                  |
+| Svelte    | `@b10cks/svelte @b10cks/client @b10cks/richtext`             | `createB10cksContext(…)` snippet                          |
 
 ### Scaffolding
 
@@ -142,13 +142,13 @@ The variable name follows each framework's own convention, so it depends on the
 build tool rather than the UI library. `init` writes `.env` and adds it to
 `.gitignore`; an existing assignment is never overwritten.
 
-| Framework          | Variable                                       |
-| ------------------ | ---------------------------------------------- |
-| Nuxt               | `NUXT_PUBLIC_B10CKS_ACCESS_TOKEN`              |
-| Next.js            | `NEXT_PUBLIC_B10CKS_TOKEN`, `B10CKS_TOKEN`     |
-| React / Vue (Vite) | `VITE_B10CKS_TOKEN`                            |
-| SvelteKit          | `PUBLIC_B10CKS_TOKEN`                          |
-| Svelte (Vite)      | `VITE_B10CKS_TOKEN`                            |
+| Framework          | Variable                                   |
+| ------------------ | ------------------------------------------ |
+| Nuxt               | `NUXT_PUBLIC_B10CKS_ACCESS_TOKEN`          |
+| Next.js            | `NEXT_PUBLIC_B10CKS_TOKEN`, `B10CKS_TOKEN` |
+| React / Vue (Vite) | `VITE_B10CKS_TOKEN`                        |
+| SvelteKit          | `PUBLIC_B10CKS_TOKEN`                      |
+| Svelte (Vite)      | `VITE_B10CKS_TOKEN`                        |
 
 These are all browser-visible by design — the env var keeps the token out of the
 repository, it does not make it secret.

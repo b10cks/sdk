@@ -1,7 +1,7 @@
-import type { ServerConfig } from './server'
-
 import fs from 'node:fs'
 import path from 'node:path'
+
+import type { ServerConfig } from './server'
 
 declare const process: {
   env: Record<string, string | undefined>
@@ -66,11 +66,13 @@ export const loadConfig = (): ServerConfig => {
   const args = parseArgs(process.argv)
 
   const baseUrl =
-    args['base-url'] ?? args['baseUrl'] ?? process.env.B10CKS_MGMT_BASE_URL ?? 'https://api.b10cks.com'
+    args['base-url'] ??
+    args['baseUrl'] ??
+    process.env.B10CKS_MGMT_BASE_URL ??
+    'https://api.b10cks.com'
   const token =
     args['token'] ?? process.env.B10CKS_MGMT_TOKEN ?? process.env.B10CKS_TOKEN ?? getNetrcToken()
-  const timeoutStr =
-    args['timeout'] ?? process.env.B10CKS_MGMT_TIMEOUT
+  const timeoutStr = args['timeout'] ?? process.env.B10CKS_MGMT_TIMEOUT
 
   if (!token) {
     throw new Error(

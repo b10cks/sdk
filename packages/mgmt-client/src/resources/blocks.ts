@@ -31,7 +31,11 @@ export class BlocksResource {
   }
 
   async create(spaceId: string, payload: Partial<Block>, options?: RequestOptions): Promise<Block> {
-    return this.client.post<Block>(apiPath`/mgmt/v1/spaces/${spaceId}/blocks`, payload, options?.headers)
+    return this.client.post<Block>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/blocks`,
+      payload,
+      options?.headers
+    )
   }
 
   async get(spaceId: string, blockId: string, options?: RequestOptions): Promise<Block> {
@@ -60,7 +64,11 @@ export class BlocksResource {
    * transaction, keyed by external_id. Use `dry_run` to get the plan without
    * applying it and `prune` to soft-delete blocks absent from the payload.
    */
-  async sync(spaceId: string, payload: SyncBlocksParams, options?: RequestOptions): Promise<BlockSyncResponse> {
+  async sync(
+    spaceId: string,
+    payload: SyncBlocksParams,
+    options?: RequestOptions
+  ): Promise<BlockSyncResponse> {
     return this.client.put<BlockSyncResponse>(
       apiPath`/mgmt/v1/spaces/${spaceId}/blocks/sync`,
       payload,

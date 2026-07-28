@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { DataApiClient, GetConfigOptions } from './data-api'
-
 import { B10cksDataApi } from './data-api'
 import { ApiClient } from './index'
 
@@ -121,12 +120,10 @@ describe('B10cksDataApi', () => {
         data: [{ source: '/old', target: '/new', status_code: 301 }],
         meta: { last_page: 2 },
       }),
-      getAll: vi
-        .fn()
-        .mockResolvedValueOnce([
-          { source: '/old', target: '/new', status_code: 301 },
-          { source: '/old-2', target: '/new-2', status_code: 302 },
-        ]),
+      getAll: vi.fn().mockResolvedValueOnce([
+        { source: '/old', target: '/new', status_code: 301 },
+        { source: '/old-2', target: '/new-2', status_code: 302 },
+      ]),
       setRv: vi.fn(),
     }
 

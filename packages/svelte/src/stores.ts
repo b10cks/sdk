@@ -15,7 +15,6 @@ import type {
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
-
 import { writable, type Readable } from 'svelte/store'
 
 import { getB10cksDataApi } from './context'
@@ -40,8 +39,7 @@ export interface UseB10cksApiOptions<T, P extends QueryParams = QueryParams> {
 }
 
 export interface UseB10cksCollectionOptions<T, P extends QueryParams = QueryParams>
-  extends UseB10cksApiOptions<T, P>,
-    CollectionFetchOptions {}
+  extends UseB10cksApiOptions<T, P>, CollectionFetchOptions {}
 
 export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) {
   const useApiResource = <T>(
@@ -168,9 +166,16 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
   }
 
   const useRedirects = (
-    options: UseB10cksApiOptions<RedirectMap> & CollectionFetchOptions & { forceRefresh?: boolean } = {}
+    options: UseB10cksApiOptions<RedirectMap> &
+      CollectionFetchOptions & { forceRefresh?: boolean } = {}
   ): AsyncStore<RedirectMap> => {
-    const { allPages = false, immediate = true, params = {}, transform, forceRefresh = false } = options
+    const {
+      allPages = false,
+      immediate = true,
+      params = {},
+      transform,
+      forceRefresh = false,
+    } = options
     return createAsyncStore(async () => {
       const value = await dataApi.getRedirects(params, { allPages, forceRefresh })
       return transform ? transform(value) : value

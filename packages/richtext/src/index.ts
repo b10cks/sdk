@@ -42,10 +42,7 @@ export type RichTextInternalLinkHandler = (
  * Return the replacement string, or null/undefined to leave the token as-is
  * (rendered as a `<span data-type="placeholder-token">` for client-side use).
  */
-export type RichTextPlaceholderHandler = (
-  key: string,
-  label: string
-) => string | null | undefined
+export type RichTextPlaceholderHandler = (key: string, label: string) => string | null | undefined
 
 export interface RichTextHtmlOptions {
   internalLinkHandler?: RichTextInternalLinkHandler
@@ -132,11 +129,7 @@ function buildAttrs(attrs: Record<string, unknown>): string {
   return result
 }
 
-function tag(
-  name: string,
-  inner: string,
-  attrs: Record<string, unknown> = {}
-): string {
+function tag(name: string, inner: string, attrs: Record<string, unknown> = {}): string {
   return `<${name}${buildAttrs(attrs)}>${inner}</${name}>`
 }
 
@@ -157,11 +150,7 @@ function classAttr(a: Record<string, unknown>): Record<string, unknown> {
 
 // ─── Mark rendering ───────────────────────────────────────────────────────────
 
-function applyMark(
-  mark: RichTextMark,
-  inner: string,
-  options: RichTextHtmlOptions
-): string {
+function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptions): string {
   const a = mark.attrs ?? {}
   switch (mark.type) {
     case 'bold':
@@ -377,11 +366,14 @@ function collectText(
     return
   }
   if (node.type === 'placeholderToken') {
-    const key = ((node.attrs?.key ?? '') as string)
-    const label = ((node.attrs?.label ?? '') as string)
+    const key = (node.attrs?.key ?? '') as string
+    const label = (node.attrs?.label ?? '') as string
     if (placeholderHandler) {
       const resolved = placeholderHandler(key, label)
-      if (resolved != null) { parts.push(resolved); return }
+      if (resolved != null) {
+        parts.push(resolved)
+        return
+      }
     }
     // No handler — emit nothing (it's an empty atom in plain text)
     return

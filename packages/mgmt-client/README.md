@@ -31,36 +31,36 @@ const blocks = await client.blocks.list('space-id', { search: 'article' })
 
 ```typescript
 interface ClientConfig {
-  baseUrl: string            // Base URL of the b10cks API
-  token: string              // Bearer token for authentication
-  timeout?: number           // Request timeout in ms (default: 30 000)
-  headers?: Record<string, string>  // Extra headers sent on every request
+  baseUrl: string // Base URL of the b10cks API
+  token: string // Bearer token for authentication
+  timeout?: number // Request timeout in ms (default: 30 000)
+  headers?: Record<string, string> // Extra headers sent on every request
 }
 ```
 
 ## Resources
 
-| Resource | Property | Description |
-|---|---|---|
-| Users | `client.users` | Current user profile, settings, tokens, invites, social links |
-| Teams | `client.teams` | Teams, members, invites, SAML, blueprints, space roles |
-| Spaces | `client.spaces` | Spaces, members, invites, subscriptions, AI, backups, migrations |
-| Blocks | `client.blocks` | Block schemas, templates, versions |
-| Block Tags | `client.blockTags` | Tags for organizing blocks |
-| Block Folders | `client.blockFolders` | Folder hierarchy for blocks |
-| Contents | `client.contents` | Content entries, tree operations, versions, publishing |
-| Comments | `client.comments` | Comments, replies, reactions on content |
-| Assets | `client.assets` | Media assets with file upload support |
-| Asset Folders | `client.assetFolders` | Folder hierarchy for assets |
-| Asset Tags | `client.assetTags` | Tags for organizing assets |
-| Redirects | `client.redirects` | URL redirects with hit tracking |
-| Tokens | `client.tokens` | Space-scoped API tokens |
-| Data Sources | `client.dataSources` | External data sources and entries |
-| Automations | `client.automations` | Automation actions, triggers, executions, stats |
-| Releases | `client.releases` | Release management and publishing workflows |
-| AI | `client.ai` | AI models, translation, meta-tag generation, streaming |
-| System | `client.system` | Health, config, plans |
-| Provider | `client.provider` | Provider-level stats and notes |
+| Resource      | Property              | Description                                                      |
+| ------------- | --------------------- | ---------------------------------------------------------------- |
+| Users         | `client.users`        | Current user profile, settings, tokens, invites, social links    |
+| Teams         | `client.teams`        | Teams, members, invites, SAML, blueprints, space roles           |
+| Spaces        | `client.spaces`       | Spaces, members, invites, subscriptions, AI, backups, migrations |
+| Blocks        | `client.blocks`       | Block schemas, templates, versions                               |
+| Block Tags    | `client.blockTags`    | Tags for organizing blocks                                       |
+| Block Folders | `client.blockFolders` | Folder hierarchy for blocks                                      |
+| Contents      | `client.contents`     | Content entries, tree operations, versions, publishing           |
+| Comments      | `client.comments`     | Comments, replies, reactions on content                          |
+| Assets        | `client.assets`       | Media assets with file upload support                            |
+| Asset Folders | `client.assetFolders` | Folder hierarchy for assets                                      |
+| Asset Tags    | `client.assetTags`    | Tags for organizing assets                                       |
+| Redirects     | `client.redirects`    | URL redirects with hit tracking                                  |
+| Tokens        | `client.tokens`       | Space-scoped API tokens                                          |
+| Data Sources  | `client.dataSources`  | External data sources and entries                                |
+| Automations   | `client.automations`  | Automation actions, triggers, executions, stats                  |
+| Releases      | `client.releases`     | Release management and publishing workflows                      |
+| AI            | `client.ai`           | AI models, translation, meta-tag generation, streaming           |
+| System        | `client.system`       | Health, config, plans                                            |
+| Provider      | `client.provider`     | Provider-level stats and notes                                   |
 
 ## API Reference
 
@@ -221,7 +221,12 @@ const content = await client.contents.create('space-id', {
   language_iso: 'en',
   content: { title: 'Home', hero: '...' },
   translations: [
-    { name: 'Startseite', slug: 'startseite', language_iso: 'de', content: { title: 'Startseite' } },
+    {
+      name: 'Startseite',
+      slug: 'startseite',
+      language_iso: 'de',
+      content: { title: 'Startseite' },
+    },
   ],
 })
 
@@ -244,7 +249,9 @@ await client.contents.treeOperations('space-id', {
 })
 
 await client.contents.move('space-id', 'content-id', { parent_id: 'new-parent-id', position: 2 })
-await client.contents.bulkCreate('space-id', { items: [{ name: 'Page 1', slug: 'page-1', block_id: '...' }] })
+await client.contents.bulkCreate('space-id', {
+  items: [{ name: 'Page 1', slug: 'page-1', block_id: '...' }],
+})
 
 // Versions
 const versions = await client.contents.listVersions('space-id', 'content-id')
@@ -354,12 +361,16 @@ await client.automations.create('space-id', {
 await client.automations.trigger('space-id', 'automation-id')
 
 // Executions
-const executions = await client.automations.listExecutions('space-id', { automation_id: 'automation-id' })
+const executions = await client.automations.listExecutions('space-id', {
+  automation_id: 'automation-id',
+})
 await client.automations.replayExecution('space-id', 'execution-id')
 
 // Stats
 const summary = await client.automations.getStatsSummary('space-id', 'automation-id')
-const trends = await client.automations.getStatsTrends('space-id', 'automation-id', { interval: 'day' })
+const trends = await client.automations.getStatsTrends('space-id', 'automation-id', {
+  interval: 'day',
+})
 ```
 
 ### Releases
@@ -376,9 +387,9 @@ await client.releases.assignVersion('space-id', 'release-id', { version_id: 'ver
 await client.releases.removeVersion('space-id', 'release-id', { version_id: 'version-id' })
 
 // Lifecycle
-await client.releases.commit('space-id', 'release-id')   // lock for review
-await client.releases.publish('space-id', 'release-id')  // go live
-await client.releases.cancel('space-id', 'release-id')   // discard
+await client.releases.commit('space-id', 'release-id') // lock for review
+await client.releases.publish('space-id', 'release-id') // go live
+await client.releases.cancel('space-id', 'release-id') // discard
 ```
 
 ### AI
@@ -408,7 +419,11 @@ const { data: plans } = await client.system.getPlans()
 ```typescript
 const stats = await client.provider.getStats()
 const notes = await client.provider.listNotes()
-await client.provider.createNote({ title: 'Maintenance window', content: 'Scheduled downtime on Sunday', is_pinned: true })
+await client.provider.createNote({
+  title: 'Maintenance window',
+  content: 'Scheduled downtime on Sunday',
+  is_pinned: true,
+})
 await client.provider.updateNote('note-id', { is_pinned: false })
 await client.provider.deleteNote('note-id')
 ```
@@ -422,9 +437,9 @@ try {
   await client.contents.publish('space-id', 'content-id')
 } catch (error) {
   if (error instanceof ManagementApiError) {
-    console.error(error.message)      // human-readable message
-    console.error(error.statusCode)   // HTTP status code
-    console.error(error.response)     // raw API response body
+    console.error(error.message) // human-readable message
+    console.error(error.statusCode) // HTTP status code
+    console.error(error.response) // raw API response body
   }
 }
 ```
@@ -436,11 +451,11 @@ All list endpoints return a `PaginatedResponse<T>`:
 ```typescript
 const result = await client.blocks.list('space-id', { page: 1, per_page: 25 })
 
-result.data          // T[]  — current page items
-result.meta.total    // total item count across all pages
+result.data // T[]  — current page items
+result.meta.total // total item count across all pages
 result.meta.last_page
-result.links.next    // URL for the next page, or null
-result.links.prev    // URL for the previous page, or null
+result.links.next // URL for the next page, or null
+result.links.prev // URL for the previous page, or null
 ```
 
 ## TypeScript
@@ -449,18 +464,37 @@ All types are exported from the package root:
 
 ```typescript
 import type {
-  Automation, AutomationAction, AutomationExecution,
-  Backup, Block, BlockTemplate, BlockVersion,
-  Comment, CommentReaction,
-  Content, ContentVersion, ContentVersionListItem,
-  DataEntry, DataSource,
-  Invite, Migration,
-  PaginatedResponse, Plan,
-  Release, Redirect,
-  Space, SpaceAiConfig, SpaceBlueprint, SpaceMember,
-  SpaceToken, Subscription,
-  Team, TeamMember, TeamSamlProvider,
-  User, SimpleUser,
+  Automation,
+  AutomationAction,
+  AutomationExecution,
+  Backup,
+  Block,
+  BlockTemplate,
+  BlockVersion,
+  Comment,
+  CommentReaction,
+  Content,
+  ContentVersion,
+  ContentVersionListItem,
+  DataEntry,
+  DataSource,
+  Invite,
+  Migration,
+  PaginatedResponse,
+  Plan,
+  Release,
+  Redirect,
+  Space,
+  SpaceAiConfig,
+  SpaceBlueprint,
+  SpaceMember,
+  SpaceToken,
+  Subscription,
+  Team,
+  TeamMember,
+  TeamSamlProvider,
+  User,
+  SimpleUser,
 } from '@b10cks/mgmt-client'
 ```
 

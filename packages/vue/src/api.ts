@@ -16,7 +16,6 @@ import type {
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
-
 import { computed, inject, ref, type Ref } from 'vue'
 
 import { B10cksClientKey, B10cksDataApiKey } from './types'
@@ -30,8 +29,7 @@ export interface UseB10cksApiOptions<T, P extends QueryParams = QueryParams> {
 }
 
 export interface UseB10cksCollectionOptions<T, P extends QueryParams = QueryParams>
-  extends UseB10cksApiOptions<T, P>,
-    CollectionFetchOptions {}
+  extends UseB10cksApiOptions<T, P>, CollectionFetchOptions {}
 
 export interface AsyncState<T> {
   data: import('vue').Ref<T | null>
@@ -188,9 +186,16 @@ export function useB10cksApi() {
   }
 
   const useRedirects = (
-    options: UseB10cksApiOptions<RedirectMap> & CollectionFetchOptions & { forceRefresh?: boolean } = {}
+    options: UseB10cksApiOptions<RedirectMap> &
+      CollectionFetchOptions & { forceRefresh?: boolean } = {}
   ): AsyncState<RedirectMap> => {
-    const { allPages = false, immediate = true, params = {}, transform, forceRefresh = false } = options
+    const {
+      allPages = false,
+      immediate = true,
+      params = {},
+      transform,
+      forceRefresh = false,
+    } = options
     return createAsyncState(async () => {
       const value = await dataApi.getRedirects(params, { allPages, forceRefresh })
       return transform ? transform(value) : value

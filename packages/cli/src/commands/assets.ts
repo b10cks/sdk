@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { Asset, AssetFolder, AssetMetadata, PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { Asset, AssetFolder, AssetMetadata, PaginationParams } from '@b10cks/mgmt-client'
 
 export class AssetsCommand extends BaseCommand {
   register(program: Command): void {
@@ -37,10 +36,14 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No assets found')
           console.log(`\n${chalk.bold('Assets:')}`)
           res.data.forEach((a) => {
-            console.log(`  ${chalk.yellow(a.id)}  ${chalk.bold(a.filename ?? '')}  ${chalk.dim(a.mime_type ?? '')}`)
+            console.log(
+              `  ${chalk.yellow(a.id)}  ${chalk.bold(a.filename ?? '')}  ${chalk.dim(a.mime_type ?? '')}`
+            )
           })
           console.log(`\n${chalk.dim(`Total: ${res.data.length}`)}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -60,7 +63,9 @@ export class AssetsCommand extends BaseCommand {
           console.log(`  ${chalk.bold('Filename:')}  ${asset.filename ?? ''}`)
           console.log(`  ${chalk.bold('MIME type:')} ${asset.mime_type ?? ''}`)
           console.log(`  ${chalk.bold('URL:')}        ${asset.url ?? ''}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -83,7 +88,9 @@ export class AssetsCommand extends BaseCommand {
           const asset = await this.client.assets.update(spaceId, assetId, payload)
           if (options.json) return this.outputJson(asset)
           this.displaySuccess(`Asset ${chalk.yellow(asset.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -96,16 +103,22 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, assetId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete asset ${chalk.yellow(assetId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete asset ${chalk.yellow(assetId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.assets.delete(spaceId, assetId)
           this.displaySuccess(`Asset ${chalk.yellow(assetId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -123,14 +136,17 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No linked contents')
           console.log(`\n${chalk.bold('Linked Contents:')}`)
           res.data.forEach((c) => console.log(`  ${chalk.yellow(c.id)}  ${c.name ?? ''}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerFoldersGroup(ns: Command): void {
     const folders = ns.command('folders').description('manage asset folders')
 
-    folders.command('list')
+    folders
+      .command('list')
       .description('list asset folders')
       .argument('<spaceId>', 'space ID')
       .option('-p, --page <page>', 'page number')
@@ -147,10 +163,13 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No folders found')
           console.log(`\n${chalk.bold('Asset Folders:')}`)
           res.data.forEach((f) => console.log(`  ${chalk.yellow(f.id)}  ${f.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    folders.command('get')
+    folders
+      .command('get')
       .description('get an asset folder')
       .argument('<spaceId>', 'space ID')
       .argument('<folderId>', 'folder ID')
@@ -161,10 +180,13 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetFolders.get(spaceId, folderId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    folders.command('create')
+    folders
+      .command('create')
       .description('create an asset folder')
       .argument('<spaceId>', 'space ID')
       .option('-n, --name <name>', 'folder name')
@@ -179,10 +201,13 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetFolders.create(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Folder ${chalk.yellow(res.id)} created`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    folders.command('delete')
+    folders
+      .command('delete')
       .description('delete an asset folder')
       .argument('<spaceId>', 'space ID')
       .argument('<folderId>', 'folder ID')
@@ -190,23 +215,30 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, folderId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete folder ${chalk.yellow(folderId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete folder ${chalk.yellow(folderId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.assetFolders.delete(spaceId, folderId)
           this.displaySuccess(`Folder ${chalk.yellow(folderId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerTagsGroup(ns: Command): void {
     const tags = ns.command('tags').description('manage asset tags')
 
-    tags.command('list')
+    tags
+      .command('list')
       .description('list asset tags')
       .argument('<spaceId>', 'space ID')
       .option('-p, --page <page>', 'page number')
@@ -223,10 +255,13 @@ export class AssetsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No tags found')
           console.log(`\n${chalk.bold('Asset Tags:')}`)
           res.data.forEach((t) => console.log(`  ${chalk.yellow(t.id)}  ${t.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tags.command('create')
+    tags
+      .command('create')
       .description('create an asset tag')
       .argument('<spaceId>', 'space ID')
       .requiredOption('-n, --name <name>', 'tag name')
@@ -237,10 +272,13 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetTags.create(spaceId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Tag ${chalk.yellow(res.id)} created`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tags.command('get')
+    tags
+      .command('get')
       .description('get an asset tag')
       .argument('<spaceId>', 'space ID')
       .argument('<tagId>', 'tag ID')
@@ -251,10 +289,13 @@ export class AssetsCommand extends BaseCommand {
           const res = await this.client.assetTags.get(spaceId, tagId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tags.command('delete')
+    tags
+      .command('delete')
       .description('delete an asset tag')
       .argument('<spaceId>', 'space ID')
       .argument('<tagId>', 'tag ID')
@@ -262,16 +303,22 @@ export class AssetsCommand extends BaseCommand {
       .action(async (spaceId, tagId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete tag ${chalk.yellow(tagId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete tag ${chalk.yellow(tagId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.assetTags.delete(spaceId, tagId)
           this.displaySuccess(`Tag ${chalk.yellow(tagId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import type { IBBreadcrumbLevel } from './types'
-
 import { breadcrumbJsonLd } from './breadcrumb'
+import type { IBBreadcrumbLevel } from './types'
 
 const level = (
   name: string,

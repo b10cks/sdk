@@ -509,8 +509,7 @@ export const operations: OperationDefinition[] = [
     description: 'Create a migration for a space.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
-    handler: (client, args) =>
-      client.spaces.createMigration(spaceId(args), payload(args) as never),
+    handler: (client, args) => client.spaces.createMigration(spaceId(args), payload(args) as never),
   },
 
   // ─── Blocks ─────────────────────────────────────────────────────────────────
@@ -523,7 +522,8 @@ export const operations: OperationDefinition[] = [
   },
   {
     name: 'blocks.create',
-    description: 'Create a block definition. Payload fields: name (string), slug (string, unique), type ("root"|"nestable"|"single"), schema (object mapping field keys to field definitions), editor (array of {header, items} tab groups), tags (string[]), icon (string), color (hex string), preview_template (mustache string). Call b10cks_content_model_guide first for field type options, tag hierarchy, and canonical patterns.',
+    description:
+      'Create a block definition. Payload fields: name (string), slug (string, unique), type ("root"|"nestable"|"single"), schema (object mapping field keys to field definitions), editor (array of {header, items} tab groups), tags (string[]), icon (string), color (hex string), preview_template (mustache string). Call b10cks_content_model_guide first for field type options, tag hierarchy, and canonical patterns.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
     handler: (client, args) => client.blocks.create(spaceId(args), payload(args) as never),
@@ -537,7 +537,8 @@ export const operations: OperationDefinition[] = [
   },
   {
     name: 'blocks.update',
-    description: 'Update a block definition. Same payload structure as blocks.create — only include fields to change. Schema field keys are stable identifiers; renaming a key creates a new field and loses existing data.',
+    description:
+      'Update a block definition. Same payload structure as blocks.create — only include fields to change. Schema field keys are stable identifiers; renaming a key creates a new field and loses existing data.',
     required: ['spaceId', 'id', 'payload'],
     accepts: ['spaceId', 'id', 'blockId', 'payload'],
     handler: (client, args) =>
@@ -564,7 +565,8 @@ export const operations: OperationDefinition[] = [
     description: 'List templates for a block definition.',
     required: ['spaceId', 'blockId'],
     accepts: ['spaceId', 'blockId', 'params'],
-    handler: (client, args) => client.blocks.listTemplates(spaceId(args), blockId(args), params(args)),
+    handler: (client, args) =>
+      client.blocks.listTemplates(spaceId(args), blockId(args), params(args)),
   },
   {
     name: 'blocks.createTemplate',
@@ -609,7 +611,8 @@ export const operations: OperationDefinition[] = [
     description: 'List versions of a block definition.',
     required: ['spaceId', 'blockId'],
     accepts: ['spaceId', 'blockId', 'params'],
-    handler: (client, args) => client.blocks.listVersions(spaceId(args), blockId(args), params(args)),
+    handler: (client, args) =>
+      client.blocks.listVersions(spaceId(args), blockId(args), params(args)),
   },
   {
     name: 'blocks.getVersion',
@@ -691,8 +694,7 @@ export const operations: OperationDefinition[] = [
     description: 'Bulk-create multiple content entries at once.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
-    handler: (client, args) =>
-      client.contents.bulkCreate(spaceId(args), payload(args) as never),
+    handler: (client, args) => client.contents.bulkCreate(spaceId(args), payload(args) as never),
   },
   {
     name: 'contents.treeOperations',
@@ -739,7 +741,8 @@ export const operations: OperationDefinition[] = [
     description: 'List versions of a content entry.',
     required: ['spaceId', 'id'],
     accepts: ['spaceId', 'id', 'contentId', 'params'],
-    handler: (client, args) => client.contents.listVersions(spaceId(args), contentId(args), params(args)),
+    handler: (client, args) =>
+      client.contents.listVersions(spaceId(args), contentId(args), params(args)),
   },
   {
     name: 'contents.getVersion',
@@ -800,8 +803,7 @@ export const operations: OperationDefinition[] = [
     description: 'Get a comment by ID.',
     required: ['spaceId', 'contentId', 'commentId'],
     accepts: ['spaceId', 'contentId', 'commentId'],
-    handler: (client, args) =>
-      client.comments.get(spaceId(args), contentId(args), commentId(args)),
+    handler: (client, args) => client.comments.get(spaceId(args), contentId(args), commentId(args)),
   },
   {
     name: 'comments.update',
@@ -846,7 +848,12 @@ export const operations: OperationDefinition[] = [
     required: ['spaceId', 'contentId', 'commentId'],
     accepts: ['spaceId', 'contentId', 'commentId', 'params'],
     handler: (client, args) =>
-      client.comments.listReactions(spaceId(args), contentId(args), commentId(args), queryOpts(args)),
+      client.comments.listReactions(
+        spaceId(args),
+        contentId(args),
+        commentId(args),
+        queryOpts(args)
+      ),
   },
   {
     name: 'comments.addReaction',
@@ -975,8 +982,7 @@ export const operations: OperationDefinition[] = [
     description: 'Create an automation.',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
-    handler: (client, args) =>
-      client.automations.create(spaceId(args), payload(args) as never),
+    handler: (client, args) => client.automations.create(spaceId(args), payload(args) as never),
   },
   {
     name: 'automations.get',
@@ -1015,7 +1021,11 @@ export const operations: OperationDefinition[] = [
     required: ['spaceId', 'automationId'],
     accepts: ['spaceId', 'automationId', 'params'],
     handler: (client, args) =>
-      client.automations.getStatsExecutions(spaceId(args), automationId(args), params(args) as never),
+      client.automations.getStatsExecutions(
+        spaceId(args),
+        automationId(args),
+        params(args) as never
+      ),
   },
   {
     name: 'automations.statsTrends',
@@ -1031,7 +1041,11 @@ export const operations: OperationDefinition[] = [
     required: ['spaceId', 'automationId'],
     accepts: ['spaceId', 'automationId', 'params'],
     handler: (client, args) =>
-      client.automations.getStatsStatistics(spaceId(args), automationId(args), params(args) as never),
+      client.automations.getStatsStatistics(
+        spaceId(args),
+        automationId(args),
+        params(args) as never
+      ),
   },
   {
     name: 'automations.statsSummary',
@@ -1055,8 +1069,7 @@ export const operations: OperationDefinition[] = [
     description: 'Replay a failed or completed automation execution.',
     required: ['spaceId', 'executionId'],
     accepts: ['spaceId', 'executionId'],
-    handler: (client, args) =>
-      client.automations.replayExecution(spaceId(args), executionId(args)),
+    handler: (client, args) => client.automations.replayExecution(spaceId(args), executionId(args)),
   },
 
   // ─── Releases ────────────────────────────────────────────────────────────────
@@ -1218,21 +1231,32 @@ for (const [prefix, label, clientKey, getId] of crudResources) {
       description: `List ${label}s in a space.`,
       required: ['spaceId'],
       accepts: ['spaceId', 'params'],
-      handler: (client, args) => (client[clientKey] as never as { list: (s: string, p?: unknown) => Promise<unknown> }).list(spaceId(args), params(args)),
+      handler: (client, args) =>
+        (client[clientKey] as never as { list: (s: string, p?: unknown) => Promise<unknown> }).list(
+          spaceId(args),
+          params(args)
+        ),
     },
     {
       name: `${prefix}.create`,
       description: `Create a ${label}.`,
       required: ['spaceId', 'payload'],
       accepts: ['spaceId', 'payload'],
-      handler: (client, args) => (client[clientKey] as never as { create: (s: string, p: unknown) => Promise<unknown> }).create(spaceId(args), payload(args)),
+      handler: (client, args) =>
+        (
+          client[clientKey] as never as { create: (s: string, p: unknown) => Promise<unknown> }
+        ).create(spaceId(args), payload(args)),
     },
     {
       name: `${prefix}.get`,
       description: `Get a ${label} by ID.`,
       required: ['spaceId', 'id'],
       accepts: ['spaceId', 'id'],
-      handler: (client, args) => (client[clientKey] as never as { get: (s: string, id: string) => Promise<unknown> }).get(spaceId(args), getId(args)),
+      handler: (client, args) =>
+        (client[clientKey] as never as { get: (s: string, id: string) => Promise<unknown> }).get(
+          spaceId(args),
+          getId(args)
+        ),
     },
     {
       name: `${prefix}.update`,
@@ -1240,14 +1264,21 @@ for (const [prefix, label, clientKey, getId] of crudResources) {
       required: ['spaceId', 'id', 'payload'],
       accepts: ['spaceId', 'id', 'payload'],
       handler: (client, args) =>
-        (client[clientKey] as never as { update: (s: string, id: string, p: unknown) => Promise<unknown> }).update(spaceId(args), getId(args), payload(args)),
+        (
+          client[clientKey] as never as {
+            update: (s: string, id: string, p: unknown) => Promise<unknown>
+          }
+        ).update(spaceId(args), getId(args), payload(args)),
     },
     {
       name: `${prefix}.delete`,
       description: `Delete a ${label}.`,
       required: ['spaceId', 'id'],
       accepts: ['spaceId', 'id'],
-      handler: (client, args) => (client[clientKey] as never as { delete: (s: string, id: string) => Promise<unknown> }).delete(spaceId(args), getId(args)),
+      handler: (client, args) =>
+        (
+          client[clientKey] as never as { delete: (s: string, id: string) => Promise<unknown> }
+        ).delete(spaceId(args), getId(args)),
     }
   )
 }
@@ -1266,7 +1297,11 @@ operations.push(
     required: ['spaceId', 'id', 'payload'],
     accepts: ['spaceId', 'id', 'tagId', 'payload'],
     handler: (client, args) =>
-      client.assetTags.assign(spaceId(args), tagId(args), (payload(args).asset_ids as string[]) ?? []),
+      client.assetTags.assign(
+        spaceId(args),
+        tagId(args),
+        (payload(args).asset_ids as string[]) ?? []
+      ),
   },
   {
     name: 'redirects.reset',
@@ -1301,7 +1336,8 @@ operations.push(
     description: 'List entries in a data source.',
     required: ['spaceId', 'dataSourceId'],
     accepts: ['spaceId', 'dataSourceId', 'params'],
-    handler: (client, args) => client.dataSources.listEntries(spaceId(args), dataSourceId(args), params(args)),
+    handler: (client, args) =>
+      client.dataSources.listEntries(spaceId(args), dataSourceId(args), params(args)),
   },
   {
     name: 'dataSources.entries.create',
@@ -1576,7 +1612,8 @@ operations.push(
     description: 'List an asset’s file versions, most recent first.',
     required: ['spaceId', 'assetId'],
     accepts: ['spaceId', 'assetId', 'params'],
-    handler: (client, args) => client.assets.listVersions(spaceId(args), assetId(args), params(args)),
+    handler: (client, args) =>
+      client.assets.listVersions(spaceId(args), assetId(args), params(args)),
   },
   {
     name: 'assets.restoreVersion',
@@ -1695,14 +1732,16 @@ operations.push(
       'Dismiss or restore the space onboarding guide. Payload fields: dismissed (boolean, required).',
     required: ['spaceId', 'payload'],
     accepts: ['spaceId', 'payload'],
-    handler: (client, args) => client.spaces.updateOnboarding(spaceId(args), payload(args) as never),
+    handler: (client, args) =>
+      client.spaces.updateOnboarding(spaceId(args), payload(args) as never),
   },
   {
     name: 'spaces.getMigration',
     description: 'Get a space migration by ID.',
     required: ['spaceId', 'id'],
     accepts: ['spaceId', 'id', 'migrationId'],
-    handler: (client, args) => client.spaces.getMigration(spaceId(args), args.migrationId ?? id(args)),
+    handler: (client, args) =>
+      client.spaces.getMigration(spaceId(args), args.migrationId ?? id(args)),
   },
   {
     name: 'spaces.deleteMigration',
@@ -1786,8 +1825,7 @@ operations.push(
 operations.push(
   {
     name: 'teams.listMembers',
-    description:
-      'List team members. Params: role, name, email, q, isActive, sort, page, per_page.',
+    description: 'List team members. Params: role, name, email, q, isActive, sort, page, per_page.',
     required: ['teamId'],
     accepts: ['teamId', 'params'],
     handler: (client, args) => client.teams.listMembers(teamId(args), params(args)),
@@ -1797,7 +1835,8 @@ operations.push(
     description: 'Update a team member’s role. Payload fields: role (string|null).',
     required: ['teamId', 'userId', 'payload'],
     accepts: ['teamId', 'userId', 'payload'],
-    handler: (client, args) => client.teams.updateMember(teamId(args), userId(args), payload(args) as never),
+    handler: (client, args) =>
+      client.teams.updateMember(teamId(args), userId(args), payload(args) as never),
   },
   {
     name: 'teams.removeMember',
@@ -1811,7 +1850,8 @@ operations.push(
     description: 'Update a team user.',
     required: ['teamId', 'userId', 'payload'],
     accepts: ['teamId', 'userId', 'payload'],
-    handler: (client, args) => client.teams.updateUser(teamId(args), userId(args), payload(args) as never),
+    handler: (client, args) =>
+      client.teams.updateUser(teamId(args), userId(args), payload(args) as never),
   },
   {
     name: 'teams.listInvites',
@@ -1853,7 +1893,8 @@ operations.push(
     description: 'Create or replace a team’s SAML provider configuration.',
     required: ['teamId', 'payload'],
     accepts: ['teamId', 'payload'],
-    handler: (client, args) => client.teams.upsertSamlProvider(teamId(args), payload(args) as never),
+    handler: (client, args) =>
+      client.teams.upsertSamlProvider(teamId(args), payload(args) as never),
   },
   {
     name: 'teams.deleteSamlProvider',
@@ -1871,7 +1912,8 @@ operations.push(
   },
   {
     name: 'teams.createBlueprint',
-    description: 'Create a space blueprint. Payload fields: name (required), icon, color, description, settings, data.',
+    description:
+      'Create a space blueprint. Payload fields: name (required), icon, color, description, settings, data.',
     required: ['teamId', 'payload'],
     accepts: ['teamId', 'payload'],
     handler: (client, args) => client.teams.createBlueprint(teamId(args), payload(args) as never),
@@ -1907,7 +1949,8 @@ operations.push(
   },
   {
     name: 'teams.createSpaceRole',
-    description: 'Create a space role. Payload fields: name (required), key, description, abilities.',
+    description:
+      'Create a space role. Payload fields: name (required), key, description, abilities.',
     required: ['teamId', 'payload'],
     accepts: ['teamId', 'payload'],
     handler: (client, args) => client.teams.createSpaceRole(teamId(args), payload(args) as never),

@@ -1,6 +1,5 @@
-import type { Directive, DirectiveBinding } from 'vue'
-
 import { attachEditableField, type EditableFieldMode, type FieldPath } from '@b10cks/client'
+import type { Directive, DirectiveBinding } from 'vue'
 
 interface EditableFieldElement extends HTMLElement {
   _editableFieldCleanup?: () => void

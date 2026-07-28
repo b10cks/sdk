@@ -1,8 +1,4 @@
-import type {
-  RichTextDocument,
-  RichTextHtmlOptions,
-  RichTextRenderer,
-} from '@b10cks/richtext'
+import type { RichTextDocument, RichTextHtmlOptions, RichTextRenderer } from '@b10cks/richtext'
 import { createRichTextHtmlRenderer, renderRichText } from '@b10cks/richtext'
 import type { HTMLAttributes, ReactElement } from 'react'
 
@@ -37,7 +33,12 @@ export function B10cksRichText({
 }: B10cksRichTextProps): ReactElement {
   const resolvedHtml = html ?? renderRichTextHtml(document, options)
 
-  return <div {...htmlAttributes} dangerouslySetInnerHTML={{ __html: resolvedHtml }} />
+  return (
+    <div
+      {...htmlAttributes}
+      dangerouslySetInnerHTML={{ __html: resolvedHtml }}
+    />
+  )
 }
 
 export default B10cksRichText

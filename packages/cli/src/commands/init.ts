@@ -1,16 +1,12 @@
-import type { Command } from 'commander'
-
 import fs from 'node:fs'
 import path from 'node:path'
 
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import { downloadTemplate } from 'giget'
 import inquirer from 'inquirer'
 
-import type { Changes, ManualStep } from '../init/wiring.js'
 import type { EnvResult } from '../init/env.js'
-import type { Framework, PackageManager } from '../utils/project.js'
-
 import { ensureGitignored, envDefines, upsertEnv } from '../init/env.js'
 import {
   DEFAULT_API_URL,
@@ -19,10 +15,12 @@ import {
   scaffoldCommand,
   tokenEnv,
 } from '../init/frameworks.js'
+import type { Changes, ManualStep } from '../init/wiring.js'
 import { wireFramework } from '../init/wiring.js'
 import { TypesGeneratorService } from '../services/TypeGeneratorService.js'
 import credentials from '../utils/credentials.js'
 import { run } from '../utils/exec.js'
+import type { Framework, PackageManager } from '../utils/project.js'
 import {
   FRAMEWORKS,
   PACKAGE_MANAGERS,
@@ -68,7 +66,10 @@ export class InitCommand extends BaseCommand {
       .description('set up b10cks in this project, or scaffold a new one')
       .argument('[dir]', 'target directory', '.')
       .option('-f, --framework <name>', `framework (${FRAMEWORKS.join('|')})`)
-      .option('-T, --template <ref>', 'scaffold from a giget ref instead of the official scaffolder')
+      .option(
+        '-T, --template <ref>',
+        'scaffold from a giget ref instead of the official scaffolder'
+      )
       .option('-s, --space <spaceId>', 'space to link')
       .option('-t, --token <token>', 'access token (default: create one, or prompt)')
       .option('--pm <pm>', `package manager (${PACKAGE_MANAGERS.join('|')})`)
@@ -79,7 +80,9 @@ export class InitCommand extends BaseCommand {
       .action(async (dir: string, options: InitOptions) => {
         try {
           await this.execute(dir, options)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -88,10 +91,14 @@ export class InitCommand extends BaseCommand {
     const dryRun = Boolean(options.dryRun)
 
     if (options.framework && !FRAMEWORKS.includes(options.framework as Framework)) {
-      throw new Error(`Unknown framework "${options.framework}". Expected: ${FRAMEWORKS.join(', ')}`)
+      throw new Error(
+        `Unknown framework "${options.framework}". Expected: ${FRAMEWORKS.join(', ')}`
+      )
     }
     if (options.pm && !PACKAGE_MANAGERS.includes(options.pm as PackageManager)) {
-      throw new Error(`Unknown package manager "${options.pm}". Expected: ${PACKAGE_MANAGERS.join(', ')}`)
+      throw new Error(
+        `Unknown package manager "${options.pm}". Expected: ${PACKAGE_MANAGERS.join(', ')}`
+      )
     }
 
     if (dryRun) console.log(chalk.dim('Dry run — nothing will be written.'))
@@ -161,7 +168,8 @@ export class InitCommand extends BaseCommand {
     if (detected) return { framework: detected, materialized: true }
 
     if (!isEmptyDir(dir)) {
-      if (options.framework) return { framework: options.framework as Framework, materialized: true }
+      if (options.framework)
+        return { framework: options.framework as Framework, materialized: true }
       throw new Error(
         `No supported framework detected in ${dir}, and it is not empty.\n` +
           '  Pass --framework to wire it up anyway, or target an empty directory to scaffold.'
@@ -219,12 +227,14 @@ export class InitCommand extends BaseCommand {
     if (options.framework) return options.framework as Framework
     if (options.yes) throw new Error('Could not detect a framework — pass --framework with --yes.')
 
-    const { framework } = await inquirer.prompt([{
-      type: 'list',
-      name: 'framework',
-      message: 'Framework:',
-      choices: FRAMEWORKS.map((value) => ({ name: FRAMEWORK_LABELS[value], value })),
-    }])
+    const { framework } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'framework',
+        message: 'Framework:',
+        choices: FRAMEWORKS.map((value) => ({ name: FRAMEWORK_LABELS[value], value })),
+      },
+    ])
     return framework
   }
 
@@ -271,12 +281,14 @@ export class InitCommand extends BaseCommand {
       if (spaceId) return { token: await this.mintToken(dir, spaceId), spaceId }
     }
 
-    const { token } = await inquirer.prompt([{
-      type: 'password',
-      name: 'token',
-      message: 'b10cks access token:',
-      validate: (value: string) => (value.trim().length > 0 ? true : 'Required'),
-    }])
+    const { token } = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'token',
+        message: 'b10cks access token:',
+        validate: (value: string) => (value.trim().length > 0 ? true : 'Required'),
+      },
+    ])
     return { token: token.trim(), spaceId: options.space }
   }
 
@@ -292,15 +304,17 @@ export class InitCommand extends BaseCommand {
     const spaces = response.data ?? []
     if (!spaces.length) return null
 
-    const { spaceId } = await inquirer.prompt([{
-      type: 'list',
-      name: 'spaceId',
-      message: 'Space:',
-      choices: spaces.map((space) => ({
-        name: `${space.name} ${chalk.dim(space.slug)}`,
-        value: space.id,
-      })),
-    }])
+    const { spaceId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'spaceId',
+        message: 'Space:',
+        choices: spaces.map((space) => ({
+          name: `${space.name} ${chalk.dim(space.slug)}`,
+          value: space.id,
+        })),
+      },
+    ])
     return spaceId
   }
 
@@ -326,8 +340,15 @@ export class InitCommand extends BaseCommand {
   }
 
   private printManualStep(step: ManualStep): void {
-    console.log(`\n${chalk.yellow('⚠')} ${chalk.bold(step.file)} — could not wire automatically, add:`)
-    console.log(step.snippet.split('\n').map((line) => `    ${chalk.cyan(line)}`).join('\n'))
+    console.log(
+      `\n${chalk.yellow('⚠')} ${chalk.bold(step.file)} — could not wire automatically, add:`
+    )
+    console.log(
+      step.snippet
+        .split('\n')
+        .map((line) => `    ${chalk.cyan(line)}`)
+        .join('\n')
+    )
   }
 
   private printNextSteps(dirArg: string, spaceId: string | undefined, options: InitOptions): void {

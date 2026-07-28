@@ -105,7 +105,8 @@ const orNull = (value: unknown): unknown => (value === undefined ? null : value)
 /** PHP json_encode() turns empty assoc arrays into []. */
 const emptyToList = (value: Dict): Dict | [] => (Object.keys(value).length === 0 ? [] : value)
 
-const asEntries = (value: Dict | unknown[]): unknown[] => (Array.isArray(value) ? value : Object.values(value))
+const asEntries = (value: Dict | unknown[]): unknown[] =>
+  Array.isArray(value) ? value : Object.values(value)
 
 // ─── Shared condition helpers ────────────────────────────────────────────────
 
@@ -240,14 +241,21 @@ const normalizeTableDefault = (value: unknown): Dict => {
         .filter(isDict)
         .map((row) => ({
           id: phpStr(row.id ?? ''),
-          cells: isPhpArray(row.cells) ? (isDict(row.cells) ? emptyToList(row.cells) : row.cells) : [],
+          cells: isPhpArray(row.cells)
+            ? isDict(row.cells)
+              ? emptyToList(row.cells)
+              : row.cells
+            : [],
         }))
     : []
 
   return { header: emptyToList(header), rows }
 }
 
-const fieldNormalizeAttributes = (key: string, input: SchemaFieldAttributes): SchemaFieldAttributes => {
+const fieldNormalizeAttributes = (
+  key: string,
+  input: SchemaFieldAttributes
+): SchemaFieldAttributes => {
   const attributes: Dict = { ...input }
 
   attributes.key = key
@@ -258,7 +266,9 @@ const fieldNormalizeAttributes = (key: string, input: SchemaFieldAttributes): Sc
   attributes.translatable = FIELD_TRANSLATABLE_TYPES.has(attributes.type as string)
     ? phpBool(attributes.translatable ?? false)
     : false
-  attributes.indexable = phpBool(attributes.indexable ?? FIELD_INDEXABLE_DEFAULTS[attributes.type as string] ?? false)
+  attributes.indexable = phpBool(
+    attributes.indexable ?? FIELD_INDEXABLE_DEFAULTS[attributes.type as string] ?? false
+  )
   attributes.conditions = fieldNormalizeConditions(attributes)
   attributes.validation = fieldNormalizeValidation(attributes)
 
@@ -335,13 +345,16 @@ const allowedValuesFromOptions = (attributes: Dict): unknown => {
   }
 
   const options = isPhpArray(attributes.options) ? asEntries(attributes.options) : []
-  return options.map((option) => (isDict(option) ? (option.value ?? null) : null)).filter((value) => phpBool(value))
+  return options
+    .map((option) => (isDict(option) ? (option.value ?? null) : null))
+    .filter((value) => phpBool(value))
 }
 
 const storeNormalizeValidation = (type: string, attributes: Dict): Dict | null => {
-  const validation: Dict = isPhpArray(attributes.validation) && isDict(attributes.validation)
-    ? { ...attributes.validation }
-    : {}
+  const validation: Dict =
+    isPhpArray(attributes.validation) && isDict(attributes.validation)
+      ? { ...attributes.validation }
+      : {}
 
   if ('min_items' in validation && !('min' in validation)) validation.min = validation.min_items
   if ('max_items' in validation && !('max' in validation)) validation.max = validation.max_items
@@ -389,7 +402,10 @@ const storeNormalizeValidation = (type: string, attributes: Dict): Dict | null =
   return Object.keys(validation).length === 0 ? null : validation
 }
 
-const storeNormalizeField = (key: string, attributes: SchemaFieldAttributes): SchemaFieldAttributes => {
+const storeNormalizeField = (
+  key: string,
+  attributes: SchemaFieldAttributes
+): SchemaFieldAttributes => {
   const type = fieldCanonicalizeType(attributes.type ?? '')
 
   const normalized: Dict = {
@@ -398,8 +414,11 @@ const storeNormalizeField = (key: string, attributes: SchemaFieldAttributes): Sc
     name: attributes.name ?? attributes.label ?? key,
     description: orNull(attributes.description),
     required: phpBool(attributes.required ?? false),
-    translatable: STORE_TRANSLATABLE_TYPES.has(type) ? phpBool(attributes.translatable ?? false) : false,
-    indexable: 'indexable' in attributes ? phpBool(attributes.indexable) : STORE_INDEXABLE_TYPES.has(type),
+    translatable: STORE_TRANSLATABLE_TYPES.has(type)
+      ? phpBool(attributes.translatable ?? false)
+      : false,
+    indexable:
+      'indexable' in attributes ? phpBool(attributes.indexable) : STORE_INDEXABLE_TYPES.has(type),
     default: orNull(attributes.default),
     conditions: storeNormalizeConditions(attributes),
     validation: storeNormalizeValidation(type, attributes),

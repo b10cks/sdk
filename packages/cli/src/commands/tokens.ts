@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class TokensCommand extends BaseCommand {
   register(program: Command): void {
@@ -29,7 +28,9 @@ export class TokensCommand extends BaseCommand {
           res.data.forEach((t) => {
             console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('create')
@@ -44,7 +45,13 @@ export class TokensCommand extends BaseCommand {
           let name = options.name
           if (options.interactive || !name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Token name:', default: name, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Token name:',
+                default: name,
+                validate: (v) => (v ? true : 'Required'),
+              },
             ])
             name = answers.name
           }
@@ -58,7 +65,9 @@ export class TokensCommand extends BaseCommand {
             console.log(`\n  ${chalk.bold('Token:')} ${chalk.cyan(token.token)}`)
             console.log(`  ${chalk.yellow('Copy this token — it will not be shown again.')}`)
           }
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('delete')
@@ -69,16 +78,22 @@ export class TokensCommand extends BaseCommand {
       .action(async (spaceId, tokenId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete token ${chalk.yellow(tokenId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete token ${chalk.yellow(tokenId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.tokens.delete(spaceId, tokenId)
           this.displaySuccess(`Token ${chalk.yellow(tokenId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

@@ -1,5 +1,4 @@
 import type { FieldPath, SelectUpdateEvent } from './preview-bridge'
-
 import { previewBridge } from './preview-bridge'
 
 const STYLE_ID = 'b10cks-preview-style'

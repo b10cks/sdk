@@ -101,16 +101,24 @@ describe('computeSchemaDiff', () => {
     const localEdit = definition({ name: 'Hero Section' })
     const remoteEdit = block({ name: 'Hero Banner' })
 
-    expect(computeSchemaDiff([localEdit], [block()], { 'ext-hero': baseHash }).entries[0].status).toBe(
-      'local-modified'
-    )
-    expect(computeSchemaDiff([base], [remoteEdit], { 'ext-hero': baseHash }).entries[0].status).toBe('remote-drift')
-    expect(computeSchemaDiff([localEdit], [remoteEdit], { 'ext-hero': baseHash }).entries[0].status).toBe('conflict')
+    expect(
+      computeSchemaDiff([localEdit], [block()], { 'ext-hero': baseHash }).entries[0].status
+    ).toBe('local-modified')
+    expect(
+      computeSchemaDiff([base], [remoteEdit], { 'ext-hero': baseHash }).entries[0].status
+    ).toBe('remote-drift')
+    expect(
+      computeSchemaDiff([localEdit], [remoteEdit], { 'ext-hero': baseHash }).entries[0].status
+    ).toBe('conflict')
     expect(computeSchemaDiff([localEdit], [remoteEdit], {}).entries[0].status).toBe('conflict')
   })
 
   it('reports changed top-level fields', () => {
-    const diff = computeSchemaDiff([definition({ name: 'Hero Section', tags: ['layout'] })], [block()], {})
+    const diff = computeSchemaDiff(
+      [definition({ name: 'Hero Section', tags: ['layout'] })],
+      [block()],
+      {}
+    )
 
     expect(diff.entries[0].changed).toEqual(['name', 'tags'])
   })
@@ -128,8 +136,12 @@ describe('computeSchemaDiff', () => {
     const localHash = hashDefinition(local)
 
     expect(computeSchemaDiff([local], [], {}).entries[0].status).toBe('new-local')
-    expect(computeSchemaDiff([local], [], { 'ext-hero': localHash }).entries[0].status).toBe('remote-deleted')
-    expect(computeSchemaDiff([], [block()], { 'ext-hero': localHash }).entries[0].status).toBe('local-deleted')
+    expect(computeSchemaDiff([local], [], { 'ext-hero': localHash }).entries[0].status).toBe(
+      'remote-deleted'
+    )
+    expect(computeSchemaDiff([], [block()], { 'ext-hero': localHash }).entries[0].status).toBe(
+      'local-deleted'
+    )
     expect(computeSchemaDiff([], [block()], {}).entries[0].status).toBe('remote-only')
   })
 })

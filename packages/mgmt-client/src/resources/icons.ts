@@ -14,7 +14,11 @@ import type {
 export class IconsResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(spaceId: string, params?: GetIconsParams, options?: RequestOptions): Promise<PaginatedResponse<Icon>> {
+  async list(
+    spaceId: string,
+    params?: GetIconsParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Icon>> {
     return this.client.get<PaginatedResponse<Icon>>(
       apiPath`/mgmt/v1/spaces/${spaceId}/icons`,
       params as Record<string, unknown>,
@@ -30,7 +34,11 @@ export class IconsResource {
     )
   }
 
-  async create(spaceId: string, payload: CreateIconParams, options?: RequestOptions): Promise<Icon> {
+  async create(
+    spaceId: string,
+    payload: CreateIconParams,
+    options?: RequestOptions
+  ): Promise<Icon> {
     return this.client.post<Icon>(
       apiPath`/mgmt/v1/spaces/${spaceId}/icons`,
       payload,
@@ -38,7 +46,12 @@ export class IconsResource {
     )
   }
 
-  async update(spaceId: string, iconId: string, payload: UpdateIconParams, options?: RequestOptions): Promise<Icon> {
+  async update(
+    spaceId: string,
+    iconId: string,
+    payload: UpdateIconParams,
+    options?: RequestOptions
+  ): Promise<Icon> {
     return this.client.put<Icon>(
       apiPath`/mgmt/v1/spaces/${spaceId}/icons/${iconId}`,
       payload,

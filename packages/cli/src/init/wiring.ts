@@ -278,7 +278,12 @@ async function wireReact(ctx: WireContext, changes: Changes): Promise<void> {
     write(ctx, providerPath, reactProviderSource(ctx, ts), changes, 'created')
   }
 
-  const entry = findFile(ctx.dir, ['src/main.tsx', 'src/main.jsx', 'src/index.tsx', 'src/index.jsx'])
+  const entry = findFile(ctx.dir, [
+    'src/main.tsx',
+    'src/main.jsx',
+    'src/index.tsx',
+    'src/index.jsx',
+  ])
   const manual: ManualStep = {
     file: entry ? rel(ctx, entry) : 'src/main.tsx',
     snippet: [
@@ -314,11 +319,9 @@ async function wireVue(ctx: WireContext, changes: Changes): Promise<void> {
   const options = clientOptions(ctx, '')
   const manual: ManualStep = {
     file: entry ? rel(ctx, entry) : 'src/main.ts',
-    snippet: [
-      "import { B10cksVue } from '@b10cks/vue'",
-      '',
-      `app.use(B10cksVue, ${options})`,
-    ].join('\n'),
+    snippet: ["import { B10cksVue } from '@b10cks/vue'", '', `app.use(B10cksVue, ${options})`].join(
+      '\n'
+    ),
   }
 
   if (!entry) return void changes.manual.push(manual)
@@ -350,11 +353,7 @@ async function wireVue(ctx: WireContext, changes: Changes): Promise<void> {
 async function wireSvelte(ctx: WireContext, changes: Changes): Promise<void> {
   const kit = ctx.svelteKit
   const { importStatement } = tokenEnv('svelte', kit)
-  const entry = findFile(ctx.dir, [
-    'src/routes/+layout.svelte',
-    'src/App.svelte',
-    'src/app.svelte',
-  ])
+  const entry = findFile(ctx.dir, ['src/routes/+layout.svelte', 'src/App.svelte', 'src/app.svelte'])
 
   if (entry && fs.readFileSync(entry, 'utf8').includes('@b10cks/svelte')) {
     changes.skipped.push(rel(ctx, entry))

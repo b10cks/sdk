@@ -77,8 +77,20 @@ function serializeFilterValue(value: unknown): string | undefined {
     }
 
     const ops = [
-      'eq', 'neq', 'like', '!like', '^like', 'like$',
-      'lt', 'gt', 'lte', 'gte', 'in', '!in', 'empty', '!empty',
+      'eq',
+      'neq',
+      'like',
+      '!like',
+      '^like',
+      'like$',
+      'lt',
+      'gt',
+      'lte',
+      'gte',
+      'in',
+      '!in',
+      'empty',
+      '!empty',
     ] as const
     for (const op of ops) {
       if (op in obj) {
@@ -109,11 +121,8 @@ function buildParamsWithFilter(
   sort: string | string[] | undefined
 ): ApiQueryParams {
   const filterParams =
-    filter && typeof filter === 'object'
-      ? serializeFilter(filter as Record<string, unknown>)
-      : {}
-  const sortParam =
-    Array.isArray(sort) ? { sort: sort.join(',') } : sort != null ? { sort } : {}
+    filter && typeof filter === 'object' ? serializeFilter(filter as Record<string, unknown>) : {}
+  const sortParam = Array.isArray(sort) ? { sort: sort.join(',') } : sort != null ? { sort } : {}
   return { ...params, ...filterParams, ...sortParam }
 }
 
@@ -216,9 +225,7 @@ export class B10cksDataApi {
     )
   }
 
-  async search<T = Record<string, unknown>>(
-    params: IBSearchParams
-  ): Promise<IBSearchResponse<T>> {
+  async search<T = Record<string, unknown>>(params: IBSearchParams): Promise<IBSearchResponse<T>> {
     const response = await this.client.get<IBSearchResponse<T>>(
       'search',
       params as unknown as ApiQueryParams
@@ -233,12 +240,7 @@ export class B10cksDataApi {
     }
     if (typeof response === 'object' && response !== null && 'data' in response) {
       const inner = (response as { data: unknown }).data
-      if (
-        typeof inner === 'object' &&
-        inner !== null &&
-        'meta' in inner &&
-        'data' in inner
-      ) {
+      if (typeof inner === 'object' && inner !== null && 'meta' in inner && 'data' in inner) {
         return inner as IBSearchResponse<T>
       }
     }

@@ -1,12 +1,9 @@
-import type { ClientConfig } from './types'
-
 import { HttpClient } from './http-client'
 import { AiResource } from './resources/ai'
 import { AssetCollectionsResource } from './resources/asset-collections'
 import { AssetFoldersResource } from './resources/asset-folders'
 import { AssetPackagesResource } from './resources/asset-packages'
 import { AssetSharesResource } from './resources/asset-shares'
-import { IconsResource } from './resources/icons'
 import { AssetTagsResource } from './resources/asset-tags'
 import { AssetsResource } from './resources/assets'
 import { AutomationsResource } from './resources/automations'
@@ -16,6 +13,7 @@ import { BlocksResource } from './resources/blocks'
 import { CommentsResource } from './resources/comments'
 import { ContentsResource } from './resources/contents'
 import { DataSourcesResource } from './resources/data-sources'
+import { IconsResource } from './resources/icons'
 import { ProviderResource } from './resources/provider'
 import { RedirectsResource } from './resources/redirects'
 import { ReleasesResource } from './resources/releases'
@@ -25,6 +23,7 @@ import { SystemResource } from './resources/system'
 import { TeamsResource } from './resources/teams'
 import { TokensResource } from './resources/tokens'
 import { UsersResource } from './resources/users'
+import type { ClientConfig } from './types'
 
 export class ManagementClient {
   private readonly httpClient: HttpClient

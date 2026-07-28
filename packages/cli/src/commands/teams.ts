@@ -1,7 +1,6 @@
-import type { Command } from 'commander'
 import type { CreateTeamParams, PaginationParams, UpdateTeamParams } from '@b10cks/mgmt-client'
-
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
@@ -48,7 +47,9 @@ export class TeamsCommand extends BaseCommand {
             const parent = t.parent_id ? chalk.dim(` (parent: ${t.parent_id})`) : ''
             console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}${parent}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -62,15 +63,18 @@ export class TeamsCommand extends BaseCommand {
       .action(async (options) => {
         this.ensureAuthenticated()
         try {
-          const payload = options.interactive || !options.name
-            ? await this.promptCreateTeam(options)
-            : this.buildCreatePayload(options)
+          const payload =
+            options.interactive || !options.name
+              ? await this.promptCreateTeam(options)
+              : this.buildCreatePayload(options)
           const team = await this.client.teams.create(payload)
           if (options.json) return this.outputJson(team)
           console.log(`\n${chalk.green('✓')} Team created`)
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(team.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${team.name}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -88,7 +92,9 @@ export class TeamsCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}        ${chalk.yellow(team.id)}`)
           console.log(`  ${chalk.bold('Name:')}      ${team.name}`)
           if (team.parent_id) console.log(`  ${chalk.bold('Parent ID:')} ${team.parent_id}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -109,7 +115,9 @@ export class TeamsCommand extends BaseCommand {
           const team = await this.client.teams.update(teamId, payload)
           if (options.json) return this.outputJson(team)
           this.displaySuccess(`Team ${chalk.yellow(team.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -121,17 +129,22 @@ export class TeamsCommand extends BaseCommand {
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete team ${chalk.yellow(teamId)}? This cannot be undone.`,
-            default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete team ${chalk.yellow(teamId)}? This cannot be undone.`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.teams.delete(teamId)
           this.displaySuccess(`Team ${chalk.yellow(teamId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -145,13 +158,16 @@ export class TeamsCommand extends BaseCommand {
           const res = await this.client.teams.getHierarchy()
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerMembersGroup(ns: Command): void {
     const members = ns.command('members').description('manage team members')
-    members.command('list')
+    members
+      .command('list')
       .description('list members of a team')
       .argument('<teamId>', 'team ID')
       .option('-p, --page <page>', 'page number')
@@ -170,10 +186,13 @@ export class TeamsCommand extends BaseCommand {
           res.data.forEach((m) => {
             console.log(`  ${chalk.yellow(m.id)}  ${m.name ?? ''}  ${m.role ?? ''}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    members.command('update')
+    members
+      .command('update')
       .description('update a member role')
       .argument('<teamId>', 'team ID')
       .argument('<userId>', 'user ID')
@@ -183,10 +202,13 @@ export class TeamsCommand extends BaseCommand {
         try {
           await this.client.teams.updateMember(teamId, userId, { role: options.role })
           this.displaySuccess(`Member ${chalk.yellow(userId)} role updated to ${options.role}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    members.command('remove')
+    members
+      .command('remove')
       .description('remove a member from a team')
       .argument('<teamId>', 'team ID')
       .argument('<userId>', 'user ID')
@@ -194,19 +216,26 @@ export class TeamsCommand extends BaseCommand {
       .action(async (teamId, userId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Remove member ${chalk.yellow(userId)} from team ${chalk.yellow(teamId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Remove member ${chalk.yellow(userId)} from team ${chalk.yellow(teamId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.teams.removeMember(teamId, userId)
           this.displaySuccess(`Member ${chalk.yellow(userId)} removed`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    members.command('add')
+    members
+      .command('add')
       .description('add a user to a team')
       .argument('<teamId>', 'team ID')
       .requiredOption('-u, --user-id <userId>', 'user ID')
@@ -216,13 +245,16 @@ export class TeamsCommand extends BaseCommand {
         try {
           await this.client.teams.addUser(teamId, { user_id: options.userId, role: options.role })
           this.displaySuccess(`User ${chalk.yellow(options.userId)} added to team`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerInvitesGroup(ns: Command): void {
     const invites = ns.command('invites').description('manage team invites')
-    invites.command('list')
+    invites
+      .command('list')
       .description('list pending invites')
       .argument('<teamId>', 'team ID')
       .option('-p, --page <page>', 'page number')
@@ -238,11 +270,16 @@ export class TeamsCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No pending invites')
           console.log(`\n${chalk.bold('Invites:')}`)
-          res.data.forEach((inv) => console.log(`  ${chalk.yellow(inv.id)}  ${inv.email ?? ''}  ${inv.role ?? ''}`))
-        } catch (e) { this.handleError(e) }
+          res.data.forEach((inv) =>
+            console.log(`  ${chalk.yellow(inv.id)}  ${inv.email ?? ''}  ${inv.role ?? ''}`)
+          )
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    invites.command('create')
+    invites
+      .command('create')
       .description('invite a user to a team')
       .argument('<teamId>', 'team ID')
       .option('-e, --email <email>', 'email address')
@@ -256,7 +293,13 @@ export class TeamsCommand extends BaseCommand {
           let role = options.role
           if (options.interactive || !email) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'email', message: 'Email:', default: email, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'email',
+                message: 'Email:',
+                default: email,
+                validate: (v) => (v ? true : 'Required'),
+              },
               { type: 'input', name: 'role', message: 'Role:', default: role || 'member' },
             ])
             email = answers.email
@@ -265,10 +308,13 @@ export class TeamsCommand extends BaseCommand {
           const res = await this.client.teams.createInvite(teamId, { email, role })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Invite sent to ${email}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    invites.command('delete')
+    invites
+      .command('delete')
       .description('delete an invite')
       .argument('<teamId>', 'team ID')
       .argument('<inviteId>', 'invite ID')
@@ -277,10 +323,13 @@ export class TeamsCommand extends BaseCommand {
         try {
           await this.client.teams.deleteInvite(teamId, inviteId)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    invites.command('resend')
+    invites
+      .command('resend')
       .description('resend an invite')
       .argument('<teamId>', 'team ID')
       .argument('<inviteId>', 'invite ID')
@@ -289,7 +338,9 @@ export class TeamsCommand extends BaseCommand {
         try {
           await this.client.teams.resendInvite(teamId, inviteId)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} resent`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -312,7 +363,9 @@ export class TeamsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No blueprints found')
           console.log(`\n${chalk.bold('Blueprints:')}`)
           res.data.forEach((b) => console.log(`  ${chalk.yellow(b.id)}  ${b.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     bp.command('get')
@@ -326,7 +379,9 @@ export class TeamsCommand extends BaseCommand {
           const res = await this.client.teams.getBlueprint(teamId, blueprintId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     bp.command('delete')
@@ -337,22 +392,29 @@ export class TeamsCommand extends BaseCommand {
       .action(async (teamId, blueprintId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete blueprint ${chalk.yellow(blueprintId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete blueprint ${chalk.yellow(blueprintId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.teams.deleteBlueprint(teamId, blueprintId)
           this.displaySuccess(`Blueprint ${chalk.yellow(blueprintId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerRolesGroup(ns: Command): void {
     const roles = ns.command('roles').description('manage team space roles')
-    roles.command('list')
+    roles
+      .command('list')
       .description('list space roles for a team')
       .argument('<teamId>', 'team ID')
       .option('-p, --page <page>', 'page number')
@@ -369,10 +431,13 @@ export class TeamsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No roles found')
           console.log(`\n${chalk.bold('Space Roles:')}`)
           res.data.forEach((r) => console.log(`  ${chalk.yellow(r.id)}  ${r.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    roles.command('delete')
+    roles
+      .command('delete')
       .description('delete a space role')
       .argument('<teamId>', 'team ID')
       .argument('<roleId>', 'role ID')
@@ -380,22 +445,29 @@ export class TeamsCommand extends BaseCommand {
       .action(async (teamId, roleId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete role ${chalk.yellow(roleId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete role ${chalk.yellow(roleId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.teams.deleteSpaceRole(teamId, roleId)
           this.displaySuccess(`Role ${chalk.yellow(roleId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerSamlGroup(ns: Command): void {
     const saml = ns.command('saml').description('manage team SAML provider')
-    saml.command('get')
+    saml
+      .command('get')
       .description('get SAML provider config')
       .argument('<teamId>', 'team ID')
       .option('--json', 'output as JSON')
@@ -405,26 +477,35 @@ export class TeamsCommand extends BaseCommand {
           const res = await this.client.teams.getSamlProvider(teamId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    saml.command('delete')
+    saml
+      .command('delete')
       .description('delete SAML provider config')
       .argument('<teamId>', 'team ID')
       .option('-f, --force', 'skip confirmation')
       .action(async (teamId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete SAML provider for team ${chalk.yellow(teamId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete SAML provider for team ${chalk.yellow(teamId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.teams.deleteSamlProvider(teamId)
           this.displaySuccess('SAML provider deleted')
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -433,10 +514,18 @@ export class TeamsCommand extends BaseCommand {
   private async promptCreateTeam(opts: TeamCommandOptions): Promise<CreateTeamParams> {
     const answers = await inquirer.prompt([
       {
-        type: 'input', name: 'name', message: 'Team name:', default: opts.name,
-        validate: (v) => v?.length > 0 ? true : 'Required',
+        type: 'input',
+        name: 'name',
+        message: 'Team name:',
+        default: opts.name,
+        validate: (v) => (v?.length > 0 ? true : 'Required'),
       },
-      { type: 'input', name: 'parent_id', message: 'Parent team ID (optional):', default: opts.parentId || '' },
+      {
+        type: 'input',
+        name: 'parent_id',
+        message: 'Parent team ID (optional):',
+        default: opts.parentId || '',
+      },
     ])
     const payload: CreateTeamParams = { name: answers.name }
     if (answers.parent_id) payload.parent_id = answers.parent_id

@@ -1,6 +1,5 @@
-import type { Command } from 'commander'
-
 import chalk from 'chalk'
+import type { Command } from 'commander'
 
 import { BaseCommand } from './BaseCommand.js'
 
@@ -35,7 +34,9 @@ export class SystemCommand extends BaseCommand {
           const res = await this.client.system.getConfig()
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('plans')
@@ -50,7 +51,9 @@ export class SystemCommand extends BaseCommand {
           res.data.forEach((p) => {
             console.log(`  ${chalk.yellow(p.id)}  ${chalk.bold(p.name ?? '')}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

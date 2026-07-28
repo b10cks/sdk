@@ -1,7 +1,8 @@
-import netrc from 'netrc'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'path'
+
+import netrc from 'netrc'
 
 export interface Credentials {
   password?: string
@@ -9,7 +10,8 @@ export interface Credentials {
 }
 
 const getFile = () => {
-  const home = process.env[process.platform.startsWith('win') ? 'USERPROFILE' : 'HOME'] || os.homedir()
+  const home =
+    process.env[process.platform.startsWith('win') ? 'USERPROFILE' : 'HOME'] || os.homedir()
   return path.join(home, '.netrc')
 }
 

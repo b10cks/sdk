@@ -230,7 +230,9 @@ const router = useRouter()
 <template>
   <B10cksRichText
     :document="document"
-    :internal-link-handler="(attrs: RichTextInternalLinkAttrs) => router.resolve(attrs.url ?? '/').href"
+    :internal-link-handler="
+      (attrs: RichTextInternalLinkAttrs) => router.resolve(attrs.url ?? '/').href
+    "
   />
 </template>
 ```

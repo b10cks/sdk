@@ -1,5 +1,4 @@
 import type { Space, Team } from '@b10cks/mgmt-client'
-
 import { ManagementApiError, ManagementClient } from '@b10cks/mgmt-client'
 
 async function advancedExample() {

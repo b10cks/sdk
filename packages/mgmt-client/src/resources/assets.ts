@@ -27,7 +27,11 @@ export class AssetsResource {
   }
 
   async create(spaceId: string, payload: Partial<Asset>, options?: RequestOptions): Promise<Asset> {
-    return this.client.post<Asset>(apiPath`/mgmt/v1/spaces/${spaceId}/assets`, payload, options?.headers)
+    return this.client.post<Asset>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/assets`,
+      payload,
+      options?.headers
+    )
   }
 
   async get(spaceId: string, assetId: string, options?: RequestOptions): Promise<Asset> {

@@ -1,8 +1,6 @@
+import chalk from 'chalk'
 import type { Command } from 'commander'
 
-import chalk from 'chalk'
-
-import { BaseCommand } from './BaseCommand.js'
 import type { SchemaDiff, SchemaDiffEntry } from '../schema/diff.js'
 import { computeSchemaDiff } from '../schema/diff.js'
 import {
@@ -16,8 +14,12 @@ import {
   writeDefinition,
   writeLockfile,
 } from '../schema/store.js'
+import { BaseCommand } from './BaseCommand.js'
 
-const STATUS_LABELS: Record<SchemaDiffEntry['status'], { label: string; color: (s: string) => string }> = {
+const STATUS_LABELS: Record<
+  SchemaDiffEntry['status'],
+  { label: string; color: (s: string) => string }
+> = {
   'in-sync': { label: 'in sync', color: chalk.green },
   'new-local': { label: 'new (push creates)', color: chalk.cyan },
   'local-modified': { label: 'modified (push updates)', color: chalk.yellow },
@@ -32,7 +34,9 @@ export class SchemaCommand extends BaseCommand {
   register(program: Command): void {
     const ns = program
       .command('schema')
-      .description('sync block schemas between local files and a space (local files are the source of truth)')
+      .description(
+        'sync block schemas between local files and a space (local files are the source of truth)'
+      )
 
     this.registerPull(ns)
     this.registerDiff(ns)
@@ -41,7 +45,7 @@ export class SchemaCommand extends BaseCommand {
 
   private registerPull(ns: Command): void {
     ns.command('pull')
-      .description('write the space\'s block schemas to local files and record the sync state')
+      .description("write the space's block schemas to local files and record the sync state")
       .argument('<spaceId>', 'space ID')
       .option('--dir <path>', 'schema directory', './b10cks/schema')
       .option('--json', 'output as JSON')
@@ -85,7 +89,9 @@ export class SchemaCommand extends BaseCommand {
 
   private registerDiff(ns: Command): void {
     ns.command('diff')
-      .description('compare local schema files against the space (three-way, using the lockfile as base)')
+      .description(
+        'compare local schema files against the space (three-way, using the lockfile as base)'
+      )
       .argument('<spaceId>', 'space ID')
       .option('--dir <path>', 'schema directory', './b10cks/schema')
       .option('--ci', 'exit with code 1 when anything is out of sync')
@@ -135,7 +141,9 @@ export class SchemaCommand extends BaseCommand {
 
           if (locals.length === 0) {
             return this.handleError(
-              new Error(`No *.block.json files in ${dir} — run \`b10cks schema pull ${spaceId}\` first`)
+              new Error(
+                `No *.block.json files in ${dir} — run \`b10cks schema pull ${spaceId}\` first`
+              )
             )
           }
 
@@ -174,14 +182,19 @@ export class SchemaCommand extends BaseCommand {
           if (options.json) return this.outputJson(result)
 
           const { summary } = result
-          const prefix = result.dry_run ? `${chalk.blue('▸')} Plan (dry run)` : `${chalk.green('✓')} Synced`
+          const prefix = result.dry_run
+            ? `${chalk.blue('▸')} Plan (dry run)`
+            : `${chalk.green('✓')} Synced`
           console.log(
             `${prefix}: ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged, ${summary.deleted} deleted`
           )
           for (const entry of result.results) {
             if (entry.action === 'unchanged') continue
-            const changed = entry.changed.length > 0 ? chalk.dim(` (${entry.changed.join(', ')})`) : ''
-            console.log(`  ${chalk.cyan(entry.action.padEnd(9))} ${chalk.bold(entry.slug)}${changed}`)
+            const changed =
+              entry.changed.length > 0 ? chalk.dim(` (${entry.changed.join(', ')})`) : ''
+            console.log(
+              `  ${chalk.cyan(entry.action.padEnd(9))} ${chalk.bold(entry.slug)}${changed}`
+            )
           }
         } catch (e) {
           this.handleError(e)

@@ -35,7 +35,7 @@ import { renderRichText } from '@b10cks/richtext'
 
 const html = renderRichText(document, {
   internalLinkHandler: (attrs) => `/blog/${attrs.content}`,
-  placeholderHandler:  (key)   => values[key] ?? null,
+  placeholderHandler: (key) => values[key] ?? null,
 })
 ```
 
@@ -128,6 +128,7 @@ renderRichText(document, {
 ```
 
 The handler receives:
+
 - `key` — the variable name (e.g. `"companyName"`)
 - `label` — the display hint shown in the editor (e.g. `"{companyName}"`)
 
@@ -155,31 +156,31 @@ renderRichText(document, {
 
 ## Supported node and mark types
 
-| Node | HTML output |
-|---|---|
-| `paragraph` | `<p>` |
-| `heading` | `<h1>` – `<h6>` |
-| `blockquote` | `<blockquote>` |
-| `codeBlock` | `<pre><code>` |
-| `bulletList` | `<ul>` (with `class` from a configured list style) |
-| `orderedList` | `<ol>` (with `class` from a configured list style) |
-| `listItem` | `<li>` |
-| `hardBreak` | `<br>` |
-| `horizontalRule` | `<hr>` |
-| `image` | `<img>` |
-| `table` / `tableRow` / `tableHeader` / `tableCell` | `<table>` / `<tr>` / `<th>` / `<td>` |
-| `placeholderToken` | resolved value or `<span data-type="placeholder-token">` |
+| Node                                               | HTML output                                              |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| `paragraph`                                        | `<p>`                                                    |
+| `heading`                                          | `<h1>` – `<h6>`                                          |
+| `blockquote`                                       | `<blockquote>`                                           |
+| `codeBlock`                                        | `<pre><code>`                                            |
+| `bulletList`                                       | `<ul>` (with `class` from a configured list style)       |
+| `orderedList`                                      | `<ol>` (with `class` from a configured list style)       |
+| `listItem`                                         | `<li>`                                                   |
+| `hardBreak`                                        | `<br>`                                                   |
+| `horizontalRule`                                   | `<hr>`                                                   |
+| `image`                                            | `<img>`                                                  |
+| `table` / `tableRow` / `tableHeader` / `tableCell` | `<table>` / `<tr>` / `<th>` / `<td>`                     |
+| `placeholderToken`                                 | resolved value or `<span data-type="placeholder-token">` |
 
-| Mark | HTML output |
-|---|---|
-| `bold` | `<strong>` |
-| `italic` | `<em>` |
-| `strike` | `<s>` |
-| `underline` | `<u>` |
-| `code` | `<code>` |
-| `link` | `<a href="…">` |
+| Mark           | HTML output                                                   |
+| -------------- | ------------------------------------------------------------- |
+| `bold`         | `<strong>`                                                    |
+| `italic`       | `<em>`                                                        |
+| `strike`       | `<s>`                                                         |
+| `underline`    | `<u>`                                                         |
+| `code`         | `<code>`                                                      |
+| `link`         | `<a href="…">`                                                |
 | `internalLink` | `<a href="…" data-type="internal" data-b10cks-internal-link>` |
-| `textClass` | `<span class="…">` |
+| `textClass`    | `<span class="…">`                                            |
 
 ### List styles
 

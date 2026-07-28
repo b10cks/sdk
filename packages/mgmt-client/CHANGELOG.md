@@ -24,12 +24,12 @@
 
   ```ts
   // before — inconsistent, per resource
-  client.teams.list({ query: { page: 2 } });
-  client.blocks.list(spaceId, { page: 2 });
+  client.teams.list({ query: { page: 2 } })
+  client.blocks.list(spaceId, { page: 2 })
 
   // after — the same everywhere
-  client.teams.list({ page: 2 });
-  client.blocks.list(spaceId, { page: 2 });
+  client.teams.list({ page: 2 })
+  client.blocks.list(spaceId, { page: 2 })
   ```
 
   **Breaking:** if you passed a `RequestOptions` object positionally to one of the
@@ -37,8 +37,8 @@
   `spaces.list`, `users.listTokens` and `users.listInvites`):
 
   ```ts
-  client.teams.listMembers(teamId, { headers }); // before
-  client.teams.listMembers(teamId, undefined, { headers }); // after
+  client.teams.listMembers(teamId, { headers }) // before
+  client.teams.listMembers(teamId, undefined, { headers }) // after
   ```
 
   `RequestOptions.query` remains as an escape hatch for the few non-paginated

@@ -1,25 +1,15 @@
-import type { Command } from 'commander'
-
 import fs from 'node:fs'
 import path from 'node:path'
 
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import type { KickstartFramework } from '../kickstart/templates.js'
-import type { PackageManager } from '../utils/project.js'
-
-import {
-  KICKSTART_FRAMEWORKS,
-  KICKSTART_LABELS,
-  templateFiles,
-} from '../kickstart/templates.js'
+import { KICKSTART_FRAMEWORKS, KICKSTART_LABELS, templateFiles } from '../kickstart/templates.js'
 import { run } from '../utils/exec.js'
-import {
-  PACKAGE_MANAGERS,
-  detectPackageManager,
-  isEmptyDir,
-} from '../utils/project.js'
+import type { PackageManager } from '../utils/project.js'
+import { PACKAGE_MANAGERS, detectPackageManager, isEmptyDir } from '../utils/project.js'
 import { BaseCommand } from './BaseCommand.js'
 
 interface KickstartOptions {
@@ -48,20 +38,27 @@ export class KickstartCommand extends BaseCommand {
       .action(async (dir: string | undefined, options: KickstartOptions) => {
         try {
           await this.execute(dir, options)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private async execute(dirArg: string | undefined, options: KickstartOptions): Promise<void> {
     const dryRun = Boolean(options.dryRun)
 
-    if (options.framework && !KICKSTART_FRAMEWORKS.includes(options.framework as KickstartFramework)) {
+    if (
+      options.framework &&
+      !KICKSTART_FRAMEWORKS.includes(options.framework as KickstartFramework)
+    ) {
       throw new Error(
         `Unknown framework "${options.framework}". Expected: ${KICKSTART_FRAMEWORKS.join(', ')}`
       )
     }
     if (options.pm && !PACKAGE_MANAGERS.includes(options.pm as PackageManager)) {
-      throw new Error(`Unknown package manager "${options.pm}". Expected: ${PACKAGE_MANAGERS.join(', ')}`)
+      throw new Error(
+        `Unknown package manager "${options.pm}". Expected: ${PACKAGE_MANAGERS.join(', ')}`
+      )
     }
 
     if (dryRun) console.log(chalk.dim('Dry run — nothing will be written.'))
@@ -93,13 +90,15 @@ export class KickstartCommand extends BaseCommand {
   private async resolveDir(options: KickstartOptions): Promise<string> {
     if (options.yes) return DEFAULT_DIR
 
-    const { dir } = await inquirer.prompt([{
-      type: 'input',
-      name: 'dir',
-      message: 'Directory:',
-      default: DEFAULT_DIR,
-      validate: (value: string) => (value.trim().length > 0 ? true : 'Required'),
-    }])
+    const { dir } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'dir',
+        message: 'Directory:',
+        default: DEFAULT_DIR,
+        validate: (value: string) => (value.trim().length > 0 ? true : 'Required'),
+      },
+    ])
     return dir.trim()
   }
 
@@ -107,12 +106,14 @@ export class KickstartCommand extends BaseCommand {
     if (options.framework) return options.framework as KickstartFramework
     if (options.yes) throw new Error('Pass --framework together with --yes.')
 
-    const { framework } = await inquirer.prompt([{
-      type: 'list',
-      name: 'framework',
-      message: 'Framework:',
-      choices: KICKSTART_FRAMEWORKS.map((value) => ({ name: KICKSTART_LABELS[value], value })),
-    }])
+    const { framework } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'framework',
+        message: 'Framework:',
+        choices: KICKSTART_FRAMEWORKS.map((value) => ({ name: KICKSTART_LABELS[value], value })),
+      },
+    ])
     return framework
   }
 

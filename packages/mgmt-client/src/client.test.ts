@@ -181,7 +181,9 @@ describe('ManagementClient', () => {
         ],
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: 'content-1', ...createParams }, 201))
+      ;(global.fetch as any).mockResolvedValueOnce(
+        mockJsonResponse({ id: 'content-1', ...createParams }, 201)
+      )
 
       const client = new ManagementClient(mockConfig)
       await client.contents.create('space-1', createParams)
@@ -209,7 +211,9 @@ describe('ManagementClient', () => {
         ],
       }
 
-      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ id: 'content-1', published_at: publishParams.published_at }))
+      ;(global.fetch as any).mockResolvedValueOnce(
+        mockJsonResponse({ id: 'content-1', published_at: publishParams.published_at })
+      )
 
       const client = new ManagementClient(mockConfig)
       await client.contents.publish('space-1', 'content-1', publishParams)
@@ -344,7 +348,9 @@ describe('ManagementClient', () => {
 
   describe('Query parameters', () => {
     it('should properly encode query parameters', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [], meta: {}, links: {} }))
+      ;(global.fetch as any).mockResolvedValueOnce(
+        mockJsonResponse({ data: [], meta: {}, links: {} })
+      )
 
       const client = new ManagementClient(mockConfig)
       await client.blocks.list('space-1', {
@@ -360,7 +366,9 @@ describe('ManagementClient', () => {
     })
 
     it('should handle array query parameters', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce(mockJsonResponse({ data: [], meta: {}, links: {} }))
+      ;(global.fetch as any).mockResolvedValueOnce(
+        mockJsonResponse({ data: [], meta: {}, links: {} })
+      )
 
       const client = new ManagementClient(mockConfig)
       await client.blocks.list('space-1', {
@@ -377,7 +385,9 @@ describe('ManagementClient', () => {
       const mockResult = {
         data: {
           dry_run: false,
-          results: [{ action: 'created', id: 'blk-1', external_id: 'ext-1', slug: 'hero', changed: [] }],
+          results: [
+            { action: 'created', id: 'blk-1', external_id: 'ext-1', slug: 'hero', changed: [] },
+          ],
           summary: { created: 1, updated: 0, unchanged: 0, deleted: 0 },
         },
       }

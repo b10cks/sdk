@@ -1,7 +1,6 @@
-import type { Command } from 'commander'
-
 import { ManagementApiError, ManagementClient } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import credentials from '../utils/credentials.js'
@@ -51,7 +50,10 @@ export function registerAuthCommands(program: Command): void {
         const client = new ManagementClient({ baseUrl: API_BASE_URL, token: token.trim() })
         await client.users.getMe()
       } catch (error) {
-        if (error instanceof ManagementApiError && (error.statusCode === 401 || error.statusCode === 403)) {
+        if (
+          error instanceof ManagementApiError &&
+          (error.statusCode === 401 || error.statusCode === 403)
+        ) {
           console.error(`${chalk.red('✖')} Authentication failed. Please check your token.`)
         } else {
           const message = error instanceof Error ? error.message : String(error)

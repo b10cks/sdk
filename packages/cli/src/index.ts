@@ -38,7 +38,7 @@ import {
 // bundling inlines its code but not the .flf files, so it threw on every run.
 const BANNER = [
   '  _    _  __     _       ',
-  " | |__/ |/  \\ __| |__ ___",
+  ' | |__/ |/  \\ __| |__ ___',
   " | '_ \\ | () / _| / /(_-<",
   ' |_.__/_|\\__/\\__|_\\_\\/__/',
   '                         ',

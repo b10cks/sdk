@@ -13,7 +13,13 @@ import {
 import { computed, defineComponent, h, type PropType } from 'vue'
 
 export type RichTextRenderOptions = RichTextHtmlOptions
-export type { RichTextDocument, RichTextInternalLinkAttrs, RichTextInternalLinkHandler, RichTextTextOptions, RichTextTextRenderer }
+export type {
+  RichTextDocument,
+  RichTextInternalLinkAttrs,
+  RichTextInternalLinkHandler,
+  RichTextTextOptions,
+  RichTextTextRenderer,
+}
 export { createRichTextTextRenderer }
 
 export interface B10cksRichTextProps extends RichTextRenderOptions {
@@ -101,4 +107,3 @@ export const B10cksRichText = defineComponent({
       })
   },
 })
-

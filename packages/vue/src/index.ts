@@ -1,5 +1,3 @@
-import type { Plugin } from 'vue'
-
 import {
   ApiClient,
   createB10cksDataApi,
@@ -7,13 +5,13 @@ import {
   previewBridge,
   setPreviewScrollOffset,
 } from '@b10cks/client'
-
-import type { B10cksVuePluginOptions } from './types'
+import type { Plugin } from 'vue'
 
 import B10cksComponent from './components/B10cksComponent.vue'
 import B10cksFallback from './components/B10cksFallback.vue'
 import { EditableDirective } from './directives/v-editable'
 import { EditableContentDirective } from './directives/v-editable-content'
+import type { B10cksVuePluginOptions } from './types'
 import { B10cksClientKey, B10cksDataApiKey } from './types'
 
 export { previewBridge } from '@b10cks/client'

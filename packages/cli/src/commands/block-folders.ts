@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { BlockFolder, PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { BlockFolder, PaginationParams } from '@b10cks/mgmt-client'
 
 export class BlockFoldersCommand extends BaseCommand {
   register(program: Command): void {
@@ -27,7 +26,9 @@ export class BlockFoldersCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No block folders found')
           console.log(`\n${chalk.bold('Block Folders:')}`)
           res.data.forEach((f) => console.log(`  ${chalk.yellow(f.id)}  ${f.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('create')
@@ -44,7 +45,9 @@ export class BlockFoldersCommand extends BaseCommand {
           const res = await this.client.blockFolders.create(spaceId, payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block folder ${chalk.yellow(res.id)} created`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('get')
@@ -58,7 +61,9 @@ export class BlockFoldersCommand extends BaseCommand {
           const res = await this.client.blockFolders.get(spaceId, folderId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('update')
@@ -70,10 +75,14 @@ export class BlockFoldersCommand extends BaseCommand {
       .action(async (spaceId, folderId, options) => {
         this.ensureAuthenticated()
         try {
-          const res = await this.client.blockFolders.update(spaceId, folderId, { name: options.name })
+          const res = await this.client.blockFolders.update(spaceId, folderId, {
+            name: options.name,
+          })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block folder ${chalk.yellow(res.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('delete')
@@ -84,16 +93,22 @@ export class BlockFoldersCommand extends BaseCommand {
       .action(async (spaceId, folderId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete block folder ${chalk.yellow(folderId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete block folder ${chalk.yellow(folderId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.blockFolders.delete(spaceId, folderId)
           this.displaySuccess(`Block folder ${chalk.yellow(folderId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

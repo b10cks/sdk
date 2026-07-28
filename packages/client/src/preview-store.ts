@@ -1,5 +1,4 @@
 import type { FieldPath } from './preview-bridge'
-
 import { previewBridge } from './preview-bridge'
 
 /** Read the value at `path` within `target`, or undefined if absent. */

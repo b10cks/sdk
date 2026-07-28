@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { FetchClient } from './types'
-
 import { ApiClient, ApiError } from './index'
+import type { FetchClient } from './types'
 
 const noopFetch: FetchClient = async () => ({})
 
@@ -85,11 +84,12 @@ describe('ApiClient revision handling', () => {
 
 describe('ApiClient error handling', () => {
   it('throws an ApiError carrying status, endpoint and body when a Response is not ok', async () => {
-    const fetchClient = vi.fn(async () =>
-      new Response(JSON.stringify({ message: 'boom' }), {
-        status: 500,
-        headers: { 'content-type': 'application/json' },
-      })
+    const fetchClient = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ message: 'boom' }), {
+          status: 500,
+          headers: { 'content-type': 'application/json' },
+        })
     )
     const client = makeClient({ fetchClient })
 
@@ -134,9 +134,9 @@ describe('ApiClient error handling', () => {
     // @ts-expect-error -- intentionally remove fetch to exercise the guard
     globalThis.fetch = undefined
     try {
-      expect(
-        () => new ApiClient({ baseUrl: 'https://api.example.com', token: 't' })
-      ).toThrow('No fetch implementation available')
+      expect(() => new ApiClient({ baseUrl: 'https://api.example.com', token: 't' })).toThrow(
+        'No fetch implementation available'
+      )
     } finally {
       globalThis.fetch = original
     }

@@ -1,6 +1,12 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { DataEntry, DataSource, PaginatedResponse, PaginationParams, RequestOptions } from '../types'
+import type {
+  DataEntry,
+  DataSource,
+  PaginatedResponse,
+  PaginationParams,
+  RequestOptions,
+} from '../types'
 
 export class DataSourcesResource {
   constructor(private readonly client: HttpClient) {}

@@ -72,7 +72,12 @@ When your app is rendered inside the b10cks visual editor, these hooks make bloc
 ### Hooks
 
 ```tsx
-import { useEditable, useEditableField, usePreviewContent, usePreviewSelection } from '@b10cks/react'
+import {
+  useEditable,
+  useEditableField,
+  usePreviewContent,
+  usePreviewSelection,
+} from '@b10cks/react'
 
 function Hero({ block }: { block: HeroBlock }) {
   // Make the element selectable; click selects it and the editor highlights/scrolls to it.

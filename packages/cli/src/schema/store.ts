@@ -63,7 +63,9 @@ const canonicalize = (value: unknown): unknown => {
  */
 export const hashDefinition = (definition: BlockDefinition): string => {
   const comparable = { ...definition, schema: normalizeBlockSchema(definition.schema) }
-  return createHash('sha256').update(JSON.stringify(canonicalize(comparable))).digest('hex')
+  return createHash('sha256')
+    .update(JSON.stringify(canonicalize(comparable)))
+    .digest('hex')
 }
 
 // ─── Conversions ─────────────────────────────────────────────────────────────
@@ -83,7 +85,9 @@ export const definitionFromBlock = (block: Block): BlockDefinition => ({
   tags: block.tags ?? [],
 })
 
-export const definitionToSyncPayload = (definition: BlockDefinition): SyncBlockDefinition => ({ ...definition })
+export const definitionToSyncPayload = (definition: BlockDefinition): SyncBlockDefinition => ({
+  ...definition,
+})
 
 /** Crockford-base32 ULID, used to mint external_ids for adopted blocks. */
 export const generateExternalId = (): string => {
@@ -105,7 +109,10 @@ export const generateExternalId = (): string => {
 
 // ─── File I/O ────────────────────────────────────────────────────────────────
 
-export const readDefinitions = (dir: string, options: { requireExternalId?: boolean } = {}): BlockDefinition[] => {
+export const readDefinitions = (
+  dir: string,
+  options: { requireExternalId?: boolean } = {}
+): BlockDefinition[] => {
   const { requireExternalId = true } = options
   if (!fs.existsSync(dir)) return []
 

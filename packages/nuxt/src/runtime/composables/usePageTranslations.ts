@@ -14,7 +14,10 @@ type ContentForTranslations = Pick<IBContent, 'language_iso' | 'full_slug' | 'tr
  * setFromContent(content)  // { en: '/en/about', de: '/de/ueber-uns' }
  */
 export const usePageTranslations = () => {
-  const translations = useState<Record<string, string> | null>('b10cks:pageTranslations', () => null)
+  const translations = useState<Record<string, string> | null>(
+    'b10cks:pageTranslations',
+    () => null
+  )
 
   const setFromContent = (content: ContentForTranslations) => {
     const map: Record<string, string> = {

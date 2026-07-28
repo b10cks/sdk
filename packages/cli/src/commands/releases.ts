@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class ReleasesCommand extends BaseCommand {
   register(program: Command): void {
@@ -31,7 +30,9 @@ export class ReleasesCommand extends BaseCommand {
             const statusColor = status === 'published' ? chalk.green(status) : chalk.dim(status)
             console.log(`  ${chalk.yellow(r.id)}  ${chalk.bold(r.name)}  ${statusColor}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('create')
@@ -46,7 +47,13 @@ export class ReleasesCommand extends BaseCommand {
           let name = options.name
           if (options.interactive || !name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Release name:', default: name, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Release name:',
+                default: name,
+                validate: (v) => (v ? true : 'Required'),
+              },
             ])
             name = answers.name
           }
@@ -56,7 +63,9 @@ export class ReleasesCommand extends BaseCommand {
           console.log(`\n${chalk.green('✓')} Release created`)
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(res.data.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${res.data.name}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('get')
@@ -70,7 +79,9 @@ export class ReleasesCommand extends BaseCommand {
           const res = await this.client.releases.get(spaceId, releaseId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('update')
@@ -85,7 +96,9 @@ export class ReleasesCommand extends BaseCommand {
           const res = await this.client.releases.update(spaceId, releaseId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Release ${chalk.yellow(res.data.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('delete')
@@ -96,16 +109,22 @@ export class ReleasesCommand extends BaseCommand {
       .action(async (spaceId, releaseId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete release ${chalk.yellow(releaseId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete release ${chalk.yellow(releaseId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.releases.delete(spaceId, releaseId)
           this.displaySuccess(`Release ${chalk.yellow(releaseId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('commit')
@@ -119,7 +138,9 @@ export class ReleasesCommand extends BaseCommand {
           const res = await this.client.releases.commit(spaceId, releaseId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Release ${chalk.yellow(releaseId)} committed`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('publish')
@@ -133,7 +154,9 @@ export class ReleasesCommand extends BaseCommand {
           const res = await this.client.releases.publish(spaceId, releaseId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Release ${chalk.yellow(releaseId)} published`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('cancel')
@@ -147,7 +170,9 @@ export class ReleasesCommand extends BaseCommand {
           const res = await this.client.releases.cancel(spaceId, releaseId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Release ${chalk.yellow(releaseId)} cancelled`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('assign-version')
@@ -164,7 +189,9 @@ export class ReleasesCommand extends BaseCommand {
           })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Version assigned to release ${chalk.yellow(releaseId)}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('remove-version')
@@ -177,11 +204,14 @@ export class ReleasesCommand extends BaseCommand {
       .action(async (spaceId, releaseId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Remove version ${chalk.yellow(options.versionId)} from release ${chalk.yellow(releaseId)}?`,
-            default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Remove version ${chalk.yellow(options.versionId)} from release ${chalk.yellow(releaseId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
@@ -190,7 +220,9 @@ export class ReleasesCommand extends BaseCommand {
           })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Version removed from release ${chalk.yellow(releaseId)}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

@@ -1,5 +1,3 @@
-import type { Nuxt } from '@nuxt/schema'
-
 import {
   addComponentsDir,
   addImports,
@@ -7,6 +5,7 @@ import {
   createResolver,
   defineNuxtModule,
 } from '@nuxt/kit'
+import type { Nuxt } from '@nuxt/schema'
 import { defu } from 'defu'
 
 import type { ModuleOptions } from './types'

@@ -1,8 +1,8 @@
 import type { Block } from '@b10cks/mgmt-client'
 
+import { normalizeBlockSchema } from './normalizer.js'
 import type { BlockDefinition } from './store.js'
 import { definitionFromBlock, generateExternalId, hashDefinition } from './store.js'
-import { normalizeBlockSchema } from './normalizer.js'
 
 export type SchemaDiffStatus =
   /** local and remote content are identical */
@@ -47,7 +47,8 @@ const changedFields = (local: BlockDefinition, remote: BlockDefinition): string[
   (Object.keys(local) as Array<keyof BlockDefinition>).filter((field) => {
     if (field === 'schema') {
       return (
-        JSON.stringify(normalizeBlockSchema(local.schema)) !== JSON.stringify(normalizeBlockSchema(remote.schema))
+        JSON.stringify(normalizeBlockSchema(local.schema)) !==
+        JSON.stringify(normalizeBlockSchema(remote.schema))
       )
     }
     return JSON.stringify(local[field]) !== JSON.stringify(remote[field])

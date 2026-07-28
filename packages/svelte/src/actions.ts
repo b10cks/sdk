@@ -1,4 +1,8 @@
-import { type AttachEditableFieldOptions, attachEditable, attachEditableField } from '@b10cks/client'
+import {
+  type AttachEditableFieldOptions,
+  attachEditable,
+  attachEditableField,
+} from '@b10cks/client'
 
 export function editable(node: HTMLElement, block: { id?: string }) {
   let cleanup = attachEditable(node, { id: block?.id ?? '' })

@@ -47,7 +47,7 @@ export function tokenEnv(framework: Framework, svelteKit: boolean): TokenEnv {
       return {
         publicVar: 'NEXT_PUBLIC_B10CKS_TOKEN',
         extraVars: ['B10CKS_TOKEN'],
-        expression: 'process.env.NEXT_PUBLIC_B10CKS_TOKEN ?? \'\'',
+        expression: "process.env.NEXT_PUBLIC_B10CKS_TOKEN ?? ''",
       }
     case 'svelte':
       return svelteKit

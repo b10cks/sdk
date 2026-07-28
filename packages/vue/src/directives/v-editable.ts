@@ -1,6 +1,5 @@
-import type { DirectiveBinding, VNode } from 'vue'
-
 import { attachEditable, type ContentUpdateEvent, previewBridge } from '@b10cks/client'
+import type { DirectiveBinding, VNode } from 'vue'
 
 interface EditableElement extends HTMLElement {
   _editableCleanup?: () => void

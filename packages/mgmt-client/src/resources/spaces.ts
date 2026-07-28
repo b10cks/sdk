@@ -36,7 +36,10 @@ import type {
 export class SpacesResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(params?: PaginationParams, options?: RequestOptions): Promise<PaginatedResponse<Space>> {
+  async list(
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Space>> {
     return this.client.get<PaginatedResponse<Space>>('/mgmt/v1/spaces', params, options?.headers)
   }
 
@@ -65,7 +68,11 @@ export class SpacesResource {
     params: UpdateSpaceIconParams,
     options?: RequestOptions
   ): Promise<void> {
-    return this.client.post<void>(apiPath`/mgmt/v1/spaces/${spaceId}/icon`, params, options?.headers)
+    return this.client.post<void>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/icon`,
+      params,
+      options?.headers
+    )
   }
 
   async archive(spaceId: string, options?: RequestOptions): Promise<void> {
@@ -85,7 +92,11 @@ export class SpacesResource {
   }
 
   async getStats(spaceId: string, options?: RequestOptions): Promise<unknown> {
-    return this.client.get<unknown>(apiPath`/mgmt/v1/spaces/${spaceId}/stats`, undefined, options?.headers)
+    return this.client.get<unknown>(
+      apiPath`/mgmt/v1/spaces/${spaceId}/stats`,
+      undefined,
+      options?.headers
+    )
   }
 
   /** Live usage for the current billing period, metered against the plan quota. */
@@ -297,7 +308,10 @@ export class SpacesResource {
     )
   }
 
-  async cancelSubscription(spaceId: string, options?: RequestOptions): Promise<{ message: string }> {
+  async cancelSubscription(
+    spaceId: string,
+    options?: RequestOptions
+  ): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(
       apiPath`/mgmt/v1/spaces/${spaceId}/subscriptions/cancel`,
       undefined,

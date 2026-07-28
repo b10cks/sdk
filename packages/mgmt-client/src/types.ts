@@ -969,7 +969,14 @@ export interface SimpleRelease {
 }
 
 export type ContentTreeOperation =
-  | { type: 'create'; temp_id?: string; parent_id?: string | null; block_id: string; name?: string; [key: string]: unknown }
+  | {
+      type: 'create'
+      temp_id?: string
+      parent_id?: string | null
+      block_id: string
+      name?: string
+      [key: string]: unknown
+    }
   | { type: 'move'; ids: string[]; parent_id?: string | null; after_id?: string | null }
   | { type: 'delete'; ids: string[] }
   | { type: 'duplicate'; ids: string[]; parent_id?: string | null; after_id?: string | null }

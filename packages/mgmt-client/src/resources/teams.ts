@@ -24,7 +24,10 @@ import type {
 export class TeamsResource {
   constructor(private readonly client: HttpClient) {}
 
-  async list(params?: PaginationParams, options?: RequestOptions): Promise<PaginatedResponse<Team>> {
+  async list(
+    params?: PaginationParams,
+    options?: RequestOptions
+  ): Promise<PaginatedResponse<Team>> {
     return this.client.get<PaginatedResponse<Team>>('/mgmt/v1/teams', params, options?.headers)
   }
 
@@ -76,7 +79,10 @@ export class TeamsResource {
   }
 
   async removeMember(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/members/${userId}`, options?.headers)
+    return this.client.delete<void>(
+      apiPath`/mgmt/v1/teams/${teamId}/members/${userId}`,
+      options?.headers
+    )
   }
 
   // ─── Users (direct team membership management) ─────────────────────────────
@@ -86,7 +92,11 @@ export class TeamsResource {
     payload: { user_id: string; role?: string },
     options?: RequestOptions
   ): Promise<void> {
-    return this.client.post<void>(apiPath`/mgmt/v1/teams/${teamId}/users`, payload, options?.headers)
+    return this.client.post<void>(
+      apiPath`/mgmt/v1/teams/${teamId}/users`,
+      payload,
+      options?.headers
+    )
   }
 
   async updateUser(
@@ -103,7 +113,10 @@ export class TeamsResource {
   }
 
   async removeUser(teamId: string, userId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/users/${userId}`, options?.headers)
+    return this.client.delete<void>(
+      apiPath`/mgmt/v1/teams/${teamId}/users/${userId}`,
+      options?.headers
+    )
   }
 
   // ─── Invites ───────────────────────────────────────────────────────────────
@@ -173,7 +186,10 @@ export class TeamsResource {
   }
 
   async deleteSamlProvider(teamId: string, options?: RequestOptions): Promise<void> {
-    return this.client.delete<void>(apiPath`/mgmt/v1/teams/${teamId}/saml-provider`, options?.headers)
+    return this.client.delete<void>(
+      apiPath`/mgmt/v1/teams/${teamId}/saml-provider`,
+      options?.headers
+    )
   }
 
   // ─── Space Blueprints ──────────────────────────────────────────────────────

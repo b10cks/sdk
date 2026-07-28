@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { PaginationParams, UpdateUserParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { PaginationParams, UpdateUserParams } from '@b10cks/mgmt-client'
 
 export class UsersCommand extends BaseCommand {
   register(program: Command): void {
@@ -29,9 +28,13 @@ export class UsersCommand extends BaseCommand {
           const u = res.data
           console.log(`\n${chalk.bold('Profile:')}`)
           console.log(`  ${chalk.bold('ID:')}    ${chalk.yellow(u.id)}`)
-          console.log(`  ${chalk.bold('Name:')}  ${[u.firstname, u.lastname].filter(Boolean).join(' ')}`)
+          console.log(
+            `  ${chalk.bold('Name:')}  ${[u.firstname, u.lastname].filter(Boolean).join(' ')}`
+          )
           console.log(`  ${chalk.bold('Email:')} ${u.email ?? ''}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     me.command('update')
@@ -46,8 +49,18 @@ export class UsersCommand extends BaseCommand {
           const payload: UpdateUserParams = {}
           if (options.interactive) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'firstname', message: 'Given name:', default: options.firstname },
-              { type: 'input', name: 'lastname', message: 'Family name:', default: options.lastname },
+              {
+                type: 'input',
+                name: 'firstname',
+                message: 'Given name:',
+                default: options.firstname,
+              },
+              {
+                type: 'input',
+                name: 'lastname',
+                message: 'Family name:',
+                default: options.lastname,
+              },
             ])
             if (answers.firstname) payload.firstname = answers.firstname
             if (answers.lastname) payload.lastname = answers.lastname
@@ -58,14 +71,17 @@ export class UsersCommand extends BaseCommand {
           const res = await this.client.users.updateMe(payload)
           if (options.json) return this.outputJson(res)
           this.displaySuccess('Profile updated')
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerTokensGroup(ns: Command): void {
     const tokens = ns.command('tokens').description('manage personal access tokens')
 
-    tokens.command('list')
+    tokens
+      .command('list')
       .description('list your personal access tokens')
       .option('-p, --page <page>', 'page number')
       .option('--per-page <n>', 'results per page')
@@ -84,10 +100,13 @@ export class UsersCommand extends BaseCommand {
             const expires = t.expires_at ? chalk.dim(` (expires: ${t.expires_at})`) : ''
             console.log(`  ${chalk.yellow(t.id)}  ${chalk.bold(t.name)}${expires}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tokens.command('create')
+    tokens
+      .command('create')
       .description('create a personal access token')
       .option('-n, --name <name>', 'token name')
       .option('-i, --interactive', 'prompt for inputs')
@@ -98,7 +117,13 @@ export class UsersCommand extends BaseCommand {
           let name = options.name
           if (options.interactive || !name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Token name:', default: name, validate: (v) => v ? true : 'Required' },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Token name:',
+                default: name,
+                validate: (v) => (v ? true : 'Required'),
+              },
             ])
             name = answers.name
           }
@@ -113,33 +138,43 @@ export class UsersCommand extends BaseCommand {
             console.log(`\n  ${chalk.bold('Token:')} ${chalk.cyan(t.token)}`)
             console.log(`  ${chalk.yellow('Copy this token — it will not be shown again.')}`)
           }
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tokens.command('delete')
+    tokens
+      .command('delete')
       .description('delete a personal access token')
       .argument('<tokenId>', 'token ID')
       .option('-f, --force', 'skip confirmation')
       .action(async (tokenId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete token ${chalk.yellow(tokenId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete token ${chalk.yellow(tokenId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.users.deleteToken(tokenId)
           this.displaySuccess(`Token ${chalk.yellow(tokenId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerInvitesGroup(ns: Command): void {
     const invites = ns.command('invites').description('manage invites')
 
-    invites.command('list')
+    invites
+      .command('list')
       .description('list your pending invites')
       .option('-p, --page <page>', 'page number')
       .option('--per-page <n>', 'results per page')
@@ -157,10 +192,13 @@ export class UsersCommand extends BaseCommand {
           res.data.forEach((inv) => {
             console.log(`  ${chalk.yellow(inv.id)}  ${inv.space_id ?? inv.team_id ?? ''}`)
           })
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    invites.command('get')
+    invites
+      .command('get')
       .description('get an invite')
       .argument('<inviteId>', 'invite ID')
       .option('--json', 'output as JSON')
@@ -170,10 +208,13 @@ export class UsersCommand extends BaseCommand {
           const res = await this.client.users.getInvite(inviteId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res.data, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    invites.command('accept')
+    invites
+      .command('accept')
       .description('accept an invite')
       .argument('<inviteId>', 'invite ID')
       .option('--json', 'output as JSON')
@@ -183,7 +224,9 @@ export class UsersCommand extends BaseCommand {
           const res = await this.client.users.acceptInvite(inviteId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Invite ${chalk.yellow(inviteId)} accepted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

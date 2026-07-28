@@ -1,6 +1,12 @@
 import { apiPath } from '../http-client'
 import type { HttpClient } from '../http-client'
-import type { CreateSpaceTokenParams, PaginatedResponse, PaginationParams, RequestOptions, SpaceToken } from '../types'
+import type {
+  CreateSpaceTokenParams,
+  PaginatedResponse,
+  PaginationParams,
+  RequestOptions,
+  SpaceToken,
+} from '../types'
 
 export class TokensResource {
   constructor(private readonly client: HttpClient) {}

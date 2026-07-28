@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { Block, PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { Block, PaginationParams } from '@b10cks/mgmt-client'
 
 export class BlocksCommand extends BaseCommand {
   register(program: Command): void {
@@ -37,10 +36,14 @@ export class BlocksCommand extends BaseCommand {
           console.log(`\n${chalk.bold('Block Definitions:')}`)
           res.data.forEach((b) => {
             const type = b.type !== 'content' ? chalk.dim(` [${b.type}]`) : ''
-            console.log(`  ${chalk.magenta(b.id)}  ${chalk.bold(b.name)}  ${chalk.dim(b.slug)}${type}`)
+            console.log(
+              `  ${chalk.magenta(b.id)}  ${chalk.bold(b.name)}  ${chalk.dim(b.slug)}${type}`
+            )
           })
           console.log(`\n${chalk.dim(`Total: ${res.data.length}`)}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -59,9 +62,27 @@ export class BlocksCommand extends BaseCommand {
           let payload: Partial<Block> = {}
           if (options.interactive || !options.name) {
             const answers = await inquirer.prompt([
-              { type: 'input', name: 'name', message: 'Block name:', default: options.name, validate: (v) => v ? true : 'Required' },
-              { type: 'input', name: 'slug', message: 'Slug:', default: options.slug, validate: (v) => v ? true : 'Required' },
-              { type: 'list', name: 'type', message: 'Type:', choices: ['content', 'nestable'], default: options.type },
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Block name:',
+                default: options.name,
+                validate: (v) => (v ? true : 'Required'),
+              },
+              {
+                type: 'input',
+                name: 'slug',
+                message: 'Slug:',
+                default: options.slug,
+                validate: (v) => (v ? true : 'Required'),
+              },
+              {
+                type: 'list',
+                name: 'type',
+                message: 'Type:',
+                choices: ['content', 'nestable'],
+                default: options.type,
+              },
             ])
             payload = answers
           } else {
@@ -75,7 +96,9 @@ export class BlocksCommand extends BaseCommand {
           console.log(`  ${chalk.bold('ID:')}   ${chalk.yellow(block.id)}`)
           console.log(`  ${chalk.bold('Name:')} ${block.name}`)
           console.log(`  ${chalk.bold('Slug:')} ${block.slug}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -95,7 +118,9 @@ export class BlocksCommand extends BaseCommand {
           console.log(`  ${chalk.bold('Name:')} ${block.name}`)
           console.log(`  ${chalk.bold('Slug:')} ${block.slug}`)
           console.log(`  ${chalk.bold('Type:')} ${block.type}`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -116,7 +141,9 @@ export class BlocksCommand extends BaseCommand {
           const block = await this.client.blocks.update(spaceId, blockId, payload)
           if (options.json) return this.outputJson(block)
           this.displaySuccess(`Block ${chalk.yellow(block.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
@@ -129,23 +156,30 @@ export class BlocksCommand extends BaseCommand {
       .action(async (spaceId, blockId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete block ${chalk.yellow(blockId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete block ${chalk.yellow(blockId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.blocks.delete(spaceId, blockId)
           this.displaySuccess(`Block ${chalk.yellow(blockId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerTemplatesGroup(ns: Command): void {
     const tmpl = ns.command('templates').description('manage block templates')
 
-    tmpl.command('list')
+    tmpl
+      .command('list')
       .description('list templates for a block')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -163,10 +197,13 @@ export class BlocksCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No templates found')
           console.log(`\n${chalk.bold('Templates:')}`)
           res.data.forEach((t) => console.log(`  ${chalk.yellow(t.id)}  ${t.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tmpl.command('get')
+    tmpl
+      .command('get')
       .description('get a block template')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -178,10 +215,13 @@ export class BlocksCommand extends BaseCommand {
           const res = await this.client.blocks.getTemplate(spaceId, blockId, templateId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    tmpl.command('delete')
+    tmpl
+      .command('delete')
       .description('delete a block template')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -190,23 +230,30 @@ export class BlocksCommand extends BaseCommand {
       .action(async (spaceId, blockId, templateId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete template ${chalk.yellow(templateId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete template ${chalk.yellow(templateId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.blocks.deleteTemplate(spaceId, blockId, templateId)
           this.displaySuccess(`Template ${chalk.yellow(templateId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 
   private registerVersionsGroup(ns: Command): void {
     const ver = ns.command('versions').description('manage block versions')
 
-    ver.command('list')
+    ver
+      .command('list')
       .description('list versions of a block')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -223,11 +270,16 @@ export class BlocksCommand extends BaseCommand {
           if (options.json) return this.outputJson(res)
           if (!res.data?.length) return console.log('No versions found')
           console.log(`\n${chalk.bold('Versions:')}`)
-          res.data.forEach((v) => console.log(`  ${chalk.yellow(v.id)}  ${chalk.dim(v.created_at ?? '')}`))
-        } catch (e) { this.handleError(e) }
+          res.data.forEach((v) =>
+            console.log(`  ${chalk.yellow(v.id)}  ${chalk.dim(v.created_at ?? '')}`)
+          )
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    ver.command('get')
+    ver
+      .command('get')
       .description('get a block version')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -239,10 +291,13 @@ export class BlocksCommand extends BaseCommand {
           const res = await this.client.blocks.getVersion(spaceId, blockId, versionId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    ver.command('delete')
+    ver
+      .command('delete')
       .description('delete a block version')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -251,19 +306,26 @@ export class BlocksCommand extends BaseCommand {
       .action(async (spaceId, blockId, versionId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete version ${chalk.yellow(versionId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete version ${chalk.yellow(versionId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.blocks.deleteVersion(spaceId, blockId, versionId)
           this.displaySuccess(`Version ${chalk.yellow(versionId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
-    ver.command('restore')
+    ver
+      .command('restore')
       .description('restore a block version')
       .argument('<spaceId>', 'space ID')
       .argument('<blockId>', 'block ID')
@@ -275,7 +337,9 @@ export class BlocksCommand extends BaseCommand {
           const res = await this.client.blocks.restoreVersion(spaceId, blockId, versionId)
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Version ${chalk.yellow(versionId)} restored`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

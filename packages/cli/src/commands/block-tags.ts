@@ -1,10 +1,9 @@
-import type { Command } from 'commander'
-
+import type { PaginationParams } from '@b10cks/mgmt-client'
 import chalk from 'chalk'
+import type { Command } from 'commander'
 import inquirer from 'inquirer'
 
 import { BaseCommand } from './BaseCommand.js'
-import type { PaginationParams } from '@b10cks/mgmt-client'
 
 export class BlockTagsCommand extends BaseCommand {
   register(program: Command): void {
@@ -27,7 +26,9 @@ export class BlockTagsCommand extends BaseCommand {
           if (!res.data?.length) return console.log('No block tags found')
           console.log(`\n${chalk.bold('Block Tags:')}`)
           res.data.forEach((t) => console.log(`  ${chalk.yellow(t.id)}  ${t.name}`))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('create')
@@ -41,7 +42,9 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.create(spaceId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block tag ${chalk.yellow(res.id)} created`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('get')
@@ -55,7 +58,9 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.get(spaceId, tagId)
           if (options.json) return this.outputJson(res)
           console.log(JSON.stringify(res, null, 2))
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('update')
@@ -70,7 +75,9 @@ export class BlockTagsCommand extends BaseCommand {
           const res = await this.client.blockTags.update(spaceId, tagId, { name: options.name })
           if (options.json) return this.outputJson(res)
           this.displaySuccess(`Block tag ${chalk.yellow(res.id)} updated`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
 
     ns.command('delete')
@@ -81,16 +88,22 @@ export class BlockTagsCommand extends BaseCommand {
       .action(async (spaceId, tagId, options) => {
         this.ensureAuthenticated()
         if (!options.force) {
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm', name: 'confirm',
-            message: `Delete block tag ${chalk.yellow(tagId)}?`, default: false,
-          }])
+          const { confirm } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirm',
+              message: `Delete block tag ${chalk.yellow(tagId)}?`,
+              default: false,
+            },
+          ])
           if (!confirm) return console.log('Aborted')
         }
         try {
           await this.client.blockTags.delete(spaceId, tagId)
           this.displaySuccess(`Block tag ${chalk.yellow(tagId)} deleted`)
-        } catch (e) { this.handleError(e) }
+        } catch (e) {
+          this.handleError(e)
+        }
       })
   }
 }

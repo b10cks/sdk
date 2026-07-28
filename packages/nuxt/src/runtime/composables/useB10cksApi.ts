@@ -14,11 +14,11 @@ import type {
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
+import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
 import type { AsyncDataOptions } from 'nuxt/app'
+import { computed, getCurrentScope, toValue, watch } from 'vue'
 
 import { callOnce, useAsyncData } from '#app'
-import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
-import { computed, getCurrentScope, toValue, watch } from 'vue'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 // `sort` is omitted because content params widen it to `string | ContentSortItem[]`,

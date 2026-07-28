@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   createRichTextRenderer,
   createRichTextTextRenderer,
@@ -22,7 +23,10 @@ function text(t: string, ...marks: RichTextDocument['marks']): RichTextDocument 
   return marks?.length ? { type: 'text', text: t, marks } : { type: 'text', text: t }
 }
 
-function mark(type: string, attrs?: Record<string, unknown>): NonNullable<RichTextDocument['marks']>[number] {
+function mark(
+  type: string,
+  attrs?: Record<string, unknown>
+): NonNullable<RichTextDocument['marks']>[number] {
   return attrs ? { type, attrs } : { type }
 }
 
@@ -125,17 +129,23 @@ describe('renderRichText', () => {
 
   describe('link mark', () => {
     it('renders href', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { href: 'https://example.com' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { href: 'https://example.com' }))))
+      )
       expect(result).toBe('<p><a href="https://example.com">click</a></p>')
     })
 
     it('falls back to url when href is absent', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { url: 'https://example.com' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { url: 'https://example.com' }))))
+      )
       expect(result).toBe('<p><a href="https://example.com">click</a></p>')
     })
 
     it('falls back to url when href is empty string', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { href: '', url: 'https://example.com' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { href: '', url: 'https://example.com' }))))
+      )
       expect(result).toBe('<p><a href="https://example.com">click</a></p>')
     })
 
@@ -145,62 +155,96 @@ describe('renderRichText', () => {
     })
 
     it('renders target and rel', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { href: '/x', target: '_blank', rel: 'noopener' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { href: '/x', target: '_blank', rel: 'noopener' }))))
+      )
       expect(result).toBe('<p><a href="/x" target="_blank" rel="noopener">click</a></p>')
     })
   })
 
   describe('URL scheme sanitizing', () => {
     it('neutralizes javascript: URLs in link href', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { href: 'javascript:alert(1)' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { href: 'javascript:alert(1)' }))))
+      )
       expect(result).toBe('<p><a href="#">click</a></p>')
     })
 
     it('neutralizes javascript: URLs hidden behind case and control characters', () => {
-      const result = renderRichText(doc(p(text('click', mark('link', { href: 'JaVa\tScRiPt:alert(1)' })))))
+      const result = renderRichText(
+        doc(p(text('click', mark('link', { href: 'JaVa\tScRiPt:alert(1)' }))))
+      )
       expect(result).toBe('<p><a href="#">click</a></p>')
     })
 
     it('neutralizes data: URLs in image src', () => {
-      const result = renderRichText(doc({ type: 'image', attrs: { src: 'data:text/html,<script>1</script>' } }))
+      const result = renderRichText(
+        doc({ type: 'image', attrs: { src: 'data:text/html,<script>1</script>' } })
+      )
       expect(result).toBe('<img src="#">')
     })
 
     it('neutralizes disallowed schemes returned by internalLinkHandler', () => {
-      const result = renderRichText(doc(p(text('page', mark('internalLink', { content: 'abc' })))), {
-        internalLinkHandler: () => 'vbscript:evil',
-      })
+      const result = renderRichText(
+        doc(p(text('page', mark('internalLink', { content: 'abc' })))),
+        {
+          internalLinkHandler: () => 'vbscript:evil',
+        }
+      )
       expect(result).toContain('href="#"')
     })
 
     it('allows http, https, mailto, tel and relative URLs by default', () => {
-      for (const href of ['https://example.com', 'http://example.com', 'mailto:a@b.c', 'tel:+123', '/about', '#anchor', '//cdn.example.com/x']) {
+      for (const href of [
+        'https://example.com',
+        'http://example.com',
+        'mailto:a@b.c',
+        'tel:+123',
+        '/about',
+        '#anchor',
+        '//cdn.example.com/x',
+      ]) {
         const result = renderRichText(doc(p(text('x', mark('link', { href })))))
         expect(result).toContain(`href="${href}"`)
       }
     })
 
     it('allows javascript: when explicitly whitelisted via allowedSchemes', () => {
-      const result = renderRichText(doc(p(text('x', mark('link', { href: 'javascript:void(0)' })))), {
-        allowedSchemes: [...DEFAULT_ALLOWED_SCHEMES, 'javascript'],
-      })
+      const result = renderRichText(
+        doc(p(text('x', mark('link', { href: 'javascript:void(0)' })))),
+        {
+          allowedSchemes: [...DEFAULT_ALLOWED_SCHEMES, 'javascript'],
+        }
+      )
       expect(result).toContain('href="javascript:void(0)"')
     })
 
     it('restricts to a custom allowlist when one is provided', () => {
-      const result = renderRichText(doc(p(text('x', mark('link', { href: 'http://example.com' })))), {
-        allowedSchemes: ['https'],
-      })
+      const result = renderRichText(
+        doc(p(text('x', mark('link', { href: 'http://example.com' })))),
+        {
+          allowedSchemes: ['https'],
+        }
+      )
       expect(result).toContain('href="#"')
     })
   })
 
   describe('internalLink mark', () => {
     it('renders CMS format (content + anchor) without handler', () => {
-      const result = renderRichText(doc(p(text('page', mark('internalLink', {
-        content: 'abc123',
-        anchor: 'section1',
-      })))))
+      const result = renderRichText(
+        doc(
+          p(
+            text(
+              'page',
+              mark('internalLink', {
+                content: 'abc123',
+                anchor: 'section1',
+              })
+            )
+          )
+        )
+      )
       expect(result).toContain('data-type="internal"')
       expect(result).toContain('data-b10cks-internal-link')
       expect(result).toContain('data-content="abc123"')
@@ -209,16 +253,22 @@ describe('renderRichText', () => {
     })
 
     it('uses internalLinkHandler to resolve href', () => {
-      const result = renderRichText(doc(p(text('page', mark('internalLink', { content: 'abc123' })))), {
-        internalLinkHandler: (attrs) => `/content/${attrs.content}`,
-      })
+      const result = renderRichText(
+        doc(p(text('page', mark('internalLink', { content: 'abc123' })))),
+        {
+          internalLinkHandler: (attrs) => `/content/${attrs.content}`,
+        }
+      )
       expect(result).toContain('href="/content/abc123"')
     })
 
     it('falls back to default href when handler returns null', () => {
-      const result = renderRichText(doc(p(text('page', mark('internalLink', { url: '/fallback', content: 'abc' })))), {
-        internalLinkHandler: () => null,
-      })
+      const result = renderRichText(
+        doc(p(text('page', mark('internalLink', { url: '/fallback', content: 'abc' })))),
+        {
+          internalLinkHandler: () => null,
+        }
+      )
       expect(result).toContain('href="/fallback"')
     })
 
@@ -235,7 +285,9 @@ describe('renderRichText', () => {
 
   describe('blockquote', () => {
     it('wraps in <blockquote>', () => {
-      expect(renderRichText(doc({ type: 'blockquote', content: [p(text('quote'))] }))).toBe('<blockquote><p>quote</p></blockquote>')
+      expect(renderRichText(doc({ type: 'blockquote', content: [p(text('quote'))] }))).toBe(
+        '<blockquote><p>quote</p></blockquote>'
+      )
     })
   })
 
@@ -246,8 +298,14 @@ describe('renderRichText', () => {
     })
 
     it('adds data-language when present', () => {
-      const node: RichTextDocument = { type: 'codeBlock', attrs: { language: 'typescript' }, content: [text('let x')] }
-      expect(renderRichText(doc(node))).toBe('<pre><code data-language="typescript">let x</code></pre>')
+      const node: RichTextDocument = {
+        type: 'codeBlock',
+        attrs: { language: 'typescript' },
+        content: [text('let x')],
+      }
+      expect(renderRichText(doc(node))).toBe(
+        '<pre><code data-language="typescript">let x</code></pre>'
+      )
     })
   })
 
@@ -309,7 +367,9 @@ describe('renderRichText', () => {
 
   describe('hardBreak / horizontalRule', () => {
     it('renders <br>', () => {
-      expect(renderRichText(doc(p(text('a'), { type: 'hardBreak' }, text('b'))))).toBe('<p>a<br>b</p>')
+      expect(renderRichText(doc(p(text('a'), { type: 'hardBreak' }, text('b'))))).toBe(
+        '<p>a<br>b</p>'
+      )
     })
 
     it('renders <hr>', () => {
@@ -324,7 +384,10 @@ describe('renderRichText', () => {
     })
 
     it('renders alt and title', () => {
-      const node: RichTextDocument = { type: 'image', attrs: { src: '/photo.jpg', alt: 'A photo', title: 'Photo' } }
+      const node: RichTextDocument = {
+        type: 'image',
+        attrs: { src: '/photo.jpg', alt: 'A photo', title: 'Photo' },
+      }
       expect(renderRichText(doc(node))).toBe('<img src="/photo.jpg" alt="A photo" title="Photo">')
     })
   })
@@ -333,26 +396,36 @@ describe('renderRichText', () => {
     it('renders a simple table', () => {
       const node: RichTextDocument = {
         type: 'table',
-        content: [{
-          type: 'tableRow',
-          content: [
-            { type: 'tableHeader', content: [p(text('Name'))] },
-            { type: 'tableCell', content: [p(text('Alice'))] },
-          ],
-        }],
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              { type: 'tableHeader', content: [p(text('Name'))] },
+              { type: 'tableCell', content: [p(text('Alice'))] },
+            ],
+          },
+        ],
       }
-      expect(renderRichText(doc(node))).toBe('<table><tr><th><p>Name</p></th><td><p>Alice</p></td></tr></table>')
+      expect(renderRichText(doc(node))).toBe(
+        '<table><tr><th><p>Name</p></th><td><p>Alice</p></td></tr></table>'
+      )
     })
 
     it('renders colspan and rowspan', () => {
       const node: RichTextDocument = {
         type: 'table',
-        content: [{
-          type: 'tableRow',
-          content: [
-            { type: 'tableCell', attrs: { colspan: 2, rowspan: 3 }, content: [p(text('merged'))] },
-          ],
-        }],
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              {
+                type: 'tableCell',
+                attrs: { colspan: 2, rowspan: 3 },
+                content: [p(text('merged'))],
+              },
+            ],
+          },
+        ],
       }
       expect(renderRichText(doc(node))).toContain('<td colspan="2" rowspan="3">')
     })
@@ -360,12 +433,14 @@ describe('renderRichText', () => {
     it('omits colspan/rowspan when value is 1', () => {
       const node: RichTextDocument = {
         type: 'table',
-        content: [{
-          type: 'tableRow',
-          content: [
-            { type: 'tableCell', attrs: { colspan: 1, rowspan: 1 }, content: [p(text('x'))] },
-          ],
-        }],
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              { type: 'tableCell', attrs: { colspan: 1, rowspan: 1 }, content: [p(text('x'))] },
+            ],
+          },
+        ],
       }
       const result = renderRichText(doc(node))
       expect(result).not.toContain('colspan')
@@ -375,20 +450,31 @@ describe('renderRichText', () => {
 
   describe('placeholderToken', () => {
     it('renders fallback span without handler', () => {
-      const node: RichTextDocument = { type: 'placeholderToken', attrs: { key: 'companyName', label: '{companyName}' } }
-      expect(renderRichText(doc(p(node)))).toBe('<p><span data-type="placeholder-token" data-key="companyName" data-label="{companyName}"></span></p>')
+      const node: RichTextDocument = {
+        type: 'placeholderToken',
+        attrs: { key: 'companyName', label: '{companyName}' },
+      }
+      expect(renderRichText(doc(p(node)))).toBe(
+        '<p><span data-type="placeholder-token" data-key="companyName" data-label="{companyName}"></span></p>'
+      )
     })
 
     it('resolves value from handler', () => {
-      const node: RichTextDocument = { type: 'placeholderToken', attrs: { key: 'companyName', label: '{companyName}' } }
+      const node: RichTextDocument = {
+        type: 'placeholderToken',
+        attrs: { key: 'companyName', label: '{companyName}' },
+      }
       const result = renderRichText(doc(p(node)), {
-        placeholderHandler: (key) => key === 'companyName' ? 'Google Inc' : null,
+        placeholderHandler: (key) => (key === 'companyName' ? 'Google Inc' : null),
       })
       expect(result).toBe('<p>Google Inc</p>')
     })
 
     it('falls back to span when handler returns null', () => {
-      const node: RichTextDocument = { type: 'placeholderToken', attrs: { key: 'unknown', label: '{unknown}' } }
+      const node: RichTextDocument = {
+        type: 'placeholderToken',
+        attrs: { key: 'unknown', label: '{unknown}' },
+      }
       const result = renderRichText(doc(p(node)), {
         placeholderHandler: () => null,
       })
@@ -419,7 +505,9 @@ describe('renderRichText', () => {
     })
 
     it('escapes < > & " in link href', () => {
-      const result = renderRichText(doc(p(text('x', mark('link', { href: '"><script>alert(1)</script>' })))))
+      const result = renderRichText(
+        doc(p(text('x', mark('link', { href: '"><script>alert(1)</script>' }))))
+      )
       expect(result).not.toContain('<script>')
     })
 
@@ -428,16 +516,18 @@ describe('renderRichText', () => {
       // After escaping it becomes &quot; — the `"` can't close the attribute.
       const node: RichTextDocument = { type: 'image', attrs: { src: '"><img onerror=alert(1)>' } }
       const result = renderRichText(doc(node))
-      expect(result).not.toContain('"><img')   // raw breakout sequence is gone
-      expect(result).toContain('&quot;&gt;')   // the chars are encoded instead
+      expect(result).not.toContain('"><img') // raw breakout sequence is gone
+      expect(result).toContain('&quot;&gt;') // the chars are encoded instead
     })
 
     it('escapes special chars in link title', () => {
       // The payload opens with `"` to break out of the title attribute.
       // After escaping the `"` becomes &quot; — the attack can't escape the attribute.
-      const result = renderRichText(doc(p(text('x', mark('link', { href: '/x', title: '"onmouseover=alert(1)' })))))
-      expect(result).not.toContain('" onmouseover')  // raw breakout sequence is gone
-      expect(result).toContain('&quot;onmouseover')  // encoded safely inside the attribute
+      const result = renderRichText(
+        doc(p(text('x', mark('link', { href: '/x', title: '"onmouseover=alert(1)' }))))
+      )
+      expect(result).not.toContain('" onmouseover') // raw breakout sequence is gone
+      expect(result).toContain('&quot;onmouseover') // encoded safely inside the attribute
     })
   })
 
@@ -474,7 +564,9 @@ describe('renderRichTextAsText', () => {
   })
 
   it('respects custom blockSeparator', () => {
-    expect(renderRichTextAsText(doc(p(text('A')), p(text('B'))), { blockSeparator: ' ' })).toBe('A B')
+    expect(renderRichTextAsText(doc(p(text('A')), p(text('B'))), { blockSeparator: ' ' })).toBe(
+      'A B'
+    )
   })
 
   it('strips marks (returns raw text)', () => {
@@ -498,9 +590,12 @@ describe('renderRichTextAsText', () => {
 
   describe('placeholderToken', () => {
     it('emits resolved value when handler returns one', () => {
-      const node: RichTextDocument = { type: 'placeholderToken', attrs: { key: 'name', label: '{name}' } }
+      const node: RichTextDocument = {
+        type: 'placeholderToken',
+        attrs: { key: 'name', label: '{name}' },
+      }
       const result = renderRichTextAsText(doc(p(text('Hello '), node, text('!'))), {
-        placeholderHandler: (key) => key === 'name' ? 'Alice' : null,
+        placeholderHandler: (key) => (key === 'name' ? 'Alice' : null),
       })
       expect(result).toBe('Hello Alice!')
     })

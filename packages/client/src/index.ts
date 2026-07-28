@@ -216,10 +216,7 @@ export class ApiClient {
    * requests in flight, so paginated fan-out cannot open hundreds of sockets
    * at once and trip API rate limits.
    */
-  private async mapWithConcurrency<I, O>(
-    items: I[],
-    task: (item: I) => Promise<O>
-  ): Promise<O[]> {
+  private async mapWithConcurrency<I, O>(items: I[], task: (item: I) => Promise<O>): Promise<O[]> {
     const results: O[] = Array.from({ length: items.length })
     let cursor = 0
 
@@ -230,9 +227,8 @@ export class ApiClient {
       }
     }
 
-    const workers = Array.from(
-      { length: Math.min(this.maxConcurrency, items.length) },
-      () => worker()
+    const workers = Array.from({ length: Math.min(this.maxConcurrency, items.length) }, () =>
+      worker()
     )
     await Promise.all(workers)
 
