@@ -1,0 +1,22 @@
+name: Setup
+description: Install pnpm, Node.js and the workspace dependencies (with cache)
+
+inputs:
+  node-version:
+    description: Node.js version to install
+    required: false
+    default: '24'
+
+runs:
+  using: composite
+  steps:
+    # Version comes from the `packageManager` field in package.json.
+    - uses: pnpm/action-setup@v6
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
