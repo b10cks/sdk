@@ -81,6 +81,6 @@ from a developer machine.
 
 If you have any questions or need support, feel free to reach out to the maintainers. We are here to help!
 
-1. You can check the [b10cks documentation](https://docs.b10cks.com/).
+1. You can check the [b10cks documentation](https://www.b10cks.com/docs).
 2. Open an issue in this repository if you encounter any problems or have questions about the SDKs.
 3. Join our [Discord community](https://discord.gg/coders_cantina) for community support.

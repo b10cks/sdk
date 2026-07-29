@@ -2,12 +2,29 @@
 
 [![CI](https://github.com/b10cks/sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/b10cks/sdk/actions/workflows/ci.yml)
 [![Release](https://github.com/b10cks/sdk/actions/workflows/release.yml/badge.svg)](https://github.com/b10cks/sdk/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/@b10cks/client?label=%40b10cks%2Fclient)](https://www.npmjs.com/package/@b10cks/client)
+[![License](https://img.shields.io/npm/l/@b10cks/client)](./LICENSE)
 
-Official JavaScript/TypeScript SDKs for [b10cks](https://b10cks.com) – a modern headless CMS and content management platform.
+Official JavaScript/TypeScript SDKs for [b10cks](https://www.b10cks.com) – a modern headless CMS and content management platform.
 
-This monorepo contains multiple packages that enable seamless integration of b10cks into your web applications.
+Fully typed, framework-agnostic at the core, with first-party integrations for Vue, Nuxt, React,
+Next.js and Svelte – plus a CLI and an [MCP server](./packages/mcp-server) that let you (and your AI
+coding agent) drive the b10cks Management API directly.
 
 ## 📦 Packages
+
+| Package                                         | Version                                                                                                       | What it does                                       |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| [`@b10cks/client`](./packages/client)           | [![npm](https://img.shields.io/npm/v/@b10cks/client)](https://www.npmjs.com/package/@b10cks/client)           | Framework-agnostic Data API client                 |
+| [`@b10cks/richtext`](./packages/richtext)       | [![npm](https://img.shields.io/npm/v/@b10cks/richtext)](https://www.npmjs.com/package/@b10cks/richtext)       | Rich text → HTML renderer                          |
+| [`@b10cks/vue`](./packages/vue)                 | [![npm](https://img.shields.io/npm/v/@b10cks/vue)](https://www.npmjs.com/package/@b10cks/vue)                 | Vue 3 plugin, composables and live-edit directives |
+| [`@b10cks/nuxt`](./packages/nuxt)               | [![npm](https://img.shields.io/npm/v/@b10cks/nuxt)](https://www.npmjs.com/package/@b10cks/nuxt)               | Nuxt 4 module                                      |
+| [`@b10cks/react`](./packages/react)             | [![npm](https://img.shields.io/npm/v/@b10cks/react)](https://www.npmjs.com/package/@b10cks/react)             | React provider and hooks                           |
+| [`@b10cks/next`](./packages/next)               | [![npm](https://img.shields.io/npm/v/@b10cks/next)](https://www.npmjs.com/package/@b10cks/next)               | Next.js integration layer                          |
+| [`@b10cks/svelte`](./packages/svelte)           | [![npm](https://img.shields.io/npm/v/@b10cks/svelte)](https://www.npmjs.com/package/@b10cks/svelte)           | Svelte context, stores and actions                 |
+| [`@b10cks/mcp-server`](./packages/mcp-server)   | [![npm](https://img.shields.io/npm/v/@b10cks/mcp-server)](https://www.npmjs.com/package/@b10cks/mcp-server)   | MCP server for the Management API                  |
+| [`@b10cks/cli`](./packages/cli)                 | [![npm](https://img.shields.io/npm/v/@b10cks/cli)](https://www.npmjs.com/package/@b10cks/cli)                 | Scaffolding, schema sync and type generation       |
+| [`@b10cks/mgmt-client`](./packages/mgmt-client) | [![npm](https://img.shields.io/npm/v/@b10cks/mgmt-client)](https://www.npmjs.com/package/@b10cks/mgmt-client) | Typed Management API client                        |
 
 ### [@b10cks/client](./packages/client)
 
@@ -86,6 +103,57 @@ Next.js integration layer for [b10cks](https://www.b10cks.com) on top of the Rea
 npm install @b10cks/next @b10cks/react @b10cks/client
 ```
 
+### [@b10cks/richtext](./packages/richtext)
+
+Framework-agnostic rich text rendering for the [b10cks](https://www.b10cks.com) rich text field.
+
+- Renders the editor document tree to HTML
+- Escapes text and attributes, sanitizes `href`/`src` URL schemes
+- Pluggable resolvers for internal links and custom nodes
+- No framework or DOM dependency
+
+```bash
+npm install @b10cks/richtext
+```
+
+### [@b10cks/mcp-server](./packages/mcp-server)
+
+Model Context Protocol server that exposes the [b10cks](https://www.b10cks.com) Management API to AI
+coding agents such as Claude Code, Cursor and Claude Desktop.
+
+- Block definitions, content, redirects, data sources, releases and automations as MCP tools
+- Lets an agent read and evolve your content model without hand-written glue
+- Built on `@b10cks/mgmt-client`
+
+```bash
+npx @b10cks/mcp-server
+```
+
+### [@b10cks/cli](./packages/cli)
+
+Command line interface for the [b10cks](https://www.b10cks.com) Management API.
+
+- Project scaffolding and framework wiring (`init`, `kickstart`)
+- Schema `pull` / `diff` / `push` with a lockfile
+- TypeScript type generation from your block schema
+- Credentials stored in `~/.netrc` with `0600` permissions
+
+```bash
+npm install -D @b10cks/cli
+```
+
+### [@b10cks/mgmt-client](./packages/mgmt-client)
+
+Typed client for the [b10cks](https://www.b10cks.com) Management API.
+
+- Full CRUD across spaces, blocks, content, assets and more
+- Shared foundation for `@b10cks/cli` and `@b10cks/mcp-server`
+- Server-side only – Management API tokens must never reach the browser
+
+```bash
+npm install @b10cks/mgmt-client
+```
+
 ## 🚀 Quick Start
 
 ### For Nuxt Projects
@@ -140,11 +208,13 @@ const blocks = await dataApi.getBlocks()
 
 ## 📖 Documentation
 
-- [b10cks Documentation](https://docs.b10cks.com/)
-- Individual package READMEs:
-  - [Client Package](./packages/client/README.md)
-  - [Vue Package](./packages/vue/README.md)
-  - [Nuxt Package](./packages/nuxt/README.md)
+- [b10cks Documentation](https://www.b10cks.com/docs)
+- Individual package READMEs: [client](./packages/client/README.md) ·
+  [richtext](./packages/richtext/README.md) · [vue](./packages/vue/README.md) ·
+  [nuxt](./packages/nuxt/README.md) · [react](./packages/react/README.md) ·
+  [next](./packages/next/README.md) · [svelte](./packages/svelte/README.md) ·
+  [mcp-server](./packages/mcp-server/README.md) · [cli](./packages/cli/README.md) ·
+  [mgmt-client](./packages/mgmt-client/README.md)
 
 ## 🛠️ Development
 
@@ -257,14 +327,21 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for gu
 
 MIT – see [LICENSE](./LICENSE) for details
 
+## 🔐 Security
+
+Please report security vulnerabilities privately – see [SECURITY.md](./SECURITY.md). Do not open a
+public issue for them.
+
 ## 💬 Support & Community
 
-- **Discord**: [Join our community](https://discord.gg/coders_cantina)
-- **Issues**: [GitHub Issues](https://github.com/b10cks/sdk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/b10cks/sdk/discussions) – questions, ideas and show & tell
+- **Issues**: [GitHub Issues](https://github.com/b10cks/sdk/issues) – bugs and feature requests
+- **Discord**: [Join our community](https://discord.gg/mdcDktFFcp)
 
 ## 🔗 Links
 
-- [b10cks Website](https://discord.gg/KYWFsctk)
+- [b10cks Website](https://www.b10cks.com)
+- [b10cks Documentation](https://www.b10cks.com/docs)
 - [GitHub Repository](https://github.com/b10cks/sdk)
 - [npm Organization](https://www.npmjs.com/org/b10cks)
 
