@@ -1,0 +1,80 @@
+name: 🐛 Bug report
+description: Something in one of the b10cks SDK packages does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report.
+
+        **Do not report security vulnerabilities here** – use
+        [private reporting](https://github.com/b10cks/sdk/security/advisories/new) instead.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which package is affected?
+      multiple: true
+      options:
+        - '@b10cks/client'
+        - '@b10cks/richtext'
+        - '@b10cks/vue'
+        - '@b10cks/nuxt'
+        - '@b10cks/react'
+        - '@b10cks/next'
+        - '@b10cks/svelte'
+        - '@b10cks/mcp-server'
+        - '@b10cks/cli'
+        - '@b10cks/mgmt-client'
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: e.g. 2.3.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect to happen, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: A minimal reproduction (repo, StackBlitz or code snippet) gets this fixed much faster.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, package manager, framework version, browser/runtime.
+      render: text
+      placeholder: |
+        Node: 24.7.0
+        Package manager: pnpm 11.17.0
+        Framework: Nuxt 4.x
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or errors
+      description: Paste any error output. **Redact access tokens before posting.**
+      render: shell

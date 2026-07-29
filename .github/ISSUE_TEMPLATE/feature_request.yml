@@ -1,0 +1,52 @@
+name: ✨ Feature request
+description: Suggest a new capability for one of the b10cks SDK packages.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Open-ended ideas are often a better fit for
+        [Discussions](https://github.com/b10cks/sdk/discussions). Use this form when you have a
+        concrete change in mind.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      multiple: true
+      options:
+        - '@b10cks/client'
+        - '@b10cks/richtext'
+        - '@b10cks/vue'
+        - '@b10cks/nuxt'
+        - '@b10cks/react'
+        - '@b10cks/next'
+        - '@b10cks/svelte'
+        - '@b10cks/mcp-server'
+        - '@b10cks/cli'
+        - '@b10cks/mgmt-client'
+        - New package
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case you are stuck on, not just the solution you have in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behaviour
+      description: Sketch the API you would like. Code samples welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Workarounds you tried, and why they fall short.
