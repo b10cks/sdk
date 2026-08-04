@@ -63,7 +63,7 @@
     "@nuxt/schema": "^4.5.1",
     "nuxt": "^4.5.1",
     "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.8"
+    "vue-tsc": "^3.3.9"
   },
   "release": {
     "branches": [
