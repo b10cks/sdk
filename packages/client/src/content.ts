@@ -1,4 +1,39 @@
-import type { B10cksLink } from './types'
+import type { B10cksLink, IBContent } from './types'
+
+export type RootBlock<T> = T & { id: string; block: string }
+
+/**
+ * Flatten a content entry into a renderable root block.
+ *
+ * An entry's `content` object carries `block` but not `id` — the id lives on the
+ * entry. Rendering `entry.content` directly therefore yields a root block the
+ * visual editor cannot address: `v-editable` no-ops on it, and the editor's
+ * root-level `CONTENT_UPDATE` (sent as `{ id: entryId, … }`) matches nothing.
+ * Use this helper to carry the entry id into the tree:
+ *
+ * ```ts
+ * const block = toRootBlock(entry) // { ...entry.content, id, block }
+ * ```
+ */
+export function toRootBlock<T extends Record<string, unknown>>(entry: IBContent<T>): RootBlock<T>
+export function toRootBlock<T extends Record<string, unknown>>(
+  entry: IBContent<T> | null | undefined
+): RootBlock<T> | null
+export function toRootBlock<T extends Record<string, unknown>>(
+  entry: IBContent<T> | null | undefined
+): RootBlock<T> | null {
+  if (!entry) {
+    return null
+  }
+
+  const content = (entry.content ?? {}) as T & { block?: string }
+
+  return {
+    ...content,
+    id: entry.id,
+    block: content.block ?? entry.block,
+  } as RootBlock<T>
+}
 
 export interface B10cksLinkResolved {
   href: string

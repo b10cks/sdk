@@ -27,9 +27,16 @@ export interface B10cksVuePluginOptions {
 
 export type BlockComponentResolver = (componentName: string) => Promise<Component>
 
-export const B10cksComponentResolverKey: InjectionKey<BlockComponentResolver> = Symbol(
+// Registered in the global symbol registry (`Symbol.for`) on purpose: a bundler
+// can end up with two copies of this module in one app (e.g. Vite's dependency
+// optimizer pre-bundling `@b10cks/vue` for the client while SSR resolves the
+// source). Module-scoped `Symbol()` values would then differ between the copy
+// that `provide`s and the copy that `inject`s, and injection would silently
+// fail. Values are still stored per app instance, so sharing the key symbol
+// across copies does not leak anything between Vue apps.
+export const B10cksComponentResolverKey: InjectionKey<BlockComponentResolver> = Symbol.for(
   'b10cks:resolveBlockComponent'
 )
 
-export const B10cksClientKey: InjectionKey<ApiClient> = Symbol('b10cks:client')
-export const B10cksDataApiKey: InjectionKey<B10cksDataApi> = Symbol('b10cks:data-api')
+export const B10cksClientKey: InjectionKey<ApiClient> = Symbol.for('b10cks:client')
+export const B10cksDataApiKey: InjectionKey<B10cksDataApi> = Symbol.for('b10cks:data-api')

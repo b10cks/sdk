@@ -104,12 +104,21 @@ The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate 
 `B10cksComponent`, `v-editable`, and `v-editable-field` are available globally after registering the module. `componentsDir` in the config tells the module where your block components live; it auto-registers them by block name.
 
 ```vue
+<script setup lang="ts">
+const { useContent } = useB10cksApi()
+const { data: entry } = await useContent('home')
+// An entry's `content` object has no `id` — the id lives on the entry — so pass
+// it through `toRootBlock` (auto-imported). Without it the root block cannot be
+// selected in the visual editor and `v-editable` no-ops on it.
+const block = computed(() => toRootBlock(entry.value))
+</script>
+
 <template>
-  <!-- Renders the component matching content.block from componentsDir -->
+  <!-- Renders the component matching block.block from componentsDir -->
   <B10cksComponent
-    v-if="content"
-    :block="{ id: content.id, block: content.block, ...content.content }"
-    :content="content"
+    v-if="block"
+    :block="block"
+    :content="entry"
   />
 </template>
 ```
@@ -135,8 +144,9 @@ For whole-tree reactive updates while editing — including nested and rich text
 const { useContent } = useB10cksApi()
 const { data } = await useContent('home')
 // Pass a getter (or ref) so the preview resets when content is refetched
-// on a route/locale change instead of keeping the first tree.
-const content = usePreviewContent(() => data.value.content)
+// on a route/locale change instead of keeping the first tree. `toRootBlock`
+// carries the entry id into the root block so root-level edits are matched.
+const content = usePreviewContent(() => toRootBlock(data.value))
 </script>
 
 <template>
