@@ -283,8 +283,8 @@ describe('B10cksDataApi', () => {
     const draftConfig = await dataApi.getConfig<{ theme: string }>(draftOptions)
     const publishedConfig = await dataApi.getConfig<{ theme: string }>(publishedOptions)
 
-    expect(draftConfig).toEqual({ theme: 'draft' })
-    expect(publishedConfig).toEqual({ theme: 'published' })
+    expect(draftConfig).toEqual({ theme: 'draft', id: 'config-1' })
+    expect(publishedConfig).toEqual({ theme: 'published', id: 'config-2' })
     expect(client.get).toHaveBeenNthCalledWith(1, 'contents/_config', {
       vid: 'draft',
       language_iso: undefined,
@@ -293,5 +293,20 @@ describe('B10cksDataApi', () => {
       vid: 'published',
       language_iso: undefined,
     })
+  })
+
+  it('exposes the config entry id so the config is editable in the visual editor', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({ data: buildContent('config-entry', 'dark') }),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    }
+
+    const dataApi = new B10cksDataApi(client)
+
+    const config = await dataApi.getConfig<{ theme: string; id: string }>()
+
+    expect(config.id).toBe('config-entry')
+    expect(config.theme).toBe('dark')
   })
 })

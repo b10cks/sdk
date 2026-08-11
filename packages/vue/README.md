@@ -105,12 +105,15 @@ When your app is rendered inside the b10cks visual editor, these directives and 
 
 ```vue
 <script setup lang="ts">
-import { usePreviewContent } from '@b10cks/vue'
+import { toRootBlock, usePreviewContent } from '@b10cks/vue'
 
 const { data } = useContent('home')
 // Pass a getter (or ref) so the preview resets when the content is refetched
 // on a route/locale change instead of keeping the first tree.
-const content = usePreviewContent(() => data.value.content)
+// `toRootBlock(entry)` yields `{ ...entry.content, id, block }`: an entry's
+// `content` object carries no `id` of its own, and without one the root block
+// is not selectable in the editor and root-level edits cannot be matched to it.
+const content = usePreviewContent(() => toRootBlock(data.value))
 </script>
 
 <template>
@@ -119,6 +122,8 @@ const content = usePreviewContent(() => data.value.content)
 ```
 
 `usePreviewContent` accepts a plain value, a `ref`, or a getter. A plain value is captured once; a reactive source resets the preview store whenever it changes.
+
+The editor sends `CONTENT_UPDATE` scoped to the block being edited, addressed by its `id`. The store merges such an update into the tree in place; only an update whose id is the root's (or a payload without an id) replaces the whole tree. Updates for ids that are not in the rendered tree are ignored.
 
 ### Plugin options
 

@@ -369,8 +369,16 @@ export class B10cksDataApi {
       ...params,
       language_iso: normalizedLanguage,
     })
-      .then((configContent) => {
-        const value = (configContent.content ?? {}) as T
+      .then((configEntry) => {
+        // Carry the entry id into the returned object so the config is
+        // addressable in the visual editor (`v-editable="config"`); without it
+        // config-driven regions like a header/footer are not selectable. The
+        // entry id wins over a same-named content field, which would not be a
+        // block id.
+        const value = {
+          ...((configEntry.content ?? {}) as Record<string, unknown>),
+          id: configEntry.id,
+        } as T
         if (!bypassCache) {
           this.setConfigCache(cacheKey, value)
         }

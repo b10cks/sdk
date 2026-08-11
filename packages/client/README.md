@@ -144,7 +144,7 @@ const params = serializeFilter({
 | `getSitemap(params, options)`             | Sitemap entries (default sitemap)                             |
 | `getNamedSitemap(name, params, options)`  | Entries of a named sitemap from `settings.sitemaps`           |
 | `getSpace(params)`                        | Current space info                                            |
-| `getConfig(options)`                      | Config content entry (cached)                                 |
+| `getConfig(options)`                      | Config entry content plus its `id` (cached)                   |
 | `syncRevision(fallbackRv)`                | Sync local RV from the space                                  |
 | `clearCache()`                            | Clear redirect and config caches                              |
 
@@ -386,8 +386,20 @@ setPreviewScrollOffset(80) // number → px, or pass a string like '5rem'
 
 `PreviewStore` is a framework-agnostic, subscribable holder for the content tree. `bindPreviewStore` feeds `CONTENT_UPDATE`/`CONTENT_PATCH` events into it, so any complex field — including rich text — re-renders from the new snapshot. The framework packages expose this as `usePreviewContent` / `createPreviewContent`.
 
+The editor sends `CONTENT_UPDATE` scoped to the block that changed, carrying that block's `id`; only an edit of the root block pushes the whole tree (as `{ id: entryId, …entryContent }`). The store therefore merges an update by `id`:
+
+- payload without an `id` → treated as the whole tree
+- id equal to the root's id → replaces the root
+- id found in the tree → replaces that node in place, immutably
+- id found nowhere → ignored, so a scoped update can never collapse the page
+
+Give the root block the entry's id with `toRootBlock` so root-level edits match it; when the root has no id, an update whose `block` type equals the root's is taken as the root.
+
 ```typescript
-import { PreviewStore, bindPreviewStore, setAtPath, getAtPath } from '@b10cks/client'
+import { PreviewStore, bindPreviewStore, setAtPath, getAtPath, toRootBlock } from '@b10cks/client'
+
+// `entry.content` has no id of its own — the id lives on the entry.
+const initialContent = toRootBlock(entry) // { ...entry.content, id, block }
 
 const store = new PreviewStore(initialContent)
 const offBridge = bindPreviewStore(store)
