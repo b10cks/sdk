@@ -2,6 +2,7 @@ import {
   addComponentsDir,
   addImports,
   addPlugin,
+  addServerImports,
   createResolver,
   defineNuxtModule,
   extendViteConfig,
@@ -78,6 +79,11 @@ export default defineNuxtModule<ModuleOptions>({
         from: resolver.resolve('./runtime/composables/usePageTranslations'),
       },
       {
+        name: 'useB10cksVersion',
+        as: 'useB10cksVersion',
+        from: resolver.resolve('./runtime/composables/useB10cksVersion'),
+      },
+      {
         name: 'usePreviewContent',
         as: 'usePreviewContent',
         from: '@b10cks/vue',
@@ -86,6 +92,16 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'toRootBlock',
         as: 'toRootBlock',
         from: '@b10cks/vue',
+      },
+    ])
+
+    // Nitro has no access to the Vue injection the plugin sets up, so server
+    // routes get their own data API entry point.
+    addServerImports([
+      {
+        name: 'useB10cksServerApi',
+        as: 'useB10cksServerApi',
+        from: resolver.resolve('./runtime/server/useB10cksServerApi'),
       },
     ])
 

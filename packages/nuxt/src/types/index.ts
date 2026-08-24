@@ -28,6 +28,7 @@ declare module '@nuxt/schema' {
 
 export {
   B10cksRichText,
+  isRichTextEmpty,
   renderRichText,
   type B10cksRichTextProps,
   type RichTextDocument,

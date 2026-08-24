@@ -28,6 +28,18 @@ const isRequestOptions = (
   return Object.keys(value).every((key) => key === 'headers')
 }
 
+/**
+ * Single-content endpoints answer with a `{ data }` envelope, which the
+ * declared return types never reflected — consumers had to branch on the shape
+ * themselves. Unwrapping here makes the long-declared bare `Content` true, and
+ * the `id` guard keeps an already-bare row untouched.
+ */
+const isContentEnvelope = (response: Content | { data: Content }): response is { data: Content } =>
+  'data' in response && !('id' in response)
+
+const unwrapContent = (response: Content | { data: Content }): Content =>
+  isContentEnvelope(response) ? response.data : response
+
 export class ContentsResource {
   constructor(private readonly client: HttpClient) {}
 
@@ -48,18 +60,22 @@ export class ContentsResource {
     payload: CreateContentParams,
     options?: RequestOptions
   ): Promise<Content> {
-    return this.client.post<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents`,
-      payload,
-      options?.headers
+    return unwrapContent(
+      await this.client.post<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents`,
+        payload,
+        options?.headers
+      )
     )
   }
 
   async get(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content> {
-    return this.client.get<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
-      undefined,
-      options?.headers
+    return unwrapContent(
+      await this.client.get<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
+        undefined,
+        options?.headers
+      )
     )
   }
 
@@ -69,10 +85,12 @@ export class ContentsResource {
     payload: UpdateContentParams,
     options?: RequestOptions
   ): Promise<Content> {
-    return this.client.put<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
-      payload,
-      options?.headers
+    return unwrapContent(
+      await this.client.put<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}`,
+        payload,
+        options?.headers
+      )
     )
   }
 
@@ -113,10 +131,12 @@ export class ContentsResource {
     payload: MoveContentParams,
     options?: RequestOptions
   ): Promise<Content> {
-    return this.client.post<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/move`,
-      payload,
-      options?.headers
+    return unwrapContent(
+      await this.client.post<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/move`,
+        payload,
+        options?.headers
+      )
     )
   }
 
@@ -136,18 +156,22 @@ export class ContentsResource {
     const payload = isRequestOptions(payloadOrOptions) ? undefined : payloadOrOptions
     const requestOptions = isRequestOptions(payloadOrOptions) ? payloadOrOptions : options
 
-    return this.client.post<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/publish`,
-      payload,
-      requestOptions?.headers
+    return unwrapContent(
+      await this.client.post<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/publish`,
+        payload,
+        requestOptions?.headers
+      )
     )
   }
 
   async unpublish(spaceId: string, contentId: string, options?: RequestOptions): Promise<Content> {
-    return this.client.post<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/unpublish`,
-      undefined,
-      options?.headers
+    return unwrapContent(
+      await this.client.post<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/unpublish`,
+        undefined,
+        options?.headers
+      )
     )
   }
 
@@ -157,10 +181,12 @@ export class ContentsResource {
     payload: ScheduleContentParams,
     options?: RequestOptions
   ): Promise<Content> {
-    return this.client.post<Content>(
-      apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/schedule`,
-      payload,
-      options?.headers
+    return unwrapContent(
+      await this.client.post<Content | { data: Content }>(
+        apiPath`/mgmt/v1/spaces/${spaceId}/contents/${contentId}/schedule`,
+        payload,
+        options?.headers
+      )
     )
   }
 

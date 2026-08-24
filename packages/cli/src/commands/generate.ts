@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import type { Command } from 'commander'
 
 import { readDefinitions, resolveSchemaDir } from '../schema/store.js'
-import { TypesGeneratorService } from '../services/TypeGeneratorService.js'
+import { DEFAULT_OUTPUT_DIR, TypesGeneratorService } from '../services/TypeGeneratorService.js'
 import { BaseCommand } from './BaseCommand.js'
 
 export class GenerateCommand extends BaseCommand {
@@ -12,7 +12,7 @@ export class GenerateCommand extends BaseCommand {
     ns.command('types')
       .description('generate TypeScript types from block definitions')
       .argument('[spaceId]', 'space ID to generate types for (omit to use local schema files)')
-      .option('-o, --out <path>', 'output path for generated types', './b10cks/types')
+      .option('-o, --out <path>', 'output path for generated types', DEFAULT_OUTPUT_DIR)
       .option(
         '--dir <path>',
         'local schema directory used when no space ID is given',

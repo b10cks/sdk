@@ -150,6 +150,33 @@ const params = serializeFilter({
 
 Pass `{ allPages: true }` as the second argument to any collection method to fetch every page automatically.
 
+Every collection method normalizes the response envelope, so a bare array, a
+`{ data }` wrapper and a `{ data: { data } }` wrapper all resolve to a plain
+array. There is no need to unwrap by hand.
+
+### Common query params
+
+`rv` pins a request to a content revision. It defaults to the client's current
+revision, so pass it only to override — `Date.now()` from a server route
+sidesteps a stale delivery cache:
+
+```typescript
+const entries = await dataApi.getContents({ language_iso: 'de', rv: Date.now() })
+```
+
+`getDataEntries` takes `dimension` to read a mutated variant of a data source,
+falling back to the stored base value for keys the dimension does not override:
+
+```typescript
+const strings = await dataApi.getDataEntries('translations', { dimension: 'fr' })
+```
+
+Filtering by `id`, `canonical_id`, `canonical_parent_id`, `parent_id` and
+`include_fallback` goes through `filter` — see [Typed Filters](#typed-filters).
+`filter: { canonical_id: { in: [...] } }` serializes to the same
+`canonical_id=in:a,b` the API expects, so there is no reason to build that
+string yourself.
+
 ## `ApiClient` configuration
 
 ```typescript
@@ -267,6 +294,48 @@ const xml = renderSitemapXml(filtered, 'https://example.com')
 
 // Render <sitemapindex> XML for multi-sitemap setups
 const index = renderSitemapIndex(['/sitemap-en.xml', '/sitemap-de.xml'], 'https://example.com')
+```
+
+### Locale prefixing
+
+Entries always carry a `language_iso`, even in a space that only has one
+language, so prefixing on it unconditionally would emit `/en/about` for a page
+served at `/about`. `localePrefix` controls that, and defaults to `auto`:
+prefix only when the entries span more than one language.
+
+| Value            | Behaviour                                                     |
+| ---------------- | ------------------------------------------------------------- |
+| `auto` (default) | Prefix only when the entry set is multilingual                |
+| `always`         | Prefix every entry                                            |
+| `never`          | Use paths as stored, for an app that routes the locale itself |
+| `except-default` | Prefix every locale but `defaultLocale`                       |
+
+```typescript
+// Nuxt i18n `prefix_except_default`
+const xml = renderSitemapXml(filtered, 'https://example.com', {
+  localePrefix: 'except-default',
+  defaultLocale: 'en',
+})
+```
+
+`filterSitemapEntries` takes the same options, so its dedupe key matches the
+paths you go on to render.
+
+### Building a sitemap in a server route
+
+The data API paginates and unwraps for you, so a nitro route is short. In Nuxt,
+`useB10cksServerApi()` from `@b10cks/nuxt` hands you the same data API:
+
+```typescript
+// server/routes/sitemap.xml.ts
+export default defineEventHandler(async (event) => {
+  const api = useB10cksServerApi()
+  const entries = await api.getSitemap({}, { allPages: true })
+  const siteUrl = getRequestURL(event).origin
+
+  setHeader(event, 'content-type', 'application/xml')
+  return renderSitemapXml(filterSitemapEntries(entries, { siteUrl }), siteUrl)
+})
 ```
 
 ## Breadcrumbs

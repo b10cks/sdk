@@ -10,6 +10,7 @@ import type {
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
+  IBDataEntryParams,
   IBDataSource,
   IBGetContentsParams,
   IBSitemapEntry,
@@ -157,7 +158,7 @@ export function useB10cksApi() {
 
   const useDataEntries = (
     source: string,
-    params: QueryParams = {},
+    params: IBDataEntryParams = {},
     options: Omit<UseB10cksCollectionOptions<IBDataEntry[]>, 'params'> = {}
   ): AsyncState<IBDataEntry[]> => {
     const { allPages = false, immediate = false, transform } = options

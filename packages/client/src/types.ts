@@ -195,6 +195,17 @@ export interface IBDataEntry {
   updated_at: string
 }
 
+// A type alias, not an interface: only aliases get the implicit index
+// signature that keeps them assignable to the client's `Record<string, unknown>`
+// query params.
+export type IBDataEntryParams = Omit<IBBaseQueryParams, 'token'> & {
+  /**
+   * Serves the entries mutated for this dimension (usually a locale), falling
+   * back to the stored base value for keys the dimension does not override.
+   */
+  dimension?: string
+}
+
 export interface IBPaginationParams {
   page?: number
   per_page?: number
@@ -207,6 +218,12 @@ export interface IBSortParams {
 export interface IBBaseQueryParams extends IBPaginationParams, IBSortParams {
   vid?: string
   version?: string
+  /**
+   * Content revision to read at. Defaults to the client's current revision;
+   * pass it explicitly to pin a request (or `Date.now()` to bypass the
+   * delivery cache from a server route).
+   */
+  rv?: string | number
   token: string
 }
 

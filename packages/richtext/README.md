@@ -77,6 +77,23 @@ const renderer = createRichTextTextRenderer({ blockSeparator: ' ' })
 const text = renderer.render(document)
 ```
 
+## Emptiness
+
+An editor that clears a field usually leaves an empty paragraph behind, which
+`renderRichText` still turns into `<p></p>`. `isRichTextEmpty` tells you whether
+a document renders anything, so you can skip the wrapper markup:
+
+```typescript
+import { isRichTextEmpty } from '@b10cks/richtext'
+
+isRichTextEmpty(null) // true
+isRichTextEmpty({ type: 'doc', content: [{ type: 'paragraph' }] }) // true
+isRichTextEmpty({ type: 'doc', content: [{ type: 'horizontalRule' }] }) // false
+```
+
+Whitespace-only text counts as empty. An image, horizontal rule or table does
+not — those render without carrying any text.
+
 ## Internal links
 
 The b10cks editor stores internal links as marks with a `content` ID and an optional `anchor`:
