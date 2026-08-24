@@ -10,6 +10,9 @@ import BaseService from './BaseService.js'
 
 type BlockList = Record<string, { name: string; tags: string[] }>
 
+/** Kept in sync with the `-o` default in `generate types`. */
+export const DEFAULT_OUTPUT_DIR = './b10cks/types'
+
 /** The subset of a block field schema that type generation reads. */
 interface SchemaField {
   type?: string
@@ -33,14 +36,20 @@ export class TypesGeneratorService extends BaseService {
   private additionalTypeDeclarations: string[] = []
   private declaredAdditionalTypes = new Set<string>()
 
-  constructor(outputDir: string = './b10cks/types') {
+  /**
+   * @param outputDir Resolved against the working directory. The default is
+   *   additionally placed under `app/` when a Nuxt 4 `app/` rootDir exists; an
+   *   explicit `-o` is taken as given, so `-o ./app/b10cks/types` no longer
+   *   lands in `app/app/…`.
+   */
+  constructor(outputDir: string = DEFAULT_OUTPUT_DIR) {
     super()
     if (!path.isAbsolute(outputDir)) {
       const appDir = path.join(process.cwd(), 'app')
-      if (fs.existsSync(appDir)) {
+      if (outputDir === DEFAULT_OUTPUT_DIR && fs.existsSync(appDir)) {
         outputDir = path.join(appDir, outputDir)
       } else {
-        outputDir = path.join(process.cwd(), outputDir)
+        outputDir = path.resolve(process.cwd(), outputDir)
       }
     }
 
@@ -298,16 +307,19 @@ export type B10cksPrice = Record<string, number | null>
   }
 
   private generateInterfaceContent(block: Block, typeName: string): string {
-    let content = `export interface ${typeName} extends B10cksItem {\n`
+    // The literal `block` narrows B10cksItem's `block: string`, so a mixed
+    // body array can be discriminated on it without a cast.
+    let content = `export interface ${typeName} extends B10cksItem {\n\tblock: ${JSON.stringify(block.slug)}\n`
 
     if (block.schema) {
-      const properties = Object.entries(block.schema as Record<string, SchemaField>).map(
-        ([key, schema]) => {
+      const properties = Object.entries(block.schema as Record<string, SchemaField>)
+        // A schema field named `block` would redeclare the discriminant above.
+        .filter(([key]) => key !== 'block')
+        .map(([key, schema]) => {
           const type = this.mapSchemaTypeToTsType(schema.type, key, block.slug, schema)
           const optional = !schema.required ? '?' : ''
           return `\t${key}${optional}: ${type}`
-        }
-      )
+        })
 
       content += `${properties.join('\n')}\n`
     }
