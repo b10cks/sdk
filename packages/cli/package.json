@@ -53,17 +53,17 @@
     "update-notifier": "^7.3.1"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/update-notifier": "^6.0.8",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
     "giget": "^3.3.1",
-    "inquirer": "^14.0.2",
-    "magicast": "^0.5.3",
+    "inquirer": "^14.1.0",
+    "magicast": "^0.5.4",
     "netrc": "^0.1.4",
     "ora": "^9.4.1",
     "unbuild": "^3.6.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20.0.0"
