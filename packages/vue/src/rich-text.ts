@@ -2,6 +2,7 @@ import {
   renderRichText as renderBaseRichText,
   renderRichTextAsText as renderBaseRichTextAsText,
   createRichTextTextRenderer,
+  isRichTextEmpty,
   type RichTextDocument,
   type RichTextHtmlOptions,
   type RichTextInternalLinkAttrs,
@@ -20,7 +21,7 @@ export type {
   RichTextTextOptions,
   RichTextTextRenderer,
 }
-export { createRichTextTextRenderer }
+export { createRichTextTextRenderer, isRichTextEmpty }
 
 export interface B10cksRichTextProps extends RichTextRenderOptions {
   document: RichTextDocument | null | undefined

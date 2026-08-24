@@ -4,6 +4,7 @@ import {
   createRichTextRenderer,
   createRichTextTextRenderer,
   DEFAULT_ALLOWED_SCHEMES,
+  isRichTextEmpty,
   renderRichText,
   renderRichTextAsText,
 } from './index'
@@ -620,6 +621,30 @@ describe('renderRichTextAsText', () => {
       const renderer = createRichTextTextRenderer({ blockSeparator: ' | ' })
       expect(renderer.render(doc(p(text('A')), p(text('B'))))).toBe('A | B')
       expect(renderer.render(null)).toBe('')
+    })
+  })
+  describe('isRichTextEmpty', () => {
+    it('treats nullish and structurally empty documents as empty', () => {
+      expect(isRichTextEmpty(null)).toBe(true)
+      expect(isRichTextEmpty(undefined)).toBe(true)
+      expect(isRichTextEmpty(doc())).toBe(true)
+      expect(isRichTextEmpty(doc(p()))).toBe(true)
+    })
+
+    it('treats whitespace-only text as empty', () => {
+      expect(isRichTextEmpty(doc(p(text('   '))))).toBe(true)
+      expect(isRichTextEmpty(doc(p(text('')), p(text('\n'))))).toBe(true)
+    })
+
+    it('is not empty when any text node has content', () => {
+      expect(isRichTextEmpty(doc(p(text('Hello'))))).toBe(false)
+      expect(isRichTextEmpty(doc(p(), p(text('later'))))).toBe(false)
+    })
+
+    it('counts non-container nodes as content', () => {
+      expect(isRichTextEmpty(doc({ type: 'horizontalRule' }))).toBe(false)
+      expect(isRichTextEmpty(doc({ type: 'image', attrs: { src: '/a.png' } }))).toBe(false)
+      expect(isRichTextEmpty(doc({ type: 'table', content: [] }))).toBe(false)
     })
   })
 })

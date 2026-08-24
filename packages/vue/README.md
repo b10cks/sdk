@@ -210,6 +210,18 @@ const text = renderRichTextAsText(document)
 const inline = renderRichTextAsText(document, { blockSeparator: ' ' })
 ```
 
+`isRichTextEmpty(document)` reports whether a document renders anything, so you
+can skip the wrapper markup for a field an editor cleared (which usually leaves
+an empty paragraph behind):
+
+```typescript
+import { isRichTextEmpty } from '@b10cks/vue/rich-text'
+
+if (!isRichTextEmpty(document)) {
+  // render the section
+}
+```
+
 For repeated rendering, use the factory:
 
 ```typescript

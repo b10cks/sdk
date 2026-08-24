@@ -437,6 +437,36 @@ export function createRichTextRenderer(
 
 export const createRichTextHtmlRenderer = createRichTextRenderer
 
+/**
+ * Container nodes that carry no content of their own. Everything else (text,
+ * images, horizontal rules, tables, embedded blocks) counts as content.
+ */
+const CONTAINER_NODES = new Set([
+  'doc',
+  'paragraph',
+  'heading',
+  'blockquote',
+  'codeBlock',
+  'bulletList',
+  'orderedList',
+  'listItem',
+])
+
+/**
+ * True when a document renders nothing meaningful, so a caller can skip the
+ * wrapper markup entirely. An editor that clears a field usually leaves an
+ * empty paragraph behind, which `renderRichText` still turns into `<p></p>`.
+ *
+ * Whitespace-only text is empty; an image, horizontal rule or table is not.
+ */
+export function isRichTextEmpty(document: RichTextDocument | null | undefined): boolean {
+  if (!document) return true
+  if (document.type === 'text') return (document.text ?? '').trim() === ''
+  if (!CONTAINER_NODES.has(document.type)) return false
+
+  return (document.content ?? []).every(isRichTextEmpty)
+}
+
 export function renderRichTextAsText(
   document: RichTextDocument | null | undefined,
   options: RichTextTextOptions & RichTextExtensionOptions = {}

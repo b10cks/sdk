@@ -51,11 +51,62 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&apos;')
 }
 
-export interface SitemapFilterOptions {
+/**
+ * How a locale segment is applied to an entry's stored `full_slug`. The SDK
+ * cannot infer the consuming app's routing, so this mirrors the usual i18n
+ * strategies.
+ *
+ * - `auto` (default) prefixes only when the entries span more than one
+ *   `language_iso`. A mono-lingual space is served at `/about`, not `/en/about`,
+ *   even though its entries still carry a language.
+ * - `always` prefixes every entry.
+ * - `never` uses paths as stored, for an app that routes the locale some other
+ *   way (a route param, a domain).
+ * - `except-default` prefixes every locale but {@link SitemapPathOptions.defaultLocale}.
+ */
+export type SitemapLocalePrefix = 'auto' | 'always' | 'never' | 'except-default'
+
+export interface SitemapPathOptions {
+  localePrefix?: SitemapLocalePrefix
+  /** The unprefixed locale under `localePrefix: 'except-default'`. */
+  defaultLocale?: string
+}
+
+export interface SitemapFilterOptions extends SitemapPathOptions {
   /** Absolute base URL used for deduplication. Without it, paths are compared as strings. */
   siteUrl?: string
   /** Only include entries for this locale (ISO code). */
   locale?: string
+}
+
+/**
+ * Resolves an entry's path under the chosen prefix strategy. `entries` is only
+ * read by `auto`, which needs to know whether the set is multilingual.
+ */
+function resolveEntryPath(
+  entry: IBSitemapEntry,
+  options: SitemapPathOptions,
+  isMultilingual: boolean
+): string {
+  const { localePrefix = 'auto', defaultLocale } = options
+
+  const prefix =
+    localePrefix === 'always' ||
+    (localePrefix === 'auto' && isMultilingual) ||
+    (localePrefix === 'except-default' && entry.language_iso !== defaultLocale)
+
+  return prefix
+    ? buildLocalizedPath(entry.full_slug, entry.language_iso)
+    : buildLocalizedPath(entry.full_slug, null)
+}
+
+function hasMultipleLocales(entries: IBSitemapEntry[]): boolean {
+  const seen = new Set<string>()
+  for (const entry of entries) {
+    if (entry.language_iso) seen.add(entry.language_iso)
+    if (seen.size > 1) return true
+  }
+  return false
 }
 
 /**
@@ -69,13 +120,14 @@ export function filterSitemapEntries(
 ): IBSitemapEntry[] {
   const { siteUrl, locale } = options
   const seen = new Set<string>()
+  const isMultilingual = hasMultipleLocales(entries)
 
   return entries.filter((entry) => {
     if (locale && entry.language_iso !== locale) return false
     const robots = entry.meta?.robots?.toLowerCase()
     if (robots?.includes('noindex') || robots?.includes('none')) return false
 
-    const path = buildLocalizedPath(entry.full_slug, entry.language_iso)
+    const path = resolveEntryPath(entry, options, isMultilingual)
     const key = siteUrl ? (toAbsoluteUrl(path, siteUrl) ?? path) : path
     if (seen.has(key)) return false
 
@@ -87,11 +139,19 @@ export function filterSitemapEntries(
 /**
  * Renders `IBSitemapEntry[]` as a `<urlset>` XML string.
  * Pass `siteUrl` to emit absolute `<loc>` values; without it, relative paths are used.
+ *
+ * Locale prefixing follows {@link SitemapPathOptions.localePrefix}, which
+ * defaults to `auto` — a mono-lingual entry set is emitted unprefixed.
  */
-export function renderSitemapXml(entries: IBSitemapEntry[], siteUrl?: string): string {
+export function renderSitemapXml(
+  entries: IBSitemapEntry[],
+  siteUrl?: string,
+  options: SitemapPathOptions = {}
+): string {
+  const isMultilingual = hasMultipleLocales(entries)
   const urls = entries
     .map((entry) => {
-      const path = buildLocalizedPath(entry.full_slug, entry.language_iso)
+      const path = resolveEntryPath(entry, options, isMultilingual)
       const loc = siteUrl ? toAbsoluteUrl(path, siteUrl) : path
       if (!loc) return ''
       const lines = ['  <url>', `    <loc>${escapeXml(loc)}</loc>`]

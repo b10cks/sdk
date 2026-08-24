@@ -9,6 +9,7 @@ import type {
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
+  IBDataEntryParams,
   IBDataSource,
   IBGetBlocksParams,
   IBGetContentsParams,
@@ -54,6 +55,7 @@ export type RedirectMap = Record<string, { target: string; status_code: number }
 
 export interface GetConfigOptions extends Omit<IBContentQueryParams, 'token' | 'full_slug'> {
   slug?: string
+  /** @deprecated Use `language_iso`, matching every other content param. */
   language?: string
   bypassCache?: boolean
 }
@@ -273,7 +275,7 @@ export class B10cksDataApi {
 
   async getDataEntries(
     source: string,
-    params: ApiQueryParams = {},
+    params: IBDataEntryParams = {},
     options: CollectionFetchOptions = {}
   ): Promise<IBDataEntry[]> {
     return this.getCollection<IBDataEntry>(`datasources/${source}/entries`, params, options)

@@ -51,6 +51,10 @@ var so the token stays out of the repository.
 
 Each composable returns the same object as Nuxt's `useAsyncData()` — destructure `data`, `pending`, `error`, and `refresh` as needed.
 
+If your app runs inside the visual editor, wrap the fetched content in
+[`usePreviewContent`](#live-preview) so edits stream into the page. It is a
+no-op in production, so there is no reason not to.
+
 ```typescript
 // Single content entry by slug
 const { useContent } = useB10cksApi()
@@ -95,7 +99,47 @@ const { data: trail } = await useBreadcrumb('products/shoes', { language: 'de' }
 const { useRedirects, useB10cksConfig } = useB10cksApi()
 const redirects = await useRedirects()
 const { data: config, pending, error, refresh } = await useB10cksConfig()
+
+// Config is language-aware and refetches when the locale changes
+const { config } = await useB10cksConfig({ language_iso: locale.value })
 ```
+
+`useB10cksConfig` takes `language_iso`, like every other content param.
+`language` still works as a deprecated alias.
+
+### `useB10cksVersion()`
+
+The visual editor appends `?b10cks_vid` to preview a draft. The composable
+normalizes that query param (which Vue Router types as `string | string[] |
+null`) to a version string defaulting to `published`:
+
+```typescript
+const vid = useB10cksVersion()
+const { data: page } = await useContent('home', { vid: vid.value })
+```
+
+### Server routes and middleware
+
+Nitro has no access to the Vue injection the module's plugin sets up, so server
+code gets its own entry point. `useB10cksServerApi()` is auto-imported in the
+server bundle and returns the same `B10cksDataApi` — including its paginated
+`getRedirects`, `getSitemap` and `getNamedSitemap`, and their built-in caching:
+
+```typescript
+// server/middleware/redirects.ts
+export default defineEventHandler(async (event) => {
+  const url = getRequestURL(event)
+  if (url.searchParams.has('b10cks_vid')) return
+
+  const redirects = await useB10cksServerApi().getRedirects({}, { allPages: true })
+  const hit = redirects[url.pathname]
+  if (hit) return sendRedirect(event, hit.target, hit.status_code || 301)
+})
+```
+
+The instance is shared per space so its caches outlive a single request. That
+also means the revision is shared — call `syncRevision()` when a route must
+read the newest published state.
 
 The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched during hydration. Each helper derives a stable async-data key from its inputs — no manual `key` needed.
 
@@ -136,6 +180,8 @@ const block = computed(() => toRootBlock(entry.value))
   v-editable-field="{ id: block.id, path: ['body'], mode: 'select' }"
 />
 ```
+
+#### Live preview
 
 For whole-tree reactive updates while editing — including nested and rich text fields — wrap your content in `usePreviewContent` (auto-imported by the module):
 

@@ -8,6 +8,7 @@ import type {
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
+  IBDataEntryParams,
   IBDataSource,
   IBGetContentsParams,
   IBSitemapEntry,
@@ -130,7 +131,7 @@ export type NuxtB10cksApi = Omit<
   ) => Promise<AwaitedCollectionAsyncData<IBBlock>>
   useDataEntries: (
     source: string,
-    params?: QueryParams,
+    params?: IBDataEntryParams,
     options?: UseNuxtB10cksCollectionOptions<IBDataEntry>
   ) => Promise<AwaitedCollectionAsyncData<IBDataEntry>>
   useDataSources: (
@@ -261,7 +262,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
 
   const useDataEntries = async (
     source: string,
-    params: QueryParams = {},
+    params: IBDataEntryParams = {},
     options: UseNuxtB10cksCollectionOptions<IBDataEntry> = {}
   ): Promise<AwaitedCollectionAsyncData<IBDataEntry>> => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
@@ -387,9 +388,11 @@ export const useB10cksApi = (): NuxtB10cksApi => {
       asyncDataOptions
     )
 
+    // `language_iso` matches every other content param; `language` is the
+    // deprecated alias, so watch whichever the caller passed.
     const registerLanguageWatch = () =>
       watch(
-        () => resolvedParams.value.language,
+        () => resolvedParams.value.language_iso ?? resolvedParams.value.language,
         (language, previousLanguage) => {
           if (language !== previousLanguage) {
             void asyncData.refresh()
