@@ -1,5 +1,12 @@
 # @b10cks/mcp-server
 
+## 0.14.4
+
+### Patch Changes
+
+- Updated dependencies [[`122bcd4`](https://github.com/b10cks/sdk/commit/122bcd4f8f5c2a894cbcda50dde720a873b5c476)]:
+  - @b10cks/mgmt-client@2.1.1
+
 ## 0.14.3
 
 ### Patch Changes

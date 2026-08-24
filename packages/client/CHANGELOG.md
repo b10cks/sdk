@@ -1,5 +1,29 @@
 # @b10cks/client
 
+## 1.10.0
+
+### Minor Changes
+
+- [#9](https://github.com/b10cks/sdk/pull/9) [`161b103`](https://github.com/b10cks/sdk/commit/161b1031f11a4329b2a903ec3ee9d3c1f0c78efb) Thanks [@badmike](https://github.com/badmike)! - Fix live preview losing the page on a scoped edit, and duplicate-instance injection failures
+
+  - `PreviewStore` now merges `CONTENT_UPDATE` by block `id` (`applyContentUpdate` / `mergeContentUpdate`) instead of replacing the root. The editor sends updates scoped to the edited block, which previously collapsed the whole preview to that block. Unknown ids are ignored.
+  - Vue injection keys use `Symbol.for(...)`, so a duplicated `@b10cks/vue` copy (Vite dep pre-bundling) can no longer break `useB10cksApi()` during hydration.
+  - `@b10cks/nuxt` registers `@b10cks/vue`, `@b10cks/client` and `@b10cks/richtext` in `vite.resolve.dedupe` and `optimizeDeps.exclude`, and transpiles them by bare specifier (the previous `resolver.resolve('@b10cks/vue')` produced a nonexistent path).
+  - New `toRootBlock(entry)` helper (`@b10cks/client`, re-exported from `@b10cks/vue`, auto-imported in Nuxt) returns `{ ...entry.content, id, block }` so the root block is selectable with `v-editable` and root-level editor updates match it. READMEs updated.
+  - `getConfig()` now includes the config entry's `id` in its result, so `v-editable="config"` works for config-driven regions. Potentially breaking only for a config schema with its own `id` field, which the entry id now shadows.
+
+- [#13](https://github.com/b10cks/sdk/pull/13) [`0a032af`](https://github.com/b10cks/sdk/commit/0a032afd66cec876271ff53b706e5c7912f2e14d) Thanks [@badmike](https://github.com/badmike)! - Close SDK gaps found auditing three production Nuxt sites
+
+  - `@b10cks/client`: `rv` is now part of `IBBaseQueryParams`, so pinning a request to a revision (or passing `Date.now()` from a server route to sidestep a stale delivery cache) no longer needs an `as object` cast.
+  - `@b10cks/client`: `getDataEntries` takes a typed `IBDataEntryParams` with `dimension`, the locale-style variant selector for data sources.
+  - `@b10cks/client`: `GetConfigOptions.language` is deprecated in favour of `language_iso`, matching every other content param. Both still work.
+  - `@b10cks/nuxt`: `useB10cksConfig` watches `language_iso` as well as `language`, so a config passed `language_iso` refetches on a locale change instead of going stale.
+  - `@b10cks/nuxt`: new `useB10cksServerApi()`, auto-imported in the server bundle. Nitro routes and middleware get the full `B10cksDataApi` — `getRedirects`, `getSitemap`, `getNamedSitemap` with pagination and caching — instead of hand-rolling paginated fetches and TTL caches.
+  - `@b10cks/nuxt`: new `useB10cksVersion()` composable, normalizing `?b10cks_vid` to a version string defaulting to `published`.
+  - `@b10cks/richtext`: new `isRichTextEmpty(document)`, re-exported from `@b10cks/vue/rich-text` and `@b10cks/nuxt`. Reports whether a document renders anything, so a field an editor cleared (an empty paragraph) can skip its wrapper markup.
+  - `@b10cks/client`: `renderSitemapXml` and `filterSitemapEntries` take a `localePrefix` strategy (`auto` | `always` | `never` | `except-default`). It defaults to `auto`, which prefixes only when the entries span more than one language. A mono-lingual space previously emitted `/en/about` for a page served at `/about`, making every sitemap URL a 404 or a redirect.
+  - Docs: the client README documents the response-envelope normalization every collection method already does, and points at `filter` for `id` / `canonical_id` / `parent_id` queries. The Nuxt README surfaces `usePreviewContent` from the top of the usage section.
+
 ## 1.9.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.1
+
+### Patch Changes
+
+- [#13](https://github.com/b10cks/sdk/pull/13) [`122bcd4`](https://github.com/b10cks/sdk/commit/122bcd4f8f5c2a894cbcda50dde720a873b5c476) Thanks [@badmike](https://github.com/badmike)! - Unwrap the `{ data }` envelope on single-content endpoints
+
+  `contents.get`, `create`, `update`, `move`, `publish`, `unpublish` and `schedule` declared a bare `Content` but resolved to `{ data: Content }`, so callers had to branch on the shape themselves. They now unwrap, making the declared type true. An already-bare response is passed through untouched.
+
 ## 2.1.0
 
 ### Minor Changes
@@ -24,12 +32,12 @@
 
   ```ts
   // before — inconsistent, per resource
-  client.teams.list({ query: { page: 2 } })
-  client.blocks.list(spaceId, { page: 2 })
+  client.teams.list({ query: { page: 2 } });
+  client.blocks.list(spaceId, { page: 2 });
 
   // after — the same everywhere
-  client.teams.list({ page: 2 })
-  client.blocks.list(spaceId, { page: 2 })
+  client.teams.list({ page: 2 });
+  client.blocks.list(spaceId, { page: 2 });
   ```
 
   **Breaking:** if you passed a `RequestOptions` object positionally to one of the
@@ -37,8 +45,8 @@
   `spaces.list`, `users.listTokens` and `users.listInvites`):
 
   ```ts
-  client.teams.listMembers(teamId, { headers }) // before
-  client.teams.listMembers(teamId, undefined, { headers }) // after
+  client.teams.listMembers(teamId, { headers }); // before
+  client.teams.listMembers(teamId, undefined, { headers }); // after
   ```
 
   `RequestOptions.query` remains as an escape hatch for the few non-paginated

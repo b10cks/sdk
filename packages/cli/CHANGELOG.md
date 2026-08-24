@@ -1,5 +1,21 @@
 # @b10cks/cli
 
+## 2.1.0
+
+### Minor Changes
+
+- [#13](https://github.com/b10cks/sdk/pull/13) [`674abc2`](https://github.com/b10cks/sdk/commit/674abc208232ee1bc2b8e323acf2141eb0f212b8) Thanks [@badmike](https://github.com/badmike)! - Fix `generate types -o` path resolution and discriminate generated blocks
+
+  - An explicit `-o` is now resolved against the working directory. Only the default output path is placed under a Nuxt 4 `app/` rootDir, so `-o ./app/b10cks/types` no longer lands in `app/app/…`.
+  - Each generated block interface carries a literal `block: 'slug'`, narrowing `B10cksItem`'s `block: string`. A heterogeneous body array can be discriminated on `block` without a cast. A schema field named `block` is skipped, since it would redeclare the discriminant.
+
+  The literal `block` is a type-level narrowing. Code that assigns a hand-built object with a widened `block: string` to a generated interface (test fixtures, mocks) needs `as const` or an explicit literal after regenerating.
+
+### Patch Changes
+
+- Updated dependencies [[`122bcd4`](https://github.com/b10cks/sdk/commit/122bcd4f8f5c2a894cbcda50dde720a873b5c476)]:
+  - @b10cks/mgmt-client@2.1.1
+
 ## 2.0.2
 
 ### Patch Changes
