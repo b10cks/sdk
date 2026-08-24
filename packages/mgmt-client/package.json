@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/mgmt-client",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Management API client for b10cks",
   "keywords": [
     "api-client",

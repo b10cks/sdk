@@ -1,5 +1,13 @@
 # @b10cks/react
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`161b103`](https://github.com/b10cks/sdk/commit/161b1031f11a4329b2a903ec3ee9d3c1f0c78efb), [`0a032af`](https://github.com/b10cks/sdk/commit/0a032afd66cec876271ff53b706e5c7912f2e14d)]:
+  - @b10cks/client@1.10.0
+  - @b10cks/richtext@0.7.0
+
 ## 0.7.0
 
 ### Minor Changes
