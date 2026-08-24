@@ -6,5 +6,5 @@
   "singleQuote": true,
   "objectWrap": "preserve",
   "trailingComma": "es5",
-  "ignorePatterns": []
+  "ignorePatterns": ["**/CHANGELOG.md"]
 }
