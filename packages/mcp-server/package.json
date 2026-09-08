@@ -66,11 +66,11 @@
     "@modelcontextprotocol/sdk": "^1.30.0"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.58.12",
-    "@types/node": "^26.1.2",
-    "vite": "^8.1.5",
-    "vite-plugin-dts": "^5.0.3",
-    "vitest": "^4.1.10"
+    "@microsoft/api-extractor": "^7.59.0",
+    "@types/node": "^26.4.1",
+    "vite": "^8.2.2",
+    "vite-plugin-dts": "^5.1.0",
+    "vitest": "^5.0.0"
   },
   "release": {
     "branches": [
