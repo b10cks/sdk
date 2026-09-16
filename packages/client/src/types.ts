@@ -269,6 +269,9 @@ export interface IBContentQueryParams extends IBBaseQueryParams {
 
 // ─── Content Model Types ───────────────────────────────────────────────────
 
+/** Query params stored on a link: a key/value map (CMS format) or a raw query string. */
+export type B10cksLinkParams = Record<string, string> | string
+
 export type B10cksLink =
   | {
       type: 'url'
@@ -276,6 +279,7 @@ export type B10cksLink =
       anchor?: string
       target?: '_self' | '_blank' | '_parent' | '_top'
       rel?: string
+      params?: B10cksLinkParams
     }
   | {
       type: 'email'
@@ -290,7 +294,7 @@ export type B10cksLink =
       url: string
       title: string
       content: string
-      params?: string
+      params?: B10cksLinkParams
       anchor?: string
       target?: '_self' | '_blank' | '_parent' | '_top'
     }

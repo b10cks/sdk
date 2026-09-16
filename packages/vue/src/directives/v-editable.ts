@@ -58,12 +58,53 @@ function forceHostUpdate(vnode: VNode) {
   }
 }
 
+/**
+ * The block id to render as the element's `id`, so internal links with an `anchor` can jump to
+ * the block. Opt out with `v-editable.noanchor`. An `id` on the element itself wins.
+ */
+function anchorId(binding: DirectiveBinding, vnode: VNode | null): string | undefined {
+  if (binding.modifiers.noanchor || vnode?.props?.id != null) return undefined
+  const id: unknown = binding.value?.id
+  return typeof id === 'string' && id ? id : undefined
+}
+
+function applyAnchor(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
+  if (binding.modifiers.noanchor) return
+
+  const ownId: unknown = vnode.props?.id
+  if (ownId != null) {
+    // Compiled SSR templates can't see the element's own id (getSSRProps gets no vnode), so the
+    // server may have rendered the block id. Hydration doesn't patch `id`; restore it here.
+    if (el.id !== String(ownId)) el.id = String(ownId)
+    return
+  }
+
+  const id = anchorId(binding, vnode)
+  if (id) {
+    el.id = id
+  } else if (el.id && el.id === binding.oldValue?.id) {
+    el.removeAttribute('id')
+  }
+}
+
 export const EditableDirective = {
+  getSSRProps(binding: DirectiveBinding, vnode: VNode | null) {
+    const id = anchorId(binding, vnode)
+    return id ? { id } : {}
+  },
+
+  // `created` runs on client-only renders and on hydration, before first paint. Vue skips the
+  // hydration prop mismatch check for elements whose directives define `created`.
+  created(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
+    applyAnchor(el, binding, vnode)
+  },
+
   mounted(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
     bind(el, binding, vnode)
   },
 
   updated(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
+    applyAnchor(el, binding, vnode)
     if (binding.value?.id !== binding.oldValue?.id) {
       el._editableCleanup?.()
       bind(el, binding, vnode)

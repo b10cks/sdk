@@ -108,20 +108,22 @@ The b10cks editor stores internal links as marks with a `content` ID and an opti
 }
 ```
 
-Without a handler the link renders with `href="#"`. Pass `internalLinkHandler` to resolve the ID to a real URL:
+Delivery responses also carry the target's `url`. Without a handler the link renders with that `url`, or `href="#"` when there is none. Pass `internalLinkHandler` to resolve the ID to a real URL:
 
 ```ts
 renderRichText(document, {
   internalLinkHandler: (attrs) => {
     // attrs.content — the content record ID
-    // attrs.anchor  — optional anchor fragment
+    // attrs.anchor  — optional id of a block on the target page
     const slug = slugMap[attrs.content ?? '']
-    return slug ? `/${slug}${attrs.anchor ? `#${attrs.anchor}` : ''}` : null
+    return slug ? `/${slug}` : null
   },
 })
 ```
 
-Returning `null` or `undefined` falls back to `href="#"`.
+Returning `null` or `undefined` falls back to the `url`, then `href="#"`.
+
+The `anchor` is appended as a fragment (`/about#01kh6h981yh1s5z7s3f80wmrw2`) unless the href already contains `#`. A handler that adds the anchor itself is left alone, and so is the `#` placeholder. The anchor is the target block's `id`, so the page must render it on the block element (`v-editable` and `B10cksComponent` do).
 
 The rendered element carries both `data-type="internal"` (matching the CMS output) and `data-b10cks-internal-link` so client-side router handlers can target either attribute.
 

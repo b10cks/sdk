@@ -1,3 +1,4 @@
+export { blockAnchorAttrs, resolveB10cksLink, type B10cksLinkResolved } from '@b10cks/client'
 export { B10cksRichText, renderRichTextHtml } from '@b10cks/react'
 export type { B10cksRichTextProps, RichTextDocument } from '@b10cks/react'
 export type { RichTextHtmlOptions } from '@b10cks/richtext'

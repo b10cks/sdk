@@ -3,6 +3,7 @@ import B10cksFallback from './components/B10cksFallback.svelte'
 import B10cksRichText from './components/B10cksRichText.svelte'
 
 export { editable, editableField } from './actions'
+export { blockAnchorAttrs, resolveB10cksLink, type B10cksLinkResolved } from '@b10cks/client'
 
 export { createB10cksContext, getB10cksClient, getB10cksContext, getB10cksDataApi } from './context'
 export type { B10cksContextValue, CreateB10cksContextOptions } from './context'
