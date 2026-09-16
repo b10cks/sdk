@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/richtext",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Framework-agnostic rich text rendering for b10cks Rich text",
   "keywords": [
     "b10cks",

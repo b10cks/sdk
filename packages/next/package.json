@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/next",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "description": "Next.js integration SDK for b10cks",
   "keywords": [
     "b10cks",
