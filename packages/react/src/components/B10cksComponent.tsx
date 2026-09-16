@@ -14,12 +14,18 @@ export interface B10cksComponentProps<
   block: TBlock
   components: Record<string, BlockComponent<TBlock>>
   fallback?: BlockComponent<TBlock>
+  /**
+   * Render `id={block.id}` on the wrapper so internal links with an `anchor` can jump to the
+   * block. Default true. An `id` prop wins.
+   */
+  anchor?: boolean
 }
 
 export function B10cksComponent<TBlock extends BlockWithType = BlockWithType>({
   block,
   components,
   fallback: FallbackComponent,
+  anchor = true,
   ...htmlAttributes
 }: B10cksComponentProps<TBlock>) {
   const blockType = block.block || ''
@@ -35,7 +41,10 @@ export function B10cksComponent<TBlock extends BlockWithType = BlockWithType>({
   }, [])
 
   return (
-    <div {...htmlAttributes}>
+    <div
+      id={anchor && block.id ? block.id : undefined}
+      {...htmlAttributes}
+    >
       <Renderer block={block} />
     </div>
   )

@@ -266,6 +266,20 @@ const resolved = resolveB10cksLink(block.ctaLink)
 // or:       undefined  (when link is nullish or type === 'asset')
 ```
 
+`url` and `internal` links get their `params` as a query string and their `anchor` as a fragment, in that order: `/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`. An href that already has a `#` keeps its fragment.
+
+### Block anchors
+
+An internal link `anchor` is the target block's `id`. The page has to render that id on the block's element for the browser to scroll there. The framework SDKs do this for you (`v-editable` in Vue, `B10cksComponent` in React). For blocks rendered without them, spread `blockAnchorAttrs`:
+
+```typescript
+import { blockAnchorAttrs } from '@b10cks/client'
+
+blockAnchorAttrs(block) // { id: block.id }, or {} when the block has no id
+```
+
+Block ids are lowercase ULIDs and can start with a digit, which is not a valid CSS id selector. Use `document.getElementById(id)`, or `querySelector('#' + CSS.escape(id))`.
+
 ## Sitemap utilities
 
 Framework-agnostic helpers for building multilingual sitemaps from `IBSitemapEntry[]`.

@@ -93,6 +93,16 @@ export default defineNuxtModule<ModuleOptions>({
         as: 'toRootBlock',
         from: '@b10cks/vue',
       },
+      {
+        name: 'resolveB10cksLink',
+        as: 'resolveB10cksLink',
+        from: '@b10cks/vue',
+      },
+      {
+        name: 'blockAnchorAttrs',
+        as: 'blockAnchorAttrs',
+        from: '@b10cks/vue',
+      },
     ])
 
     // Nitro has no access to the Vue injection the plugin sets up, so server

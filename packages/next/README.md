@@ -86,7 +86,7 @@ export function App({ children }: { children: React.ReactNode }) {
 import { useEditable, useEditableField, usePreviewContent } from '@b10cks/next/client'
 ```
 
-See the [`@b10cks/react` README](../react/README.md#live-preview--visual-editing) for the full hook reference. `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
+See the [`@b10cks/react` README](../react/README.md#live-preview--visual-editing) for the full hook reference. `blockAnchorAttrs` and `resolveB10cksLink` are exported from `@b10cks/next` and `@b10cks/next/client`; see [link anchors](../react/README.md#link-anchors). `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
 
 ## Server Usage
 

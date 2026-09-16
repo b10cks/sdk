@@ -150,6 +150,15 @@ function classAttr(a: Record<string, unknown>): Record<string, unknown> {
 
 // ─── Mark rendering ───────────────────────────────────────────────────────────
 
+/**
+ * Appends `#anchor` to a resolved href. Leaves hrefs that already carry a fragment alone, which
+ * covers handlers that add the anchor themselves and the `'#'` placeholder for unresolved links.
+ */
+function withFragment(href: string, anchor: string | null | undefined): string {
+  if (!anchor || !href || href.includes('#')) return href
+  return `${href}#${encodeURIComponent(anchor)}`
+}
+
 function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptions): string {
   const a = mark.attrs ?? {}
   switch (mark.type) {
@@ -180,12 +189,10 @@ function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptio
           : typeof linkAttrs.href === 'string' && linkAttrs.href.length > 0
             ? linkAttrs.href
             : '#'
-      const href = sanitizeUrl(
-        options.internalLinkHandler
-          ? (options.internalLinkHandler(linkAttrs) ?? defaultHref)
-          : defaultHref,
-        options
-      )
+      const resolvedHref = options.internalLinkHandler
+        ? (options.internalLinkHandler(linkAttrs) ?? defaultHref)
+        : defaultHref
+      const href = sanitizeUrl(withFragment(resolvedHref, linkAttrs.anchor), options)
       const elAttrs: Record<string, unknown> = {
         href,
         // data-type="internal" matches CMS output; data-b10cks-internal-link kept for SDK consumers

@@ -14,7 +14,14 @@ import { EditableContentDirective } from './directives/v-editable-content'
 import type { B10cksVuePluginOptions } from './types'
 import { B10cksClientKey, B10cksDataApiKey } from './types'
 
-export { previewBridge, type RootBlock, toRootBlock } from '@b10cks/client'
+export {
+  blockAnchorAttrs,
+  previewBridge,
+  resolveB10cksLink,
+  type B10cksLinkResolved,
+  type RootBlock,
+  toRootBlock,
+} from '@b10cks/client'
 export * from './api'
 export { usePreviewContent } from './preview-content'
 export type {

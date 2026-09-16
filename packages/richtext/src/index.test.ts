@@ -278,6 +278,42 @@ describe('renderRichText', () => {
       expect(result).toContain('href="/legacy"')
     })
 
+    it('appends the anchor to the url without a handler', () => {
+      const result = renderRichText(
+        doc(
+          p(
+            text(
+              'page',
+              mark('internalLink', { url: '/about', anchor: '01kh6h981yh1s5z7s3f80wmrw2' })
+            )
+          )
+        )
+      )
+      expect(result).toContain('href="/about#01kh6h981yh1s5z7s3f80wmrw2"')
+    })
+
+    it('appends the anchor to a handler result without a fragment', () => {
+      const result = renderRichText(
+        doc(p(text('page', mark('internalLink', { content: 'abc', anchor: 'team' })))),
+        { internalLinkHandler: (attrs) => `/content/${attrs.content}` }
+      )
+      expect(result).toContain('href="/content/abc#team"')
+    })
+
+    it('leaves a handler result that already has a fragment alone', () => {
+      const withAnchor = renderRichText(
+        doc(p(text('page', mark('internalLink', { content: 'abc', anchor: 'team' })))),
+        { internalLinkHandler: (attrs) => `/content/${attrs.content}#${attrs.anchor}` }
+      )
+      expect(withAnchor).toContain('href="/content/abc#team"')
+
+      const placeholder = renderRichText(
+        doc(p(text('page', mark('internalLink', { content: 'abc', anchor: 'team' })))),
+        { internalLinkHandler: () => '#' }
+      )
+      expect(placeholder).toContain('href="#"')
+    })
+
     it('does not emit data-anchor when anchor is absent', () => {
       const result = renderRichText(doc(p(text('page', mark('internalLink', { content: 'abc' })))))
       expect(result).not.toContain('data-anchor')

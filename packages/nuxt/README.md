@@ -181,6 +181,19 @@ const block = computed(() => toRootBlock(entry.value))
 />
 ```
 
+#### Link anchors
+
+An internal link's `anchor` is the id of a block on the target page. `resolveB10cksLink` (auto-imported) builds the href with params and anchor, `/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`. Rich text internal links get the anchor appended too.
+
+`v-editable` renders `id="<block.id>"` on its element, server-side and in production, so the fragment has a target. An `id` you set on the same element wins after hydration, but the server HTML can't see it; add `.noanchor` when you set your own id. For blocks without the directive, bind `blockAnchorAttrs` (auto-imported):
+
+```vue
+<section v-bind="blockAnchorAttrs(block)">…</section>
+<NuxtLink :to="resolveB10cksLink(block.link)?.href">…</NuxtLink>
+```
+
+Block ids are ULIDs and can start with a digit. Use `document.getElementById(id)`, or `querySelector('#' + CSS.escape(id))`.
+
 #### Live preview
 
 For whole-tree reactive updates while editing — including nested and rich text fields — wrap your content in `usePreviewContent` (auto-imported by the module):

@@ -99,6 +99,24 @@ When your app is rendered inside the b10cks visual editor, these actions and the
 
 `scrollOffset` can also be set purely in CSS — `:root { --b10cks-scroll-offset: 80px }`.
 
+## Link anchors
+
+An internal link's `anchor` is the id of a block on the target page. `resolveB10cksLink` builds the href with params and anchor, `/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`. Rich text internal links get the anchor appended too. The target block needs that id on its element; `use:editable` does not set it, so spread `blockAnchorAttrs`:
+
+```svelte
+<script lang="ts">
+  import { blockAnchorAttrs, editable, resolveB10cksLink } from '@b10cks/svelte'
+
+  export let block
+</script>
+
+<section {...blockAnchorAttrs(block)} use:editable={block}>
+  <a href={resolveB10cksLink(block.link)?.href}>…</a>
+</section>
+```
+
+Block ids are ULIDs and can start with a digit. Use `document.getElementById(id)`, or `querySelector('#' + CSS.escape(id))`.
+
 ## Rich text
 
 Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) with a dependency-free, SSR-friendly renderer.

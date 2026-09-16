@@ -1,5 +1,28 @@
 # @b10cks/nuxt
 
+## 3.6.0
+
+### Minor Changes
+
+- Link to blocks on a page
+
+  Internal links can carry an `anchor`: the id of a block on the target page.
+
+  - `resolveB10cksLink` appends `params` as a query string and `anchor` as a fragment, `/about?ref=nav#01kh…`. `url` links get their `params` too. The anchor is URI-encoded and skipped when the href already has a `#`. `B10cksLink` `params` is now typed `Record<string, string> | string`, matching what the CMS stores.
+  - New `blockAnchorAttrs(block)` returns `{ id: block.id }`, or `{}` without an id. Exported from client, vue, react, svelte and next, and auto-imported by nuxt along with `resolveB10cksLink`.
+  - Rich text `internalLink` marks append the anchor to the `url` or the `internalLinkHandler` result, unless it already contains `#`. Unresolved links stay `href="#"`.
+  - `v-editable` renders `id="<block.id>"` on its element, in production and during SSR. An `id` on the element wins; opt out with `v-editable.noanchor`.
+  - React `B10cksComponent` renders `id={block.id}` on its wrapper. An `id` prop wins; opt out with `anchor={false}`.
+
+  Block ids are ULIDs and can start with a digit, so look them up with `getElementById` or escape them with `CSS.escape` for `querySelector`.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @b10cks/client@1.11.0
+  - @b10cks/richtext@0.8.0
+  - @b10cks/vue@2.8.0
+
 ## 3.5.0
 
 ### Minor Changes

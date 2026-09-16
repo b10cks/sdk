@@ -111,6 +111,26 @@ function Page({ initialContent }: { initialContent: PageContent }) {
 
 `usePreviewSelection(blockId)` returns `{ isSelected, isHovered }` if you prefer to drive your own highlight styling.
 
+### Link anchors
+
+An internal link's `anchor` is the id of a block on the target page. `resolveB10cksLink` builds the href with params and anchor, `/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`. Rich text internal links get the anchor appended too.
+
+`B10cksComponent` renders `id={block.id}` on its wrapper `div`. An `id` prop wins, and `anchor={false}` turns it off. For blocks rendered without it, spread `blockAnchorAttrs`:
+
+```tsx
+import { blockAnchorAttrs, resolveB10cksLink } from '@b10cks/react'
+
+function Teaser({ block }: { block: TeaserBlock }) {
+  return (
+    <section {...blockAnchorAttrs(block)}>
+      <a href={resolveB10cksLink(block.link)?.href}>…</a>
+    </section>
+  )
+}
+```
+
+Block ids are ULIDs and can start with a digit. Use `document.getElementById(id)`, or `querySelector('#' + CSS.escape(id))`.
+
 ## Rich Text
 
 Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) with a dependency-free, SSR-friendly renderer.

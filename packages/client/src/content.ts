@@ -44,8 +44,9 @@ export interface B10cksLinkResolved {
  * Resolves a B10cksLink value to a plain { href, target } object.
  *
  * - `'email'` links produce a `mailto:` href with optional subject/body/cc/bcc query params.
- * - `'url'` and `'internal'` links use the stored `url` field; an `anchor` is appended as a
- *   hash fragment when present.
+ * - `'url'` and `'internal'` links use the stored `url` field, then append `params` as a query
+ *   string and `anchor` as a `#fragment` (`/page?x=1#01kh…`). An href that already carries a
+ *   fragment keeps it.
  * - `'asset'` links cannot be resolved to a URL without the asset record — returns `undefined`.
  * - Locale prefixing and router integration are intentionally left to the caller.
  */
@@ -68,12 +69,34 @@ export function resolveB10cksLink(
     return undefined
   }
 
-  // 'url' and 'internal' share url + target + optional anchor
+  // 'url' and 'internal' share url + target + optional params and anchor
   const target = link.target ?? '_self'
-  let href = link.url ?? ''
-  if ('anchor' in link && link.anchor) {
-    href = `${href.trimEnd()}#${link.anchor}`
+  let href = (link.url ?? '').trimEnd()
+
+  const query = link.params ? new URLSearchParams(link.params).toString() : ''
+  if (query) {
+    const hashIndex = href.indexOf('#')
+    const base = hashIndex === -1 ? href : href.slice(0, hashIndex)
+    const hash = hashIndex === -1 ? '' : href.slice(hashIndex)
+    href = `${base}${base.includes('?') ? '&' : '?'}${query}${hash}`
+  }
+
+  if (link.anchor && !href.includes('#')) {
+    href = `${href}#${encodeURIComponent(link.anchor)}`
   }
 
   return { href, target }
+}
+
+/**
+ * Attributes that make a block addressable as a link anchor: `{ id: block.id }`.
+ *
+ * `v-editable` (Vue) and `B10cksComponent` (React) set the id already. Spread this onto the
+ * root element of blocks rendered without them. Block ids are ULIDs and can start with a
+ * digit, so look them up with `getElementById` (or `CSS.escape` for `querySelector`).
+ */
+export function blockAnchorAttrs(block: { id?: string | null } | null | undefined): {
+  id?: string
+} {
+  return block?.id ? { id: block.id } : {}
 }

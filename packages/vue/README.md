@@ -77,6 +77,37 @@ Use `B10cksComponent` to render block-specific Vue components dynamically:
 <B10cksComponent :block="block" v-editable="block" />
 ```
 
+### Link anchors
+
+An internal link can point at a block on the target page: its `anchor` is that block's `id`. `resolveB10cksLink` and the rich text renderer append it to the href (`/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`), so the page needs an element with that id.
+
+`v-editable` renders `id="<block.id>"` on its element, in production too and during SSR. An `id` you set on the same element wins. Opt out with `.noanchor`:
+
+```vue
+<section v-editable="block">…</section>
+<!-- id="01kh6h…" -->
+<section v-editable.noanchor="block">…</section>
+<!-- no id -->
+```
+
+A server-rendered template can't see an `id` on the same element, so the HTML carries the block id until hydration restores yours. Use `.noanchor` there if the id must be right before hydration.
+
+For blocks rendered without the directive, bind `blockAnchorAttrs`:
+
+```vue
+<script setup lang="ts">
+import { blockAnchorAttrs, resolveB10cksLink } from '@b10cks/vue'
+</script>
+
+<template>
+  <section v-bind="blockAnchorAttrs(block)">
+    <a :href="resolveB10cksLink(block.link)?.href">…</a>
+  </section>
+</template>
+```
+
+Block ids are ULIDs and can start with a digit, which is not a valid CSS id selector. Look them up with `document.getElementById(id)`, or `querySelector('#' + CSS.escape(id))`.
+
 ## Live preview & visual editing
 
 When your app is rendered inside the b10cks visual editor, these directives and the `usePreviewContent` composable make blocks selectable and keep the preview in sync while editing. They are all no-ops outside the editor, so they are safe to leave in production output.
