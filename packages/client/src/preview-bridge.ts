@@ -157,9 +157,10 @@ const BRIDGE_READY = 'B10CKS_BRIDGE_READY'
 
 /**
  * Bridge protocol version, sent with the ready announcement. Previews that
- * announce without a payload (protocol 0) only understand CONTENT_UPDATE,
- * SELECT_UPDATE, and HOVER_UPDATE, so the editor must not send them patches
- * or labels. Protocol 2 adds HIDDEN_BLOCKS and the `hide` and `show` block
+ * announce without a payload (protocol 0) understand CONTENT_UPDATE,
+ * SELECT_UPDATE, HOVER_UPDATE, and CONTENT_PATCH relative to the root only, so
+ * the editor must not send them block-relative patches or labels. Protocol 1
+ * adds those and the block actions. Protocol 2 adds HIDDEN_BLOCKS and the `hide` and `show` block
  * actions.
  */
 export const BRIDGE_PROTOCOL = 2

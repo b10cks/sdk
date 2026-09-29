@@ -237,7 +237,7 @@
     {
       "type": "FIELD_SELECT",
       "direction": "preview-to-editor",
-      "since": 1,
+      "since": 0,
       "examples": [
         {
           "itemId": "hero-1",
