@@ -263,7 +263,7 @@ describe('attachEditableField', () => {
     // Lock the bridge origin so posts target the editor.
     dispatchBridgeEvent('SELECT_UPDATE', { selectedItem: 'noop' })
 
-    attachEditableField(el, { id: 'b1', path: ['title'] })
+    attachEditableField(el, { id: 'b1', path: ['title'], mode: 'inline' })
     expect(el.getAttribute('contenteditable')).toBe('true')
 
     el.innerText = 'Edited'
@@ -287,6 +287,49 @@ describe('attachEditableField', () => {
       { type: 'FIELD_SELECT', payload: { itemId: 'b1', path: ['body'] } },
       '*'
     )
+  })
+
+  it('selects a path-only field by default so a complex value stays intact', () => {
+    const el = document.createElement('button')
+    document.body.appendChild(el)
+    attachEditableField(el, { id: 'b1', path: ['actions'] })
+
+    expect(el.hasAttribute('contenteditable')).toBe(false)
+    el.click()
+    expect(posted('FIELD_SELECT')).toEqual([{ itemId: 'b1', path: ['actions'] }])
+    expect(posted('FIELD_UPDATE')).toEqual([])
+  })
+
+  it('edits a string field inside a selectable link without following the link', () => {
+    document.body.innerHTML = '<a id="block" href="/next"><span id="label">Start</span></a>'
+    const block = document.getElementById('block') as HTMLElement
+    const label = document.getElementById('label') as HTMLElement
+    const navigate = vi.fn()
+    block.addEventListener('click', navigate)
+    attachEditable(block, { id: 'button-1', label: 'button', scrollOnSelect: false })
+    attachEditableField(label, { id: 'button-1', field: 'label' })
+
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    label.dispatchEvent(click)
+    label.innerText = 'Edited'
+    label.dispatchEvent(new Event('input'))
+
+    expect(click.defaultPrevented).toBe(true)
+    expect(navigate).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(label)
+    expect(posted('FIELD_UPDATE')).toEqual([
+      { itemId: 'button-1', field: 'label', value: 'Edited' },
+    ])
+  })
+
+  it('selects a list field whose element wraps interactive children', () => {
+    document.body.innerHTML = '<div id="actions"><a href="/next">Action</a></div>'
+    const actions = document.getElementById('actions') as HTMLElement
+    attachEditableField(actions, { id: 'band-1', field: 'actions' })
+
+    expect(actions.hasAttribute('contenteditable')).toBe(false)
+    actions.click()
+    expect(posted('FIELD_SELECT')).toEqual([{ itemId: 'band-1', path: ['actions'] }])
   })
 
   it('in select mode, labels the field and wins over its block', async () => {
@@ -344,6 +387,36 @@ describe('selection toolbar', () => {
       { itemId: 'b2', action: 'move-up' },
       { itemId: 'b2', action: 'delete' },
     ])
+  })
+
+  it.each([
+    ['before', 'insert-before'],
+    ['after', 'insert-after'],
+  ] as const)(
+    'runs add %s on the first toolbar click when the root wraps the overlay',
+    async (side, action) => {
+      document.body.innerHTML = '<section id="child"></section>'
+      attachEditable(document.body, { id: 'page', label: 'page', scrollOnSelect: false })
+      const child = document.getElementById('child') as HTMLElement
+      attachEditable(child, { id: 'child', label: 'section', scrollOnSelect: false })
+      await selectBlock(child)
+
+      toolbarButton(`Add block ${side}`).click()
+
+      expect(posted('BLOCK_ACTION')).toEqual([{ itemId: 'child', action }])
+    }
+  )
+
+  it('hides actions on the root and places the drag handle before the breadcrumb', async () => {
+    const el = renderPage()
+    await selectBlock(el('page'))
+    expect(overlay().querySelector<HTMLElement>('.tools')?.hidden).toBe(true)
+    expect(overlay().querySelector<HTMLElement>('.handle')?.hidden).toBe(true)
+
+    await selectBlock(el('b2'))
+    const bar = overlay().querySelector<HTMLElement>('.bar')
+    expect(bar?.firstElementChild?.classList.contains('handle')).toBe(true)
+    expect(overlay().querySelector<HTMLElement>('.handle')?.hidden).toBe(false)
   })
 
   it('disables moving the first block up and the last block down', async () => {
