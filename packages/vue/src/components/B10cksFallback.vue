@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { IBContent } from '@b10cks/client'
+import type { IBContentBlock } from '@b10cks/client'
 
 export interface IB10cksFallbackProps {
-  block: IBContent<string> & Record<string, never>
+  block: IBContentBlock<string>
 }
 
 defineProps<IB10cksFallbackProps>()

@@ -1,7 +1,7 @@
 export { blockAnchorAttrs, resolveB10cksLink, type B10cksLinkResolved } from '@b10cks/client'
 export type { RichTextDocument, RichTextHtmlOptions } from '@b10cks/richtext'
 export { B10cksComponent } from './components/B10cksComponent'
-export type { B10cksComponentProps } from './components/B10cksComponent'
+export type { B10cksComponentProps, B10cksComponents } from './components/B10cksComponent'
 export { B10cksFallback } from './components/B10cksFallback'
 export type { B10cksFallbackProps } from './components/B10cksFallback'
 export { useB10cksApi } from './hooks'

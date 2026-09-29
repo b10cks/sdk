@@ -145,7 +145,7 @@ The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate 
 
 ### `B10cksComponent` and directives
 
-`B10cksComponent`, `v-editable`, and `v-editable-field` are available globally after registering the module. `componentsDir` in the config tells the module where your block components live; it auto-registers them by block name.
+`B10cksComponent`, `v-editable`, and `v-editable-field` are available globally after registering the module. `componentsDir` in the config tells the module where your block components live; it auto-registers them by block name. A block that throws while rendering doesn't take down the page: see [`@b10cks/vue`](../vue/README.md#components).
 
 ```vue
 <script setup lang="ts">
