@@ -368,8 +368,8 @@ export type B10cksPrice = Record<string, number | null>
 
           schema.tag_whitelist?.forEach((tag) => {
             const matchingBlocks = Object.entries(this.allBlocks)
-              .filter(([_, block]) => block.tags?.includes(tag))
-              .map(([_, block]) => block.name)
+              .filter(([, block]) => block.tags?.includes(tag))
+              .map(([, block]) => block.name)
             whitelistTypes.push(...matchingBlocks)
           })
 
