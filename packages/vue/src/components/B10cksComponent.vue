@@ -9,6 +9,12 @@ import type { BlockComponentResolver } from '../types'
 // a brand-new component type, so <component :is> unmounts and remounts the
 // whole subtree — losing focus/state and re-running child onMounted hooks —
 // and each block instance re-runs the resolver's loader.
+/**
+ * Vue's error info for event handler errors, in development and production
+ * builds. Those leave the rendered block intact, as in React error boundaries.
+ */
+const HANDLER_ERROR = /event handler|#runtime-[56]$/
+
 const asyncComponentCaches = new WeakMap<BlockComponentResolver, Map<string, Component>>()
 
 function getAsyncComponentCache(resolver: BlockComponentResolver): Map<string, Component> {
@@ -22,17 +28,51 @@ function getAsyncComponentCache(resolver: BlockComponentResolver): Map<string, C
 </script>
 
 <script setup lang="ts">
-import type { IBContent } from '@b10cks/client'
-import { computed, defineAsyncComponent, inject, resolveDynamicComponent } from 'vue'
+import type { IBContentBlock } from '@b10cks/client'
+import {
+  computed,
+  defineAsyncComponent,
+  getCurrentInstance,
+  inject,
+  onErrorCaptured,
+  resolveDynamicComponent,
+  shallowRef,
+  watch,
+} from 'vue'
 
 import { B10cksComponentResolverKey } from '../types'
+import B10cksBlockError from './B10cksBlockError.vue'
 import B10cksFallback from './B10cksFallback.vue'
 
 const props = defineProps<{
-  block: IBContent<string> & Record<string, never>
+  block: IBContentBlock<string>
 }>()
 
 const customResolver = inject(B10cksComponentResolverKey, null)
+
+// One broken block must not take down the page: it is replaced by a
+// placeholder in the preview and by nothing in production, and reported once
+// to the app's errorHandler, or the console without one.
+const failure = shallowRef<{ error: unknown } | null>(null)
+const appErrorHandler = getCurrentInstance()?.appContext.config.errorHandler
+onErrorCaptured((error, instance, info) => {
+  if (HANDLER_ERROR.test(info)) return
+  failure.value = { error }
+  if (appErrorHandler) {
+    appErrorHandler(error, instance, info)
+  } else {
+    // biome-ignore lint/suspicious/noConsole: report the error once
+    console.error(`[b10cks] Block "${props.block?.block}" failed to render.`, error)
+  }
+  return false
+})
+// A new block object, e.g. after an edit in the editor, gets another try.
+watch(
+  () => props.block,
+  () => {
+    failure.value = null
+  }
+)
 
 // Convert component name to PascalCase synchronously
 function toPascalCase(name: string): string {
@@ -88,9 +128,14 @@ const resolvedComponent = computed(() => {
 </script>
 
 <template>
+  <B10cksBlockError
+    v-if="failure"
+    :block="block"
+    :error="failure.error"
+  />
   <component
     :is="resolvedComponent"
-    v-if="resolvedComponent"
+    v-else-if="resolvedComponent"
     v-bind="{ ...$props, ...$attrs }"
   />
 </template>

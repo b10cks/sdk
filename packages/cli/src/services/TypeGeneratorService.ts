@@ -299,7 +299,25 @@ export type B10cksPrice = Record<string, number | null>
     }
 
     content += blockInterfaces.join('')
+    content += this.generateBlockMap(blocks)
     return content
+  }
+
+  /**
+   * Block types by slug, and their union: `B10cksComponents<B10cksBlock>` in
+   * the framework SDKs types each component with its own block.
+   */
+  private generateBlockMap(blocks: Block[]): string {
+    const entries = blocks.map(
+      (block) => `\t${JSON.stringify(block.slug)}: ${this.getInterfaceName(block.slug)}\n`
+    )
+    return `/** Every block type, keyed by block slug. */
+export interface B10cksBlockMap {
+${entries.join('')}}
+
+/** Any block of this space. */
+export type B10cksBlock = B10cksBlockMap[keyof B10cksBlockMap]
+`
   }
 
   private getInterfaceName(slug: string): string {

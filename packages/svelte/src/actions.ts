@@ -4,13 +4,15 @@ import {
   attachEditableField,
 } from '@b10cks/client'
 
-export function editable(node: HTMLElement, block: { id?: string }) {
-  let cleanup = attachEditable(node, { id: block?.id ?? '' })
+type EditableBlock = { id?: string; block?: string }
+
+export function editable(node: HTMLElement, block: EditableBlock) {
+  let cleanup = attachEditable(node, { id: block?.id ?? '', label: block?.block })
 
   return {
-    update(next: { id?: string }) {
+    update(next: EditableBlock) {
       cleanup()
-      cleanup = attachEditable(node, { id: next?.id ?? '' })
+      cleanup = attachEditable(node, { id: next?.id ?? '', label: next?.block })
     },
     destroy() {
       cleanup()

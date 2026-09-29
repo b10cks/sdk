@@ -59,6 +59,30 @@ VITE_B10CKS_TOKEN=your-access-token
 </script>
 ```
 
+## Rendering blocks
+
+`B10cksComponent` renders the component registered for a block's type, by slug, PascalCase, or lowercase name:
+
+```svelte
+<script lang="ts">
+  import { B10cksComponent, type B10cksComponents } from '@b10cks/svelte'
+  import type { B10cksBlock } from '$lib/b10cks/types'
+  import Card from './Card.svelte'
+  import HeroSection from './HeroSection.svelte'
+
+  let { blocks }: { blocks: B10cksBlock[] } = $props()
+
+  // Typed with the generated block union, each component must accept its own block type.
+  const components: B10cksComponents<B10cksBlock> = { hero_section: HeroSection, card: Card }
+</script>
+
+{#each blocks as block (block.id)}
+  <B10cksComponent {block} {components} />
+{/each}
+```
+
+Each block renders inside a `<svelte:boundary>` (Svelte 5.3 or later): a block that throws doesn't take down the page. In the visual editor it shows a placeholder naming the block type and the error, which editors can select to fix or delete the block. In production it renders nothing and the error is logged once to the console.
+
 ## Live preview & visual editing
 
 When your app is rendered inside the b10cks visual editor, these actions and the `createPreviewContent` store make blocks selectable and keep the preview in sync while editing. They are no-ops outside the editor, so they are safe to leave in production output.

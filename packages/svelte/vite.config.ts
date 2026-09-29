@@ -9,7 +9,7 @@ export default defineConfig({
     svelte(),
     dts({
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.test.svelte', 'src/**/*.spec.ts'],
       bundleTypes: false,
       outDir: 'dist',
       entryRoot: 'src',
@@ -40,5 +40,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
     },
+    // Tests mount components, which needs Svelte's client build.
+    conditions: process.env.VITEST ? ['browser'] : undefined,
   },
 })

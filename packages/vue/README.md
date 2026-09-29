@@ -77,6 +77,18 @@ Use `B10cksComponent` to render block-specific Vue components dynamically:
 <B10cksComponent :block="block" v-editable="block" />
 ```
 
+Each block is rendered inside an error boundary: a block component that throws while rendering doesn't take down the page. In the visual editor it shows a placeholder naming the block type and the error, which editors can select to fix or delete the block. In production it renders nothing. The error goes to your `app.config.errorHandler` once, or to the console without one. Errors from event handlers leave the block alone.
+
+Block components resolve by name (`hero_section` renders `HeroSection`), so each one types its own props with the generated block type from `b10cks generate types`:
+
+```vue
+<script setup lang="ts">
+import type { B10cksHeroSection } from '~/b10cks/types'
+
+defineProps<{ block: B10cksHeroSection }>()
+</script>
+```
+
 ### Link anchors
 
 An internal link can point at a block on the target page: its `anchor` is that block's `id`. `resolveB10cksLink` and the rich text renderer append it to the href (`/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`), so the page needs an element with that id.

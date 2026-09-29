@@ -1,14 +1,16 @@
-import type { FieldPath, SelectUpdateEvent } from './preview-bridge'
+import type { FieldPath } from './preview-bridge'
 import { previewBridge } from './preview-bridge'
+import { registerEditable } from './preview-overlay'
 
 const STYLE_ID = 'b10cks-preview-style'
 const SCROLL_OFFSET_VAR = '--b10cks-scroll-offset'
 
 /**
- * Inject the preview outline styles once. Selected/hovered blocks get an
- * outline; `.b10cks-preview` carries a `scroll-margin-top` so scroll-into-view
- * clears a fixed app header. Set the offset via {@link setPreviewScrollOffset}
- * or the `--b10cks-scroll-offset` CSS variable.
+ * Inject the preview styles once: `.b10cks-preview` carries a
+ * `scroll-margin-top` so scroll-into-view clears a fixed app header. Set the
+ * offset via {@link setPreviewScrollOffset} or the `--b10cks-scroll-offset`
+ * CSS variable. Blocks the editor hides carry `b10cks-hidden` and are dimmed.
+ * Selection and hover are drawn in a separate overlay layer.
  */
 export function ensurePreviewStyles(): void {
   if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) {
@@ -19,15 +21,7 @@ export function ensurePreviewStyles(): void {
   style.id = STYLE_ID
   style.textContent = `
     .b10cks-preview { scroll-margin-top: var(${SCROLL_OFFSET_VAR}, 0px); }
-    .b10cks-hover,
-    .b10cks-preview:hover {
-      outline: 2px dashed rgba(59, 130, 246, 0.5);
-      outline-offset: 2px;
-    }
-    .b10cks-selected {
-      outline: 2px solid rgb(59, 130, 246) !important;
-      outline-offset: 2px;
-    }
+    .b10cks-preview.b10cks-hidden { opacity: 0.4 !important; }
   `
   document.head.appendChild(style)
 }
@@ -47,6 +41,8 @@ export function setPreviewScrollOffset(offset: number | string): void {
 
 export interface AttachEditableOptions {
   id: string
+  /** Shown on the selection and hover label. A slug like `hero_section` reads as `Hero section`. */
+  label?: string
   onSelectChange?: (selected: boolean) => void
   onHoverChange?: (hovered: boolean) => void
   /** Scroll the element into view when it becomes selected. Default true. */
@@ -54,10 +50,12 @@ export interface AttachEditableOptions {
 }
 
 /**
- * Wire a DOM element as a selectable block: click selects it in the editor,
- * and editor-driven select/hover toggle outline classes. Honors the configured
- * scroll offset and only scrolls when the element isn't already in view.
- * Returns a cleanup function. No-op outside preview mode.
+ * Wire a DOM element as a selectable block. A click selects it in the editor
+ * and never reaches links or buttons inside it. Only the innermost editable
+ * under the pointer or matching the editor's selection is highlighted, with a
+ * label. Toggles `b10cks-selected`, `b10cks-hover`, and `b10cks-hidden` (while
+ * the editor hides the block) on the element. Returns a
+ * cleanup function. No-op outside preview mode.
  */
 export function attachEditable(el: HTMLElement, options: AttachEditableOptions): () => void {
   if (!previewBridge.isInPreviewMode() || !options.id) {
@@ -65,39 +63,21 @@ export function attachEditable(el: HTMLElement, options: AttachEditableOptions):
   }
 
   ensurePreviewStyles()
-  const { id, onSelectChange, onHoverChange, scrollOnSelect = true } = options
+  const { id, label, onSelectChange, onHoverChange, scrollOnSelect = true } = options
 
   el.classList.add('b10cks-preview')
-
-  const handleClick = (event: MouseEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    previewBridge.selectItem(id)
-  }
-
-  const handleSelect = ({ selectedItem }: SelectUpdateEvent) => {
-    const selected = selectedItem === id
-    el.classList.toggle('b10cks-selected', selected)
-    if (selected && scrollOnSelect) {
-      scrollIntoViewIfNeeded(el)
-    }
-    onSelectChange?.(selected)
-  }
-
-  const handleHover = ({ selectedItem }: SelectUpdateEvent) => {
-    const hovered = selectedItem === id
-    el.classList.toggle('b10cks-hover', hovered)
-    onHoverChange?.(hovered)
-  }
-
-  el.addEventListener('click', handleClick)
-  const offSelect = previewBridge.on('SELECT_UPDATE', handleSelect)
-  const offHover = previewBridge.on('HOVER_UPDATE', handleHover)
+  const unregister = registerEditable(el, {
+    id,
+    kind: 'block',
+    label,
+    scrollOnSelect,
+    onSelectChange,
+    onHoverChange,
+    activate: () => previewBridge.selectItem(id),
+  })
 
   return () => {
-    el.removeEventListener('click', handleClick)
-    offSelect()
-    offHover()
+    unregister()
     el.classList.remove('b10cks-preview', 'b10cks-selected', 'b10cks-hover')
   }
 }
@@ -118,6 +98,8 @@ export interface AttachEditableFieldOptions {
    * targets a complex value.
    */
   mode?: EditableFieldMode
+  /** Label for `select` mode. Defaults to the field name. */
+  label?: string
 }
 
 /**
@@ -132,26 +114,22 @@ export function attachEditableField(
     return () => {}
   }
 
-  const { id, field, path, mode = 'inline' } = options
+  const { id, field, path, mode = 'inline', label } = options
 
   if (mode === 'select') {
     ensurePreviewStyles()
     el.classList.add('b10cks-preview')
 
-    const handleClick = (event: MouseEvent) => {
-      event.preventDefault()
-      event.stopPropagation()
-      if (path) {
-        previewBridge.selectField(id, path)
-      } else {
-        previewBridge.selectItem(id)
-      }
-    }
+    const unregister = registerEditable(el, {
+      id,
+      kind: 'field',
+      label: label ?? fieldName(path) ?? field,
+      activate: () => (path ? previewBridge.selectField(id, path) : previewBridge.selectItem(id)),
+    })
 
-    el.addEventListener('click', handleClick)
     return () => {
-      el.removeEventListener('click', handleClick)
-      el.classList.remove('b10cks-preview')
+      unregister()
+      el.classList.remove('b10cks-preview', 'b10cks-selected', 'b10cks-hover')
     }
   }
 
@@ -173,8 +151,7 @@ export function attachEditableField(
   }
 }
 
-function scrollIntoViewIfNeeded(el: HTMLElement): void {
-  if (typeof el.scrollIntoView === 'function') {
-    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }
+/** The last named segment of a path, e.g. `body` for `['body', 2]`. */
+function fieldName(path: FieldPath | undefined): string | undefined {
+  return path?.findLast((segment): segment is string => typeof segment === 'string')
 }

@@ -177,4 +177,16 @@ describe('PreviewStore', () => {
     expect(initial.body[0]?.headline).toBe('a')
     expect(listener).toHaveBeenCalledTimes(1)
   })
+
+  it('applies patches relative to a block and ignores unknown blocks', () => {
+    const store = new PreviewStore({ id: 'root', body: [{ id: 'b1', headline: 'a' }] })
+    const listener = vi.fn()
+    store.subscribe(listener)
+
+    store.patch(['headline'], 'b', 'b1')
+    store.patch(['headline'], 'c', 'missing')
+
+    expect(store.getSnapshot()).toEqual({ id: 'root', body: [{ id: 'b1', headline: 'b' }] })
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
 })

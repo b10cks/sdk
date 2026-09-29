@@ -11,6 +11,7 @@ export { previewBridge } from './preview-bridge'
 export { createPreviewContent } from './preview'
 export * from './rich-text'
 export { createB10cksStores } from './stores'
+export type { B10cksComponents } from './types'
 export type {
   AsyncState,
   AsyncStore,

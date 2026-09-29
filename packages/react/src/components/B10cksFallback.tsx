@@ -1,10 +1,8 @@
 import type { IBContentBlock } from '@b10cks/client'
 import type { ReactNode } from 'react'
 
-type BlockWithType = IBContentBlock<string> & Record<string, unknown>
-
 export interface B10cksFallbackProps {
-  block: BlockWithType
+  block: IBContentBlock<string>
   message?: ReactNode
 }
 

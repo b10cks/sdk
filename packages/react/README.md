@@ -81,7 +81,7 @@ import {
 
 function Hero({ block }: { block: HeroBlock }) {
   // Make the element selectable; click selects it and the editor highlights/scrolls to it.
-  const ref = useEditable<HTMLElement>(block.id)
+  const ref = useEditable<HTMLElement>(block.id, block.block)
 
   // Inline-edit a simple string field (contenteditable, streams edits back):
   const headlineRef = useEditableField<HTMLHeadingElement>({ id: block.id, field: 'headline' })
@@ -108,6 +108,28 @@ function Page({ initialContent }: { initialContent: PageContent }) {
   return <B10cksComponent block={content} />
 }
 ```
+
+### Broken blocks
+
+`B10cksComponent` wraps each block in an error boundary, so one block that throws while rendering doesn't take down the page. In the visual editor it shows a placeholder naming the block type and the error, which editors can select to fix or delete the block. In production the block renders nothing; React logs the error as usual. Like any React error boundary it catches rendering errors on the client, not in event handlers or during server rendering.
+
+### Typed components
+
+`b10cks generate types` emits `B10cksBlock`, the union of your block types. Type the components map with it, and each component gets its own block's props:
+
+```tsx
+import { B10cksComponent, type B10cksComponents } from '@b10cks/react'
+import type { B10cksBlock } from '@/b10cks/types'
+
+const components: B10cksComponents<B10cksBlock> = {
+  hero_section: ({ block }) => <h1>{block.headline}</h1>, // block: B10cksHeroSection
+  card: Card,
+}
+
+<B10cksComponent block={block} components={components} />
+```
+
+Typed maps are keyed by block slug. Untyped maps keep working as before, including PascalCase keys.
 
 `usePreviewSelection(blockId)` returns `{ isSelected, isHovered }` if you prefer to drive your own highlight styling.
 
