@@ -1,5 +1,22 @@
 # @b10cks/svelte
 
+## 0.9.0
+
+### Minor Changes
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9) Thanks [@badmike](https://github.com/badmike)! - `B10cksComponent` in Vue, React, and Svelte catches errors per block: a broken block shows a placeholder in the visual editor and renders nothing in production, instead of taking down the page. `@b10cks/svelte` now needs Svelte 5.3 or later.
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894) Thanks [@badmike](https://github.com/badmike)! - Improve visual editing in the preview: only the innermost editable is highlighted, selection and hover show a label with the block type or field name, and clicks on editables no longer trigger links, buttons, or router handlers inside them. `attachEditable`, `attachEditableField`, and `useEditable` take an optional `label`.
+  
+  The selection label now carries a breadcrumb of the surrounding blocks and quick actions for blocks: move up and down, add before and after, duplicate, delete, and a handle to drag the block before or after another one. With a block selected, Escape selects its parent and the arrow keys its siblings. Alt/Option-click reaches the page, to open tabs, accordions, or carousels while editing.
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9) Thanks [@badmike](https://github.com/badmike)! - `b10cks generate types` also emits `B10cksBlockMap` and the `B10cksBlock` union. `B10cksComponents<B10cksBlock>` from `@b10cks/react` and `@b10cks/svelte` types a components map so each component gets its own block's props. Vue's `B10cksComponent` accepts generated block types for `block`.
+
+### Patch Changes
+
+- Updated dependencies [[`db643f7`](https://github.com/b10cks/sdk/commit/db643f7fa3f25057741c611f9604af6e586ba220), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894)]:
+  - @b10cks/client@1.12.0
+
 ## 0.8.0
 
 ### Minor Changes

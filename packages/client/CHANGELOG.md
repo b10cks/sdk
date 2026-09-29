@@ -1,5 +1,17 @@
 # @b10cks/client
 
+## 1.12.0
+
+### Minor Changes
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`db643f7`](https://github.com/b10cks/sdk/commit/db643f7fa3f25057741c611f9604af6e586ba220) Thanks [@badmike](https://github.com/badmike)! - Preview bridge protocol 2. The ready announcement now carries the protocol version, so the editor only sends what a preview understands. New events: `CONTENT_PATCH` can address a field relative to a block with `itemId`, `BLOCK_LABELS` gives the space's block display names, and the preview can ask the editor to run block actions (`previewBridge.blockAction`) and drag-and-drop moves (`previewBridge.moveBlock`). Incoming payloads are shape-checked and malformed ones dropped. `previewBridge.latest(type)` returns the last payload the editor sent, for code that attaches after the editor replayed its state. `SelectUpdateEvent.selectedItem` is typed `string | null`, matching what the editor sends to clear a selection.
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894) Thanks [@badmike](https://github.com/badmike)! - Hide and show blocks from the visual editor's preview. The selection toolbar has an eye toggle that asks the editor to hide or show the block, and blocks the editor hides are dimmed and get the `b10cks-hidden` class. Both need an editor on bridge protocol 2, which sends the new HIDDEN_BLOCKS event; older editors keep the toolbar as it was. `BlockAction` gains `hide` and `show`.
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894) Thanks [@badmike](https://github.com/badmike)! - Improve visual editing in the preview: only the innermost editable is highlighted, selection and hover show a label with the block type or field name, and clicks on editables no longer trigger links, buttons, or router handlers inside them. `attachEditable`, `attachEditableField`, and `useEditable` take an optional `label`.
+  
+  The selection label now carries a breadcrumb of the surrounding blocks and quick actions for blocks: move up and down, add before and after, duplicate, delete, and a handle to drag the block before or after another one. With a block selected, Escape selects its parent and the arrow keys its siblings. Alt/Option-click reaches the page, to open tabs, accordions, or carousels while editing.
+
 ## 1.11.0
 
 ### Minor Changes
