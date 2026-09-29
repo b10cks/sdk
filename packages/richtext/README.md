@@ -4,6 +4,8 @@ Framework-agnostic rich text rendering for [b10cks](https://www.b10cks.com), the
 
 Converts the ProseMirror JSON documents produced by the b10cks editor into HTML or plain text — with zero dependencies, full SSR support, and a tiny bundle (5.5 kB ESM · 1.8 kB gzip · 1.6 kB Brotli).
 
+A separate entry, `@b10cks/richtext/editor`, edits a rendered field in place in the live preview, with the same schema as the b10cks editor. It's built on Tiptap and only ever loaded on demand, so the renderer stays as small as above.
+
 Used internally by the b10cks framework integrations:
 
 - `@b10cks/react` · `@b10cks/vue` · `@b10cks/svelte` · `@b10cks/next` · `@b10cks/nuxt`
@@ -14,7 +16,7 @@ Used internally by the b10cks framework integrations:
 npm install @b10cks/richtext
 ```
 
-No peer dependencies required.
+No peer dependencies required. The package depends on Tiptap for the preview editor; nothing from it ends up in your bundle unless you import `@b10cks/richtext/editor`.
 
 ## Quick start
 
@@ -216,11 +218,36 @@ renders as `<ul class="checklist"> … </ul>`. Style the class however your proj
 the SDK stays framework- and CSS-agnostic. A `class` attribute is also accepted for
 hand-authored documents.
 
+## Preview editor
+
+`@b10cks/richtext/editor` turns an element that shows a rendered document into a rich text editor, for in-place editing in the b10cks visual editor. You rarely need it directly: `B10cksRichText` in the framework packages uses it through `attachRichTextField` from `@b10cks/client`, which loads it with a dynamic `import()` in preview mode only. Import it the same way if you build your own integration, never statically:
+
+```ts
+const { createRichTextEditor } = await import('@b10cks/richtext/editor')
+
+const editor = createRichTextEditor(el, {
+  document,
+  config: { features: { table: false }, headingLevels: ['h2', 'h3', 'p'] },
+  render: { internalLinkHandler },
+  onChange: (next) => save(next),
+  onExit: () => editor?.destroy(),
+})
+
+editor?.setDocument(changedElsewhere) // merges without moving the caret
+editor?.destroy() // leaves the element showing the rendered document
+```
+
+- The schema matches the b10cks editor: the same nodes, marks and attributes, and features the field turns off are left out entirely, so paste can't bring them in either. A shared fixture keeps both in step.
+- It renders like `renderRichText`, so the page doesn't shift when editing starts.
+- `createRichTextEditor` returns `null` for a document with content the field's schema doesn't know, instead of dropping it. Leave such fields to the b10cks editor.
+- A small toolbar in a shadow root above the element offers the formats the field allows. Links to other content, placeholders, tables, text classes and list styles are kept, but edited in the b10cks editor.
+
 ## Types
 
 ```ts
 import type {
   RichTextDocument,
+  RichTextFieldConfig,
   RichTextHtmlOptions,
   RichTextTextOptions,
   RichTextInternalLinkAttrs,
