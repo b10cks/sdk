@@ -8,7 +8,7 @@ global.fetch = vi.fn()
 const mockJsonResponse = (body: unknown, status = 200) => ({
   ok: true,
   status,
-  headers: { get: (_: string) => 'application/json' },
+  headers: { get: () => 'application/json' },
   json: async () => body,
 })
 
@@ -294,7 +294,7 @@ describe('ManagementClient', () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 404,
-        headers: { get: (_: string) => 'application/json' },
+        headers: { get: () => 'application/json' },
         json: async () => errorResponse,
       })
 
@@ -465,7 +465,7 @@ describe('ManagementClient', () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        headers: { get: (_: string) => 'image/png' },
+        headers: { get: () => 'image/png' },
         blob: async () => blob,
         text: async () => {
           throw new Error('binary responses must not be read as text')
