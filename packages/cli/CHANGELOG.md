@@ -1,5 +1,15 @@
 # @b10cks/cli
 
+## 2.2.0
+
+### Minor Changes
+
+- [#22](https://github.com/b10cks/sdk/pull/22) [`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9) Thanks [@badmike](https://github.com/badmike)! - `b10cks generate types` also emits `B10cksBlockMap` and the `B10cksBlock` union. `B10cksComponents<B10cksBlock>` from `@b10cks/react` and `@b10cks/svelte` types a components map so each component gets its own block's props. Vue's `B10cksComponent` accepts generated block types for `block`.
+
+### Patch Changes
+
+- [#21](https://github.com/b10cks/sdk/pull/21) [`820f7ef`](https://github.com/b10cks/sdk/commit/820f7effaca8e0615f0f9e100bb215f687e3dd24) Thanks [@badmike](https://github.com/badmike)! - Update dependencies (`@modelcontextprotocol/sdk`, `@nuxt/kit`, bundled `chalk`, `inquirer` and `magicast`)
+
 ## 2.1.0
 
 ### Minor Changes

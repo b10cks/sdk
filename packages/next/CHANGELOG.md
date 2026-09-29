@@ -1,5 +1,13 @@
 # @b10cks/next
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9), [`db643f7`](https://github.com/b10cks/sdk/commit/db643f7fa3f25057741c611f9604af6e586ba220), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894), [`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9)]:
+  - @b10cks/react@0.9.0
+  - @b10cks/client@1.12.0
+
 ## 0.5.0
 
 ### Minor Changes

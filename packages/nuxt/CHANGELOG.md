@@ -1,5 +1,14 @@
 # @b10cks/nuxt
 
+## 3.6.1
+
+### Patch Changes
+
+- [#21](https://github.com/b10cks/sdk/pull/21) [`820f7ef`](https://github.com/b10cks/sdk/commit/820f7effaca8e0615f0f9e100bb215f687e3dd24) Thanks [@badmike](https://github.com/badmike)! - Update dependencies (`@modelcontextprotocol/sdk`, `@nuxt/kit`, bundled `chalk`, `inquirer` and `magicast`)
+- Updated dependencies [[`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9), [`db643f7`](https://github.com/b10cks/sdk/commit/db643f7fa3f25057741c611f9604af6e586ba220), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894), [`b8b43e3`](https://github.com/b10cks/sdk/commit/b8b43e3a9774edac86f2b79f4151b6cd1992d894), [`8a48979`](https://github.com/b10cks/sdk/commit/8a48979204d0d2816edb4d9f07138ec7a1cb35b9)]:
+  - @b10cks/vue@2.9.0
+  - @b10cks/client@1.12.0
+
 ## 3.6.0
 
 ### Minor Changes
