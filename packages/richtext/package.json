@@ -1,6 +1,6 @@
 {
   "name": "@b10cks/richtext",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "Framework-agnostic rich text rendering for b10cks Rich text, with an in-place preview editor",
   "keywords": [
     "b10cks",
