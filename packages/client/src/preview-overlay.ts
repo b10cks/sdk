@@ -184,6 +184,9 @@ function start(): () => void {
 function handleClick(event: MouseEvent) {
   // Alt/Option-click reaches the page, so editors can open tabs, menus, or carousels.
   if (event.altKey) return
+  if (ui?.host && event.composedPath().includes(ui.host)) return
+  if (event.composedPath().some((node) => node instanceof HTMLElement && node.isContentEditable))
+    return
   const el = closestTarget(event)
   if (!el || targets.get(el)?.isEditing?.()) return
 
@@ -351,7 +354,7 @@ function barModel(el: HTMLElement): BarModel | null {
     label: labelFor(target),
     crumbs,
     actions:
-      target.kind === 'block' && editorRunsBlockActions()
+      target.kind === 'block' && ancestorBlocks(el).length > 0 && editorRunsBlockActions()
         ? {
             canMoveUp: !!siblingBlock(el, -1),
             canMoveDown: !!siblingBlock(el, 1),

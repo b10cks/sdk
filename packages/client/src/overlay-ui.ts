@@ -161,7 +161,6 @@ export function createOverlayUi(handlers: OverlayHandlers): OverlayUi {
   handle.setAttribute('aria-hidden', 'true')
   handle.innerHTML = icon(GRIP_ICON)
   handle.addEventListener('pointerdown', (event) => handlers.onDragStart(event, handle))
-  tools.appendChild(handle)
 
   const buttons = new Map<BlockAction, HTMLButtonElement>()
   for (const tool of TOOLS) {
@@ -191,7 +190,7 @@ export function createOverlayUi(handlers: OverlayHandlers): OverlayUi {
   setHidden(false)
   tools.insertBefore(visibility, buttons.get('delete') ?? null)
 
-  bar.append(crumbs, name, tools)
+  bar.append(handle, crumbs, name, tools)
   selectedBox.appendChild(bar)
 
   const indicator = element('div', 'indicator')
@@ -219,6 +218,7 @@ export function createOverlayUi(handlers: OverlayHandlers): OverlayUi {
       }
       name.textContent = model.label
       tools.hidden = !model.actions
+      handle.hidden = !model.actions
       setDisabled(buttons.get('move-up'), !model.actions?.canMoveUp)
       setDisabled(buttons.get('move-down'), !model.actions?.canMoveDown)
 

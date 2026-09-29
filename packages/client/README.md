@@ -444,9 +444,14 @@ const detach = attachEditable(el, { id: block.id, label: block.block })
 // Inline string field (contenteditable, streams plain-text edits):
 attachEditableField(el, { id: block.id, field: 'headline' })
 
+// Inline text inside an array: update only this action's label.
+attachEditableField(button, { id: block.id, path: ['actions', index, 'label'], mode: 'inline' })
+
 // Complex field — deep-select instead of editing inline:
-attachEditableField(el, { id: block.id, path: ['link'], mode: 'select' })
+attachEditableField(el, { id: block.id, path: ['link'] })
 ```
+
+Path-only fields and fields wrapping links or buttons select the CMS field by default. Pass `mode: 'inline'` for a path to a string value. The SDK lets an inline field inside a selectable link receive focus and blocks the link click while editing. An inline edit targeting the whole `actions` array would replace the array with text.
 
 In the editor, a click on an editable element selects it and nothing else: it is intercepted before any handler on the page, so links, buttons, and router links inside a block don't fire. Clicks outside editables behave as usual.
 

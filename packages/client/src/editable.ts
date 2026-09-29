@@ -93,9 +93,9 @@ export interface AttachEditableFieldOptions {
    * `inline` makes the element contenteditable and streams plain-text edits
    * back to the editor — suitable for simple string fields only. `select`
    * instead deep-selects the field so the editor opens its own editor, which
-   * is the right choice for rich text and other complex types. Default
-   * `inline`, or `select` automatically when no `field` is given but a `path`
-   * targets a complex value.
+   * is the right choice for rich text and other complex types. Defaults to
+   * `select` for path-only fields and fields wrapping interactive children;
+   * other flat fields default to `inline`.
    */
   mode?: EditableFieldMode
   /** Label for `select` mode. Defaults to the field name. */
@@ -114,17 +114,22 @@ export function attachEditableField(
     return () => {}
   }
 
-  const { id, field, path, mode = 'inline', label } = options
+  const { id, field, path, label } = options
+  const mode =
+    options.mode ??
+    (field && !el.querySelector('a, button, input, select, textarea') ? 'inline' : 'select')
 
   if (mode === 'select') {
     ensurePreviewStyles()
     el.classList.add('b10cks-preview')
+    const fieldPath = path ?? (field ? [field] : undefined)
 
     const unregister = registerEditable(el, {
       id,
       kind: 'field',
       label: label ?? fieldName(path) ?? field,
-      activate: () => (path ? previewBridge.selectField(id, path) : previewBridge.selectItem(id)),
+      activate: () =>
+        fieldPath ? previewBridge.selectField(id, fieldPath) : previewBridge.selectItem(id),
     })
 
     return () => {
@@ -134,6 +139,14 @@ export function attachEditableField(
   }
 
   el.setAttribute('contenteditable', 'true')
+
+  const handleClick = (event: MouseEvent) => {
+    // A field inside a selectable link must still receive focus and a caret.
+    // Stop the link's click while leaving the pointerdown focus intact.
+    event.preventDefault()
+    event.stopPropagation()
+    el.focus()
+  }
 
   const handleInput = (event: Event) => {
     const value = (event.target as HTMLElement).innerText
@@ -145,8 +158,10 @@ export function attachEditableField(
   }
 
   el.addEventListener('input', handleInput)
+  el.addEventListener('click', handleClick)
   return () => {
     el.removeEventListener('input', handleInput)
+    el.removeEventListener('click', handleClick)
     el.removeAttribute('contenteditable')
   }
 }
