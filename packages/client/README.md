@@ -422,6 +422,7 @@ Event protocol:
 | `FIELD_UPDATE`   | preview → editor | `{ itemId, path?, field?, value }` | Stream an inline edit                                  |
 | `CONTENT_UPDATE` | editor → preview | `{ content }`                      | Replace the whole content tree                         |
 | `CONTENT_PATCH`  | editor → preview | `{ path, value }`                  | Replace a single value at `path`                       |
+| `FIELD_CONFIG`   | editor → preview | `{ itemId, path, richtext }`       | Allow in-place editing of a rich text field            |
 | `HIDDEN_BLOCKS`  | editor → preview | `{ ids }`                          | Ids of all hidden blocks, to dim them                  |
 
 `path` is a `FieldPath` (`(string | number)[]`) that addresses any value at any depth, including array indices — e.g. `['body', 2, 'headline']`.
@@ -461,6 +462,33 @@ The selection label carries the editing tools:
 - **Keyboard**, while the preview has focus and not while typing in a form field or contenteditable: Escape selects the parent block, ArrowUp and ArrowDown the previous and next sibling block.
 
 Siblings are the block editables that share the same parent block editable. A block the page renders without an editable is invisible to the preview, so wire up every block you want editors to reach.
+
+### Rich text fields
+
+`attachRichTextField` makes an element showing a rendered rich text field editable in place. The framework packages' `B10cksRichText` does this for you through its `editable` prop; use it directly for your own renderer:
+
+```typescript
+import { attachRichTextField } from '@b10cks/client'
+
+el.innerHTML = renderRichText(block.body, options)
+const field = attachRichTextField(el, {
+  id: block.id,
+  path: ['body'],
+  document: block.body,
+  render: options,
+  // While editing, the editor owns the element: don't re-render its HTML.
+  onEditingChange: (editing) => (paused = editing),
+})
+
+field.update(nextBody) // whenever the document changes, e.g. from usePreviewContent
+field.destroy()
+```
+
+A click selects the field like `select` mode does. When the editor answers with `FIELD_CONFIG` (the user may edit the field), the element turns into a Tiptap editor with the b10cks schema, loaded with a dynamic `import()` of `@b10cks/richtext/editor` on the first hover or click. Without that answer, from an older editor or for read-only users, the field stays select-only. Tiptap is never loaded outside preview mode.
+
+- Edits go to the editor as `FIELD_UPDATE` at most every 300 ms and on blur, and into the preview's own content store through `previewBridge.patchLocal`, since the editor doesn't echo them.
+- Documents passed to `update` while editing are merged into the editor without moving the caret. Copies of edits this field sent are ignored.
+- Clicks inside the editor reach it, and Escape returns to block selection. Selecting anything else ends editing and leaves the element rendered.
 
 ### Scroll offset (fixed headers)
 

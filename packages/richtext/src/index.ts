@@ -1,3 +1,7 @@
+import { DEFAULT_ALLOWED_SCHEMES, internalLinkAttributes, sanitizeUrl } from './links'
+
+export { DEFAULT_ALLOWED_SCHEMES }
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface RichTextDocument {
@@ -65,6 +69,33 @@ export interface RichTextTextOptions {
   placeholderHandler?: RichTextPlaceholderHandler
 }
 
+/** Features a rich text field can switch off in the CMS field settings. */
+export type RichTextFeature =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'code'
+  | 'heading'
+  | 'bulletList'
+  | 'orderedList'
+  | 'blockquote'
+  | 'codeBlock'
+  | 'horizontalRule'
+  | 'link'
+  | 'internalLink'
+  | 'table'
+
+export type RichTextHeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'
+
+/** How a rich text field is configured in the CMS. */
+export interface RichTextFieldConfig {
+  /** A feature is on unless set to `false`, like in the CMS. */
+  features?: Partial<Record<RichTextFeature, boolean>>
+  /** Block formats the toolbar offers, in order. */
+  headingLevels?: RichTextHeadingLevel[]
+}
+
 export interface RichTextRenderer {
   render: (document: RichTextDocument | null | undefined) => string
 }
@@ -82,28 +113,6 @@ export interface RichTextExtensionOptions {
    * this field.
    */
   extensions?: unknown
-}
-
-// ─── URL sanitizing ───────────────────────────────────────────────────────────
-
-/** Default schemes allowed in link/image URLs. */
-export const DEFAULT_ALLOWED_SCHEMES: readonly string[] = ['http', 'https', 'mailto', 'tel']
-
-const URL_SCHEME_RE = /^([a-z][a-z0-9+.-]*):/
-
-function sanitizeUrl(url: string, options: RichTextHtmlOptions): string {
-  // Browsers ignore control characters and whitespace when parsing the URL
-  // scheme (e.g. `java\nscript:`), so strip anything at or below U+0020 before
-  // matching. Done via a code-point filter to avoid a control-char regex.
-  let stripped = ''
-  for (const char of url) {
-    if (char.charCodeAt(0) > 0x20) stripped += char
-  }
-  const normalized = stripped.toLowerCase()
-  const scheme = URL_SCHEME_RE.exec(normalized)?.[1]
-  if (!scheme) return url // relative, anchor, query or protocol-relative URL
-  const allowed = options.allowedSchemes ?? DEFAULT_ALLOWED_SCHEMES
-  return allowed.includes(scheme) ? url : '#'
 }
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
@@ -150,15 +159,6 @@ function classAttr(a: Record<string, unknown>): Record<string, unknown> {
 
 // ─── Mark rendering ───────────────────────────────────────────────────────────
 
-/**
- * Appends `#anchor` to a resolved href. Leaves hrefs that already carry a fragment alone, which
- * covers handlers that add the anchor themselves and the `'#'` placeholder for unresolved links.
- */
-function withFragment(href: string, anchor: string | null | undefined): string {
-  if (!anchor || !href || href.includes('#')) return href
-  return `${href}#${encodeURIComponent(anchor)}`
-}
-
 function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptions): string {
   const a = mark.attrs ?? {}
   switch (mark.type) {
@@ -180,34 +180,8 @@ function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptio
       if (a.title) linkAttrs.title = a.title
       return tag('a', inner, linkAttrs)
     }
-    case 'internalLink': {
-      const linkAttrs = a as RichTextInternalLinkAttrs
-      // CMS stores { content, anchor }; legacy format used { url, href, … }
-      const defaultHref =
-        typeof linkAttrs.url === 'string' && linkAttrs.url.length > 0
-          ? linkAttrs.url
-          : typeof linkAttrs.href === 'string' && linkAttrs.href.length > 0
-            ? linkAttrs.href
-            : '#'
-      const resolvedHref = options.internalLinkHandler
-        ? (options.internalLinkHandler(linkAttrs) ?? defaultHref)
-        : defaultHref
-      const href = sanitizeUrl(withFragment(resolvedHref, linkAttrs.anchor), options)
-      const elAttrs: Record<string, unknown> = {
-        href,
-        // data-type="internal" matches CMS output; data-b10cks-internal-link kept for SDK consumers
-        'data-type': 'internal',
-        'data-b10cks-internal-link': true,
-      }
-      // CMS attrs
-      if (linkAttrs.content) elAttrs['data-content'] = linkAttrs.content
-      if (linkAttrs.anchor) elAttrs['data-anchor'] = linkAttrs.anchor
-      // legacy attrs
-      if (linkAttrs.target) elAttrs.target = linkAttrs.target
-      if (linkAttrs.rel) elAttrs.rel = linkAttrs.rel
-      if (linkAttrs.title) elAttrs.title = linkAttrs.title
-      return tag('a', inner, elAttrs)
-    }
+    case 'internalLink':
+      return tag('a', inner, internalLinkAttributes(a, options))
     case 'textClass': {
       const cls = a.class as string | null | undefined
       return cls ? tag('span', inner, { class: cls }) : inner

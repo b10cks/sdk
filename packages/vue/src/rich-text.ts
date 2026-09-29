@@ -1,4 +1,9 @@
 import {
+  attachRichTextField,
+  type EditableRichTextField,
+  type RichTextFieldHandle,
+} from '@b10cks/client'
+import {
   renderRichText as renderBaseRichText,
   renderRichTextAsText as renderBaseRichTextAsText,
   createRichTextTextRenderer,
@@ -11,10 +16,21 @@ import {
   type RichTextTextOptions,
   type RichTextTextRenderer,
 } from '@b10cks/richtext'
-import { computed, defineComponent, h, type PropType } from 'vue'
+import {
+  computed,
+  defineComponent,
+  h,
+  onBeforeUnmount,
+  onMounted,
+  type PropType,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue'
 
 export type RichTextRenderOptions = RichTextHtmlOptions
 export type {
+  EditableRichTextField,
   RichTextDocument,
   RichTextInternalLinkAttrs,
   RichTextInternalLinkHandler,
@@ -28,6 +44,12 @@ export interface B10cksRichTextProps extends RichTextRenderOptions {
   tag?: keyof HTMLElementTagNameMap | string
   class?: string
   html?: string | null
+  /**
+   * The field this document comes from, e.g. `{ id: block.id, path: ['body'] }`,
+   * so editors can edit it in place in the live preview. Has no effect outside
+   * preview mode.
+   */
+  editable?: EditableRichTextField
 }
 
 export function renderRichText(
@@ -88,23 +110,59 @@ export const B10cksRichText = defineComponent({
       required: false,
       default: undefined,
     },
+    editable: {
+      type: Object as PropType<EditableRichTextField>,
+      required: false,
+      default: undefined,
+    },
   },
   setup(props, { attrs }) {
-    const html = computed(
+    const renderOptions = computed<RichTextRenderOptions>(() => ({
+      internalLinkHandler: props.internalLinkHandler,
+      placeholderHandler: props.placeholderHandler,
+      allowedSchemes: props.allowedSchemes,
+    }))
+    const html = computed(() => props.html ?? renderRichText(props.document, renderOptions.value))
+
+    const el = ref<HTMLElement>()
+    // While editing, the editor owns the element; Vue keeps the HTML it had.
+    const frozenHtml = shallowRef<string | null>(null)
+    let handle: RichTextFieldHandle | null = null
+
+    const attach = () => {
+      handle?.destroy()
+      handle = null
+      if (!el.value || !props.editable) return
+      handle = attachRichTextField(el.value, {
+        ...props.editable,
+        document: props.document,
+        render: renderOptions.value,
+        onEditingChange: (editing) => {
+          frozenHtml.value = editing ? html.value : null
+        },
+      })
+    }
+
+    onMounted(attach)
+    // Re-attach only when the addressed field changes, not for a new `path` array.
+    watch(
       () =>
-        props.html ??
-        renderRichText(props.document, {
-          internalLinkHandler: props.internalLinkHandler,
-          placeholderHandler: props.placeholderHandler,
-          allowedSchemes: props.allowedSchemes,
-        })
+        props.editable &&
+        JSON.stringify([props.editable.id, props.editable.path, props.editable.label]),
+      attach
     )
+    watch(
+      () => props.document,
+      (document) => handle?.update(document)
+    )
+    onBeforeUnmount(() => handle?.destroy())
 
     return () =>
       h(props.tag, {
         ...attrs,
+        ref: el,
         class: props.class ?? attrs.class,
-        innerHTML: html.value,
+        innerHTML: frozenHtml.value ?? html.value,
       })
   },
 })

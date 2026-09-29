@@ -174,12 +174,14 @@ const block = computed(() => toRootBlock(entry.value))
 <!-- Inline-edit a simple string field -->
 <h1 v-editable-field="{ id: block.id, field: 'header' }">{{ block.header }}</h1>
 
-<!-- Rich text / complex fields: deep-select so the editor opens its own editor -->
-<B10cksRichText
-  :document="block.body"
-  v-editable-field="{ id: block.id, path: ['body'], mode: 'select' }"
-/>
+<!-- Rich text: editors edit it in place, with the field's formatting options -->
+<B10cksRichText :document="block.body" :editable="{ id: block.id, path: ['body'] }" />
+
+<!-- Other complex fields: deep-select so the editor opens its own editor -->
+<LinkCard :link="block.link" v-editable-field="{ id: block.id, path: ['link'], mode: 'select' }" />
 ```
+
+The rich text editor loads only when an editor clicks the field in the visual editor, never during SSR or for visitors. See [`@b10cks/vue`](../vue/README.md#editing-rich-text-in-the-preview) for details.
 
 #### Link anchors
 

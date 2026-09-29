@@ -1,3 +1,5 @@
+import type { RichTextFieldConfig, RichTextHeadingLevel } from '@b10cks/richtext'
+
 /** Addresses a field within a block, supporting nested objects and arrays. */
 export type FieldPath = (string | number)[]
 
@@ -82,6 +84,17 @@ export type FieldSelectEvent = {
   path: FieldPath
 }
 
+/**
+ * The editor's answer to FIELD_SELECT for a rich text field the user may edit:
+ * the preview can edit it in place, with the field's settings. Not sent for
+ * read-only users or other field types. Protocol 3.
+ */
+export type FieldConfigEvent = {
+  itemId: string
+  path: FieldPath
+  richtext: RichTextFieldConfig
+}
+
 export type EventType =
   | 'CONTENT_UPDATE'
   | 'CONTENT_PATCH'
@@ -89,6 +102,7 @@ export type EventType =
   | 'HOVER_UPDATE'
   | 'FIELD_UPDATE'
   | 'FIELD_SELECT'
+  | 'FIELD_CONFIG'
   | 'BLOCK_LABELS'
   | 'HIDDEN_BLOCKS'
   | 'BLOCK_ACTION'
@@ -101,6 +115,7 @@ export type EventPayloadMap = {
   HOVER_UPDATE: SelectUpdateEvent
   FIELD_UPDATE: FieldUpdateEvent
   FIELD_SELECT: FieldSelectEvent
+  FIELD_CONFIG: FieldConfigEvent
   BLOCK_LABELS: BlockLabelsEvent
   HIDDEN_BLOCKS: HiddenBlocksEvent
   BLOCK_ACTION: BlockActionEvent
@@ -112,6 +127,7 @@ type InboundType =
   | 'CONTENT_PATCH'
   | 'SELECT_UPDATE'
   | 'HOVER_UPDATE'
+  | 'FIELD_CONFIG'
   | 'BLOCK_LABELS'
   | 'HIDDEN_BLOCKS'
 
@@ -125,6 +141,17 @@ const isFieldPath = (value: unknown): value is FieldPath =>
       typeof segment === 'string' ||
       (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0)
   )
+
+const HEADING_LEVELS: readonly RichTextHeadingLevel[] = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']
+
+const isRichTextConfig = (value: unknown): value is RichTextFieldConfig =>
+  isRecord(value) &&
+  (value.features === undefined ||
+    (isRecord(value.features) &&
+      Object.values(value.features).every((enabled) => typeof enabled === 'boolean'))) &&
+  (value.headingLevels === undefined ||
+    (Array.isArray(value.headingLevels) &&
+      value.headingLevels.every((level) => HEADING_LEVELS.some((known) => known === level))))
 
 const isSelection = (payload: Record<string, unknown>) =>
   payload.selectedItem === null || typeof payload.selectedItem === 'string'
@@ -142,6 +169,11 @@ const INBOUND_GUARDS: Record<InboundType, (payload: Record<string, unknown>) => 
     (payload.itemId === undefined || typeof payload.itemId === 'string'),
   SELECT_UPDATE: isSelection,
   HOVER_UPDATE: isSelection,
+  FIELD_CONFIG: (payload) =>
+    typeof payload.itemId === 'string' &&
+    payload.itemId !== '' &&
+    isFieldPath(payload.path) &&
+    isRichTextConfig(payload.richtext),
   BLOCK_LABELS: (payload) =>
     isRecord(payload.labels) &&
     Object.values(payload.labels).every((label) => typeof label === 'string'),
@@ -160,10 +192,11 @@ const BRIDGE_READY = 'B10CKS_BRIDGE_READY'
  * announce without a payload (protocol 0) understand CONTENT_UPDATE,
  * SELECT_UPDATE, HOVER_UPDATE, and CONTENT_PATCH relative to the root only, so
  * the editor must not send them block-relative patches or labels. Protocol 1
- * adds those and the block actions. Protocol 2 adds HIDDEN_BLOCKS and the `hide` and `show` block
- * actions.
+ * adds those and the block actions, protocol 2 HIDDEN_BLOCKS and the `hide`
+ * and `show` block actions, protocol 3 FIELD_CONFIG for in-place rich text
+ * editing.
  */
-export const BRIDGE_PROTOCOL = 2
+export const BRIDGE_PROTOCOL = 3
 
 /** Payload of the ready announcement. */
 export type BridgeReadyPayload = {
@@ -288,6 +321,17 @@ export class PreviewBridge {
   /** Stream an inline edit back to the editor, addressed by path. */
   updateFieldAt(itemId: string, path: FieldPath, value: unknown) {
     this.post('FIELD_UPDATE', { itemId, path, value })
+  }
+
+  /**
+   * Apply a patch to the preview's own content, as if the editor had sent it.
+   * For edits made in the preview itself, which the editor doesn't echo back,
+   * so a content store rendering the page stays current.
+   */
+  patchLocal(patch: ContentPatchEvent) {
+    if (this.isInPreviewMode()) {
+      this.notify('CONTENT_PATCH', patch)
+    }
   }
 
   /** Ask the editor to move, duplicate, delete, hide, show, or insert next to a block. */

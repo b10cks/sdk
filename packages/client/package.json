@@ -56,6 +56,9 @@
     "lint:fix": "oxlint --fix src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
+  "dependencies": {
+    "@b10cks/richtext": "workspace:^"
+  },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.59.2",
     "chalk": "^6.0.1",

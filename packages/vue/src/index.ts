@@ -26,6 +26,7 @@ export * from './api'
 export { usePreviewContent } from './preview-content'
 export type {
   B10cksRichTextProps,
+  EditableRichTextField,
   RichTextDocument,
   RichTextInternalLinkAttrs,
   RichTextInternalLinkHandler,
