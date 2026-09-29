@@ -1,5 +1,11 @@
 # @b10cks/client
 
+## 2.0.1
+
+### Patch Changes
+
+- [#28](https://github.com/b10cks/sdk/pull/28) [`76babaa`](https://github.com/b10cks/sdk/commit/76babaad644b32cf81d889b815ab11bf0902d6b8) Thanks [@badmike](https://github.com/badmike)! - Keep inline button labels editable inside selectable links without following the link. Select fields that wrap interactive children instead of replacing structured content with text. Hide block actions on the root, move the drag handle before the breadcrumb, and let insert actions run on the first click.
+
 ## 2.0.0
 
 ### Major Changes
