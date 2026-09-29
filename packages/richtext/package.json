@@ -1,7 +1,7 @@
 {
   "name": "@b10cks/richtext",
   "version": "0.8.0",
-  "description": "Framework-agnostic rich text rendering for b10cks Rich text",
+  "description": "Framework-agnostic rich text rendering for b10cks Rich text, with an in-place preview editor",
   "keywords": [
     "b10cks",
     "cms",
@@ -41,6 +41,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./editor": {
+      "types": "./dist/editor/index.d.ts",
+      "import": "./dist/editor.mjs",
+      "require": "./dist/editor.cjs"
     }
   },
   "publishConfig": {
@@ -54,6 +59,12 @@
     "clean": "rm -rf dist",
     "lint:fix": "oxlint --fix src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/extension-table": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.59.2",
