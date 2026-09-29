@@ -101,13 +101,18 @@ When your app is rendered inside the b10cks visual editor, these actions and the
   <!-- Inline-edit a simple string field -->
   <h1 use:editableField={{ id: $content.id, field: 'headline' }}>{$content.headline}</h1>
 
-  <!-- Rich text / complex fields: deep-select so the editor opens its own editor.
+  <!-- Rich text: editors edit it in place, with the field's formatting options -->
+  <B10cksRichText document={$content.body} editable={{ id: $content.id, path: ['body'] }} />
+
+  <!-- Other complex fields: deep-select so the editor opens its own editor.
        Actions apply to DOM elements, so wrap the component in a container. -->
-  <div use:editableField={{ id: $content.id, path: ['body'], mode: 'select' }}>
-    <B10cksRichText document={$content.body} />
+  <div use:editableField={{ id: $content.id, path: ['link'], mode: 'select' }}>
+    <LinkCard link={$content.link} />
   </div>
 </section>
 ```
+
+With `editable`, clicking the rich text in the visual editor turns it into an editor in place: a toolbar offers the field's formats, edits reach the CMS form live and changes made there show up without moving the cursor, and Escape returns to block selection. The editor code loads only then, never outside the visual editor. Users without edit permission, and older CMS versions, get the deep-select behavior instead.
 
 `createPreviewContent` accepts either a plain value or a readable store. A plain value is captured once; pass a store (e.g. a data store that re-fetches on navigation) and its updates reset the preview so it never keeps a stale tree:
 

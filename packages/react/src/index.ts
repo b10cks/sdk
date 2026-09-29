@@ -21,4 +21,4 @@ export {
   type B10cksProviderProps,
 } from './provider'
 export { B10cksRichText, renderRichTextHtml } from './rich-text'
-export type { B10cksRichTextProps } from './rich-text'
+export type { B10cksRichTextProps, EditableRichTextField } from './rich-text'

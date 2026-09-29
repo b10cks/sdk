@@ -179,6 +179,8 @@ export function PageBody({ document }: { document: RichTextDocument | null | und
 }
 ```
 
+In a client component, pass `editable={{ id: block.id, path: ['body'] }}` to let editors edit the text in place in the visual editor. See [`@b10cks/react`](../react/README.md#editing-rich-text-in-the-preview).
+
 To extract plain text (useful for `og:description`, search indexing, or previews), use `renderRichTextAsText`:
 
 ```tsx

@@ -1,10 +1,10 @@
 {
   "$comment": "Preview bridge protocol, shared byte-identical by the CMS (tests/fixtures/bridge-protocol.json) and the SDK (packages/client/src/__fixtures__/bridge-protocol.json). Both test suites assert their bridge sends and accepts exactly these messages. Change both copies together. `since` is the protocol version a message was introduced in; editors must not send newer messages to older previews. `invalid` lists payloads the receiving side must drop.",
-  "protocol": 2,
+  "protocol": 3,
   "ready": {
     "type": "B10CKS_BRIDGE_READY",
     "payload": {
-      "protocol": 2
+      "protocol": 3
     }
   },
   "messages": [
@@ -133,6 +133,56 @@
         {
           "labels": {
             "hero_section": 1
+          }
+        }
+      ]
+    },
+    {
+      "type": "FIELD_CONFIG",
+      "direction": "editor-to-preview",
+      "since": 3,
+      "examples": [
+        {
+          "itemId": "hero-1",
+          "path": ["body"],
+          "richtext": {}
+        },
+        {
+          "itemId": "list-1",
+          "path": ["items", 2, "text"],
+          "richtext": {
+            "features": {
+              "table": false,
+              "codeBlock": false
+            },
+            "headingLevels": ["h2", "h3", "p"]
+          }
+        }
+      ],
+      "invalid": [
+        {
+          "itemId": "hero-1",
+          "path": ["body"]
+        },
+        {
+          "itemId": "",
+          "path": ["body"],
+          "richtext": {}
+        },
+        {
+          "itemId": "hero-1",
+          "path": ["body"],
+          "richtext": {
+            "features": {
+              "bold": "no"
+            }
+          }
+        },
+        {
+          "itemId": "hero-1",
+          "path": ["body"],
+          "richtext": {
+            "headingLevels": ["h7"]
           }
         }
       ]

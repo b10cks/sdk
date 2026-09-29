@@ -9,6 +9,8 @@ export default defineConfig({
       include: ['src/**/*'],
       exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
       bundleTypes: true,
+      // Keep `@b10cks/richtext` imports as package imports, not paths into its sources.
+      pathsToAliases: false,
     }),
   ],
   build: {
@@ -19,10 +21,10 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
-      external: [],
+      // The rich text editor stays a dynamic import, so consumer bundles split it off.
+      external: ['@b10cks/richtext', '@b10cks/richtext/editor'],
       output: {
         sourcemapExcludeSources: true,
-        globals: {},
       },
     },
     sourcemap: true,
@@ -31,6 +33,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+    },
+  },
+  test: {
+    alias: {
+      '@b10cks/richtext/editor': resolve(__dirname, '../richtext/src/editor/index.ts'),
+      '@b10cks/richtext': resolve(__dirname, '../richtext/src/index.ts'),
     },
   },
 })

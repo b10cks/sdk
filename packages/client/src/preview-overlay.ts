@@ -27,6 +27,11 @@ export interface EditableTarget {
   label?: string
   /** Called on click, instead of the element's native behavior. */
   activate: (click?: MouseEvent) => void
+  /**
+   * True while the element is edited in place: clicks inside it reach the
+   * page, and its label makes room for the editor's toolbar.
+   */
+  isEditing?: () => boolean
   scrollOnSelect?: boolean
   onSelectChange?: (selected: boolean) => void
   onHoverChange?: (hovered: boolean) => void
@@ -180,7 +185,7 @@ function handleClick(event: MouseEvent) {
   // Alt/Option-click reaches the page, so editors can open tabs, menus, or carousels.
   if (event.altKey) return
   const el = closestTarget(event)
-  if (!el) return
+  if (!el || targets.get(el)?.isEditing?.()) return
 
   consume(event)
   if (event.type === 'click') select(el, event)
@@ -512,6 +517,8 @@ function paint() {
   if (ui.hover.name.textContent !== hoverLabel) ui.hover.name.textContent = hoverLabel
 
   drawBox(ui.selected, selected)
+  ui.selected.label.style.visibility =
+    selected && targets.get(selected)?.isEditing?.() ? 'hidden' : ''
   drawBox(ui.hover, hover)
   drawIndicator(ui.indicator, drag?.drop ?? null)
 }

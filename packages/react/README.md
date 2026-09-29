@@ -177,6 +177,22 @@ export function PageBody({ block }: { block: PageBlock }) {
 }
 ```
 
+### Editing rich text in the preview
+
+Pass `editable` with the block id and the field's path, and editors can edit the text in place in the visual editor:
+
+```tsx
+<B10cksRichText
+  document={block.body}
+  editable={{ id: block.id, path: ['body'] }}
+  className="prose"
+/>
+```
+
+A click turns the rendered text into an editor with the field's formatting options, in a toolbar above it. Edits reach the CMS form live, changes made there show up without moving the cursor, and Escape returns to block selection. The page keeps its styles: the editor renders the same HTML as `B10cksRichText`. The editor code is loaded only then, with a dynamic import, never on the server or outside the visual editor. Users without edit permission, and older CMS versions, get the field opened in the CMS form instead.
+
+`editable` uses hooks, so it needs a client component, like the rest of live preview (`usePreviewContent`). Without it, `B10cksRichText` stays hook-free and renders in Server Components.
+
 If you need the rendered HTML string on the server or inside your own component logic, use `renderRichTextHtml`:
 
 ```tsx

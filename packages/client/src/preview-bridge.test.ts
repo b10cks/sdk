@@ -47,7 +47,7 @@ describe('init', () => {
   it('announces readiness to the parent frame', () => {
     previewBridge.init()
     expect(postMessage).toHaveBeenCalledWith(
-      { type: 'B10CKS_BRIDGE_READY', payload: { protocol: 2 } },
+      { type: 'B10CKS_BRIDGE_READY', payload: { protocol: 3 } },
       '*'
     )
   })

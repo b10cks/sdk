@@ -15,6 +15,8 @@
     "skipLibCheck": true,
     "paths": {
       "@b10cks/client": ["./src"],
+      "@b10cks/richtext": ["../richtext/src"],
+      "@b10cks/richtext/editor": ["../richtext/src/editor"],
       "@b10cks/vue": ["../vue/src"],
       "@b10cks/nuxt": ["../nuxt/src"]
     }
