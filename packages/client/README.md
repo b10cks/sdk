@@ -456,7 +456,7 @@ To use the page itself, hold Alt (Option on macOS) while clicking: the click the
 The selection label carries the editing tools:
 
 - **Breadcrumb**: the blocks around the selection, like `Page › Hero › Card`. Click one to select it. Long chains keep the three closest ancestors.
-- **Quick actions** for blocks: move up, move down, add a block before or after, duplicate, hide or show, delete. They ask the editor through `previewBridge.blockAction`, and the editor applies them and sends the new content. Move up and down are disabled when there is no sibling block on that side. Hide and show need an editor that sends `HIDDEN_BLOCKS` (bridge protocol 2); with older editors the toggle isn't shown.
+- **Quick actions** for blocks: move up, move down, add a block before or after, duplicate, hide or show, delete. They ask the editor through `previewBridge.blockAction`, and the editor applies them and sends the new content. They show only for editors on bridge protocol 1 or later, which send `BLOCK_LABELS`; older editors couldn't run them. Move up and down are disabled when there is no sibling block on that side. Hide and show need an editor that sends `HIDDEN_BLOCKS` (bridge protocol 2); with older editors the toggle isn't shown.
 - **Drag handle**: drag it to drop the block before or after another block, shown by a line. Dropping on the block itself, inside it, or on one of its ancestors does nothing. Escape cancels. The drop calls `previewBridge.moveBlock`, and the editor rejects moves its schema doesn't allow.
 - **Keyboard**, while the preview has focus and not while typing in a form field or contenteditable: Escape selects the parent block, ArrowUp and ArrowDown the previous and next sibling block.
 

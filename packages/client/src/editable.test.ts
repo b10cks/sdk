@@ -320,7 +320,19 @@ describe('attachEditableField', () => {
   })
 })
 
+describe('selection toolbar without block actions', () => {
+  it('shows no block tools for editors that never sent block labels', async () => {
+    const el = renderPage()
+    await selectBlock(el('b2'))
+
+    expect(overlay().querySelector<HTMLElement>('.tools')?.hidden).toBe(true)
+  })
+})
+
 describe('selection toolbar', () => {
+  // Editors on protocol 1 or later send block labels; only they run block actions.
+  beforeEach(() => dispatchBridgeEvent('BLOCK_LABELS', { labels: {} }))
+
   it('posts the block action for the selected block', async () => {
     const el = renderPage()
     await selectBlock(el('b2'))
@@ -359,6 +371,8 @@ describe('selection toolbar', () => {
 })
 
 describe('hidden blocks', () => {
+  beforeEach(() => dispatchBridgeEvent('BLOCK_LABELS', { labels: {} }))
+
   it('dims the blocks the editor hides, including ones mounted later', () => {
     const el = renderPage()
     dispatchBridgeEvent('HIDDEN_BLOCKS', { ids: ['b2', 'late'] })

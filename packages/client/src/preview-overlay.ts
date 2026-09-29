@@ -346,7 +346,7 @@ function barModel(el: HTMLElement): BarModel | null {
     label: labelFor(target),
     crumbs,
     actions:
-      target.kind === 'block'
+      target.kind === 'block' && editorRunsBlockActions()
         ? {
             canMoveUp: !!siblingBlock(el, -1),
             canMoveDown: !!siblingBlock(el, 1),
@@ -572,6 +572,14 @@ function drawIndicator(line: HTMLElement, drop: Drop | null) {
  * Whether the editor hides block `id`. Null until the editor sent
  * HIDDEN_BLOCKS: older editors don't, and can't hide from the preview.
  */
+/**
+ * Editors on bridge protocol 1 or later send BLOCK_LABELS and run block
+ * actions. Older ones would ignore them, so their preview shows no block tools.
+ */
+function editorRunsBlockActions(): boolean {
+  return previewBridge.latest('BLOCK_LABELS') !== undefined
+}
+
 function isHidden(id: string): boolean | null {
   return previewBridge.latest('HIDDEN_BLOCKS')?.ids.includes(id) ?? null
 }
