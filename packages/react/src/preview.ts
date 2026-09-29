@@ -9,23 +9,25 @@ import { type RefObject, useEffect, useMemo, useRef, useSyncExternalStore } from
 
 /**
  * Attach a ref'd element as a selectable block in the b10cks editor. Returns a
- * ref to spread onto the element. No-op outside preview mode.
+ * ref to spread onto the element. `label` names the block on its highlight,
+ * typically the block type. No-op outside preview mode.
  *
  * ```tsx
- * const ref = useEditable<HTMLDivElement>(block.id)
+ * const ref = useEditable<HTMLDivElement>(block.id, block.block)
  * return <div ref={ref}>…</div>
  * ```
  */
 export function useEditable<T extends HTMLElement = HTMLElement>(
-  id?: string | null
+  id?: string | null,
+  label?: string
 ): RefObject<T | null> {
   const ref = useRef<T>(null)
   useEffect(() => {
     if (!ref.current || !id) {
       return
     }
-    return attachEditable(ref.current, { id })
-  }, [id])
+    return attachEditable(ref.current, { id, label })
+  }, [id, label])
   return ref
 }
 
@@ -37,7 +39,7 @@ export function useEditableField<T extends HTMLElement = HTMLElement>(
   options: AttachEditableFieldOptions
 ): RefObject<T | null> {
   const ref = useRef<T>(null)
-  const key = `${options.id}|${options.field ?? ''}|${options.mode ?? ''}|${(options.path ?? []).join('.')}`
+  const key = `${options.id}|${options.field ?? ''}|${options.mode ?? ''}|${options.label ?? ''}|${(options.path ?? []).join('.')}`
   useEffect(() => {
     if (!ref.current) {
       return

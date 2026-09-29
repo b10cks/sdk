@@ -422,6 +422,7 @@ Event protocol:
 | `FIELD_UPDATE`   | preview → editor | `{ itemId, path?, field?, value }` | Stream an inline edit                                  |
 | `CONTENT_UPDATE` | editor → preview | `{ content }`                      | Replace the whole content tree                         |
 | `CONTENT_PATCH`  | editor → preview | `{ path, value }`                  | Replace a single value at `path`                       |
+| `HIDDEN_BLOCKS`  | editor → preview | `{ ids }`                          | Ids of all hidden blocks, to dim them                  |
 
 `path` is a `FieldPath` (`(string | number)[]`) that addresses any value at any depth, including array indices — e.g. `['body', 2, 'headline']`.
 
@@ -436,15 +437,30 @@ By default the bridge locks onto the origin of the first message it receives (tr
 ```typescript
 import { attachEditable, attachEditableField } from '@b10cks/client'
 
-// Selectable block: click selects it; editor-driven select/hover toggle outline classes.
-const detach = attachEditable(el, { id: block.id })
+// Selectable block: click selects it in the editor, labelled with the block type.
+const detach = attachEditable(el, { id: block.id, label: block.block })
 
 // Inline string field (contenteditable, streams plain-text edits):
 attachEditableField(el, { id: block.id, field: 'headline' })
 
-// Rich text / complex field — deep-select instead of editing inline:
-attachEditableField(el, { id: block.id, path: ['body'], mode: 'select' })
+// Complex field — deep-select instead of editing inline:
+attachEditableField(el, { id: block.id, path: ['link'], mode: 'select' })
 ```
+
+In the editor, a click on an editable element selects it and nothing else: it is intercepted before any handler on the page, so links, buttons, and router links inside a block don't fire. Clicks outside editables behave as usual.
+
+Selection and hover are drawn in an overlay layer, in a shadow root above the page, so your styles and layout stay untouched. Only the innermost editable is highlighted, with a label: the block type for blocks (`hero_section` reads as `Hero section`), the field name for `select`-mode fields. Pass `label` to override it. The highlighted elements also get the `b10cks-selected` and `b10cks-hover` classes if you want to add your own styling. Blocks the editor hides get `b10cks-hidden` and are shown at reduced opacity; they stay in the preview and selectable.
+
+To use the page itself, hold Alt (Option on macOS) while clicking: the click then reaches the page and selects nothing, so editors can open tabs, accordions, or carousels. Some macOS browsers download a link on Option-click.
+
+The selection label carries the editing tools:
+
+- **Breadcrumb**: the blocks around the selection, like `Page › Hero › Card`. Click one to select it. Long chains keep the three closest ancestors.
+- **Quick actions** for blocks: move up, move down, add a block before or after, duplicate, hide or show, delete. They ask the editor through `previewBridge.blockAction`, and the editor applies them and sends the new content. Move up and down are disabled when there is no sibling block on that side. Hide and show need an editor that sends `HIDDEN_BLOCKS` (bridge protocol 2); with older editors the toggle isn't shown.
+- **Drag handle**: drag it to drop the block before or after another block, shown by a line. Dropping on the block itself, inside it, or on one of its ancestors does nothing. Escape cancels. The drop calls `previewBridge.moveBlock`, and the editor rejects moves its schema doesn't allow.
+- **Keyboard**, while the preview has focus and not while typing in a form field or contenteditable: Escape selects the parent block, ArrowUp and ArrowDown the previous and next sibling block.
+
+Siblings are the block editables that share the same parent block editable. A block the page renders without an editable is invisible to the preview, so wire up every block you want editors to reach.
 
 ### Scroll offset (fixed headers)
 
@@ -461,7 +477,7 @@ or from JS (the framework packages expose a `scrollOffset` option that calls thi
 ```typescript
 import { ensurePreviewStyles, setPreviewScrollOffset } from '@b10cks/client'
 
-ensurePreviewStyles() // inject the outline + scroll-margin styles once
+ensurePreviewStyles() // inject the scroll-margin styles once
 setPreviewScrollOffset(80) // number → px, or pass a string like '5rem'
 ```
 
