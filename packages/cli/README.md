@@ -202,7 +202,7 @@ b10cks generate types <spaceId>
 b10cks generate types <spaceId> --out ./src/b10cks/types
 ```
 
-Writes `generated.d.ts` and `index.d.ts` to the output directory (default: `./b10cks/types`). The generated interfaces cover all field types including rich text, assets, links, options, nested blocks, tables, and meta.
+Writes `generated.d.ts` and `index.d.ts` to the output directory (default: `./b10cks/types`). The generated interfaces cover all field types including rich text, assets, links, options, nested blocks, tables, and meta. `B10cksBlockMap` maps each block slug to its interface and `B10cksBlock` is their union, for typing component maps with `B10cksComponents<B10cksBlock>` in `@b10cks/react` and `@b10cks/svelte`.
 
 ## Help
 
