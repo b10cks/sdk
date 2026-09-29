@@ -172,8 +172,18 @@ export class PreviewStore<T = Record<string, unknown>> {
     this.emit()
   }
 
-  patch(path: FieldPath, value: unknown) {
-    this.content = setAtPath(this.content, path, value)
+  /**
+   * Replace the value at `path`. With `itemId`, `path` is relative to that
+   * block (the root when its id matches). Unknown ids are ignored.
+   */
+  patch(path: FieldPath, value: unknown, itemId?: string) {
+    let base: FieldPath = []
+    if (itemId && (this.content as { id?: unknown } | null)?.id !== itemId) {
+      const found = findPathById(this.content, itemId)
+      if (!found) return
+      base = found
+    }
+    this.content = setAtPath(this.content, [...base, ...path], value)
     this.emit()
   }
 
@@ -192,8 +202,8 @@ export function bindPreviewStore<T>(store: PreviewStore<T>): () => void {
   const offUpdate = previewBridge.on('CONTENT_UPDATE', ({ content }) => {
     store.applyContentUpdate(content)
   })
-  const offPatch = previewBridge.on('CONTENT_PATCH', ({ path, value }) => {
-    store.patch(path, value)
+  const offPatch = previewBridge.on('CONTENT_PATCH', ({ itemId, path, value }) => {
+    store.patch(path, value, itemId)
   })
 
   return () => {
