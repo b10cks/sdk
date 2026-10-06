@@ -85,6 +85,17 @@ describe('resolveB10cksLink', () => {
   })
 })
 
+describe('resolveB10cksLink URL policy', () => {
+  it('replaces hrefs with a disallowed scheme, like the rich text renderer', () => {
+    const link: B10cksLink = { type: 'url', url: ' JaVa\nScript:alert(1)' }
+
+    expect(resolveB10cksLink(link)?.href).toBe('#')
+    expect(
+      resolveB10cksLink({ type: 'url', url: 'ftp://files' }, { allowedSchemes: ['ftp'] })?.href
+    ).toBe('ftp://files')
+  })
+})
+
 describe('blockAnchorAttrs', () => {
   it('returns the block id', () => {
     expect(blockAnchorAttrs({ id: '01kh6h981yh1s5z7s3f80wmrw2' })).toEqual({

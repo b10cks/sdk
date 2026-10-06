@@ -1,20 +1,50 @@
 import type { FieldPath } from './preview-bridge'
-import { previewBridge } from './preview-bridge'
+import { isFieldPathSegment, MAX_FIELD_PATH_LENGTH, previewBridge } from './preview-bridge'
+
+/** The own property `key` of `target`, never one it inherits. */
+function ownValue(target: unknown, key: string | number): unknown {
+  return target !== null && typeof target === 'object' && Object.hasOwn(target, key)
+    ? (target as Record<string | number, unknown>)[key]
+    : undefined
+}
 
 /** Read the value at `path` within `target`, or undefined if absent. */
 export function getAtPath(target: unknown, path: FieldPath): unknown {
   let current = target
   for (const key of path) {
-    if (current == null || typeof current !== 'object') {
-      return undefined
-    }
-    current = (current as Record<string | number, unknown>)[key]
+    current = ownValue(current, key)
+    if (current === undefined) return undefined
   }
   return current
 }
 
-/** Return a copy of `target` with the value at `path` replaced. Immutable. */
+/**
+ * Whether `setAtPath` may write at `path`: a bounded path of safe keys whose
+ * indices replace an item or append one, so a write can never leave a huge
+ * sparse array behind.
+ */
+function isWritablePath(target: unknown, path: FieldPath): boolean {
+  if (path.length > MAX_FIELD_PATH_LENGTH) return false
+  let current = target
+  for (const key of path) {
+    if (!isFieldPathSegment(key)) return false
+    if (typeof key === 'number' && key > (Array.isArray(current) ? current.length : 0)) {
+      return false
+    }
+    current = ownValue(current, key)
+  }
+  return true
+}
+
+/**
+ * Return a copy of `target` with the value at `path` replaced. Immutable.
+ * Returns `target` itself when the path isn't writable (see `isWritablePath`).
+ */
 export function setAtPath<T>(target: T, path: FieldPath, value: unknown): T {
+  return isWritablePath(target, path) ? writeAtPath(target, path, value) : target
+}
+
+function writeAtPath<T>(target: T, path: FieldPath, value: unknown): T {
   if (path.length === 0) {
     return value as T
   }
@@ -26,7 +56,7 @@ export function setAtPath<T>(target: T, path: FieldPath, value: unknown): T {
 
   if (typeof key === 'number') {
     const next = Array.isArray(target) ? (target as unknown[]).slice() : []
-    next[key] = setAtPath(next[key], rest, value)
+    next[key] = writeAtPath(next[key], rest, value)
     return next as unknown as T
   }
 
@@ -34,7 +64,7 @@ export function setAtPath<T>(target: T, path: FieldPath, value: unknown): T {
     target && typeof target === 'object' && !Array.isArray(target)
       ? { ...(target as Record<string, unknown>) }
       : {}
-  next[key] = setAtPath(next[key], rest, value)
+  next[key] = writeAtPath(next[key], rest, value)
   return next as T
 }
 
@@ -183,7 +213,9 @@ export class PreviewStore<T = Record<string, unknown>> {
       if (!found) return
       base = found
     }
-    this.content = setAtPath(this.content, [...base, ...path], value)
+    const next = setAtPath(this.content, [...base, ...path], value)
+    if (next === this.content) return
+    this.content = next
     this.emit()
   }
 

@@ -55,6 +55,16 @@ describe('setAtPath', () => {
   })
 })
 
+describe('setAtPath limits', () => {
+  it('refuses prototype keys and indices that would leave holes, but appends', () => {
+    const target = { items: ['a'] }
+
+    expect(setAtPath(target, ['__proto__', 'polluted'], true)).toBe(target)
+    expect(setAtPath(target, ['items', 1_000_000], 'b')).toBe(target)
+    expect(setAtPath(target, ['items', 1], 'b')).toEqual({ items: ['a', 'b'] })
+  })
+})
+
 describe('findPathById', () => {
   it('finds nested nodes in objects and arrays', () => {
     const tree = {
