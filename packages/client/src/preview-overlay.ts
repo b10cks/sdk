@@ -32,6 +32,12 @@ export interface EditableTarget {
    * page, and its label makes room for the editor's toolbar.
    */
   isEditing?: () => boolean
+  /**
+   * Clicks inside the element select it and also reach the page, so
+   * accordions, tabs and carousels keep working. Links and submit buttons
+   * still don't navigate.
+   */
+  interactive?: boolean
   scrollOnSelect?: boolean
   onSelectChange?: (selected: boolean) => void
   onHoverChange?: (hovered: boolean) => void
@@ -178,20 +184,43 @@ function start(): () => void {
 
 /**
  * Runs in the capture phase on window, before any listener on the page: the
- * click selects the innermost editable and never reaches links, buttons, or
- * router handlers inside it.
+ * click selects the innermost editable. By default it never reaches links,
+ * buttons, or router handlers inside it. Text edited in place keeps its focus
+ * and caret, and `interactive` elements let the click through except for
+ * navigation.
  */
 function handleClick(event: MouseEvent) {
   // Alt/Option-click reaches the page, so editors can open tabs, menus, or carousels.
   if (event.altKey) return
-  if (ui?.host && event.composedPath().includes(ui.host)) return
-  if (event.composedPath().some((node) => node instanceof HTMLElement && node.isContentEditable))
-    return
+  const path = event.composedPath()
+  if (ui?.host && path.includes(ui.host)) return
   const el = closestTarget(event)
-  if (!el || targets.get(el)?.isEditing?.()) return
+  if (!el) return
 
-  consume(event)
-  if (event.type === 'click') select(el, event)
+  const editingText =
+    targets.get(el)?.isEditing?.() ||
+    path.some((node) => node instanceof HTMLElement && node.isContentEditable)
+  const passThrough = editingText || (isInteractive(path) && !path.some(isNavigation))
+  if (!passThrough) consume(event)
+  // A click into text being edited selects like any click, but only once, so
+  // later clicks just move the caret.
+  if (event.type === 'click' && !(editingText && current.selected === el)) select(el, event)
+}
+
+/** Whether an editable on the event path lets clicks through to the page. */
+function isInteractive(path: EventTarget[]): boolean {
+  return path.some((node) => node instanceof HTMLElement && targets.get(node)?.interactive)
+}
+
+/** Links and form submit buttons, whose clicks leave or reload the page. */
+function isNavigation(node: EventTarget): boolean {
+  if (!(node instanceof HTMLElement)) return false
+  if (node.matches('a[href], area[href]')) return true
+  return (
+    (node instanceof HTMLButtonElement || node instanceof HTMLInputElement) &&
+    node.type === 'submit' &&
+    node.form !== null
+  )
 }
 
 /**

@@ -322,6 +322,21 @@ describe('attachEditableField', () => {
     ])
   })
 
+  it('selects the block on the first click into an inline field and keeps the caret', () => {
+    document.body.innerHTML = '<section id="hero"><h1 id="headline">Hello</h1></section>'
+    const hero = document.getElementById('hero') as HTMLElement
+    const headline = document.getElementById('headline') as HTMLElement
+    attachEditable(hero, { id: 'hero-1', label: 'hero', scrollOnSelect: false })
+    attachEditableField(headline, { id: 'hero-1', field: 'headline' })
+
+    headline.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    headline.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    expect(posted('SELECT_UPDATE')).toEqual([{ selectedItem: 'hero-1' }])
+    expect(hero.classList.contains('b10cks-selected')).toBe(true)
+    expect(document.activeElement).toBe(headline)
+  })
+
   it('selects a list field whose element wraps interactive children', () => {
     document.body.innerHTML = '<div id="actions"><a href="/next">Action</a></div>'
     const actions = document.getElementById('actions') as HTMLElement
@@ -508,6 +523,53 @@ describe('alt-click', () => {
     expect(linkHandler).toHaveBeenCalled()
     expect(posted('SELECT_UPDATE')).toEqual([])
     expect(el('card').classList.contains('b10cks-selected')).toBe(false)
+  })
+})
+
+describe('interactive blocks', () => {
+  function renderAccordion() {
+    document.body.innerHTML = `
+      <form id="form">
+        <section id="accordion">
+          <button id="toggle" type="button">Question</button>
+          <a id="more" href="/more">More</a>
+          <button id="send">Send</button>
+        </section>
+      </form>`
+    const el = (id: string) => document.getElementById(id) as HTMLElement
+    attachEditable(el('accordion'), {
+      id: 'acc-1',
+      label: 'accordion',
+      scrollOnSelect: false,
+      interactive: true,
+    })
+    return el
+  }
+
+  it('selects the block and lets the click reach the page', () => {
+    const el = renderAccordion()
+    const toggle = vi.fn()
+    el('toggle').addEventListener('click', toggle)
+
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    el('toggle').dispatchEvent(click)
+
+    expect(click.defaultPrevented).toBe(false)
+    expect(toggle).toHaveBeenCalled()
+    expect(posted('SELECT_UPDATE')).toEqual([{ selectedItem: 'acc-1' }])
+  })
+
+  it('still blocks links and submit buttons inside it', () => {
+    const el = renderAccordion()
+    for (const id of ['more', 'send']) {
+      const handler = vi.fn()
+      el(id).addEventListener('click', handler)
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+      el(id).dispatchEvent(click)
+
+      expect(click.defaultPrevented).toBe(true)
+      expect(handler).not.toHaveBeenCalled()
+    }
   })
 })
 
