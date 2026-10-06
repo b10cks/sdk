@@ -1,5 +1,18 @@
 # @b10cks/nuxt
 
+## 4.1.0
+
+### Minor Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`9e8864b`](https://github.com/b10cks/sdk/commit/9e8864bfb92f72d87f81d5e8fd0c040f999f2843) Thanks [@badmike](https://github.com/badmike)! - Queries wait for the revision sync, so the first page load reads the latest published content. Slugs, names and params accept refs and getters, with async-data keys that follow them, and Nuxt's abort signal cancels the request. New module options `timeoutMs`, `retries` and `maxConcurrency` configure the app and server clients; `$fetch` no longer retries on its own.
+
+### Patch Changes
+
+- Updated dependencies [[`9188600`](https://github.com/b10cks/sdk/commit/91886008f5f5627f847b3efe7a57acff04aadeb8), [`02c2a5e`](https://github.com/b10cks/sdk/commit/02c2a5e16694a040cc33b4b65ac026bfc0b6b840), [`76d9636`](https://github.com/b10cks/sdk/commit/76d963689bbc188f57f051ab3a8294164d1151ee), [`bdf15db`](https://github.com/b10cks/sdk/commit/bdf15db2066c09497326cf24296f32de70978224), [`5720658`](https://github.com/b10cks/sdk/commit/572065879e001c1df8dacf7bea5bc605fff7d89c), [`abda30c`](https://github.com/b10cks/sdk/commit/abda30c4b9207dc48d71c73adacf1a03ecf6c32d), [`c0d85e7`](https://github.com/b10cks/sdk/commit/c0d85e7c773078a08d48095a25902727c2db1195), [`ddfce76`](https://github.com/b10cks/sdk/commit/ddfce764b98e3150a88ad6dc45aee64a521ea732)]:
+  - @b10cks/client@2.1.0
+  - @b10cks/vue@3.1.0
+  - @b10cks/richtext@1.1.0
+
 ## 4.0.0
 
 ### Major Changes
