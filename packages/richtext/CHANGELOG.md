@@ -1,5 +1,15 @@
 # @b10cks/richtext
 
+## 1.1.0
+
+### Minor Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`bdf15db`](https://github.com/b10cks/sdk/commit/bdf15db2066c09497326cf24296f32de70978224) Thanks [@badmike](https://github.com/badmike)! - Add `nodes` and `marks` render options for custom HTML per node or mark type, such as responsive images, heading anchors or embeds. Renderers get the attrs, the rendered children and the built-in output, and return `null` to keep it. Export `escapeHtml`, `isSafeUrl` and `sanitizeUrl` for them. Attributes of the wrong type and malformed nodes from stored content now render safely instead of throwing.
+
+### Patch Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`abda30c`](https://github.com/b10cks/sdk/commit/abda30c4b9207dc48d71c73adacf1a03ecf6c32d) Thanks [@badmike](https://github.com/badmike)! - Keep the preview editor's toolbar open while the format menu is in use, also in browsers that don't focus a clicked select. Links typed, pasted or autolinked in the editor follow `allowedSchemes`, and the link field shows a message instead of inserting an unsafe URL. Add `setRender` to swap render options while editing.
+
 ## 1.0.0
 
 ### Major Changes

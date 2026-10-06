@@ -1,5 +1,14 @@
 # @b10cks/svelte
 
+## 1.0.1
+
+### Patch Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`5720658`](https://github.com/b10cks/sdk/commit/572065879e001c1df8dacf7bea5bc605fff7d89c) Thanks [@badmike](https://github.com/badmike)! - Rich text fields edited in place use the latest render options: `RichTextFieldHandle` gains `setRender`, which `B10cksRichText` calls in Vue, React and Svelte. Vue's `B10cksRichText` takes `nodes` and `marks` props, and Svelte's now forwards them.
+- Updated dependencies [[`9188600`](https://github.com/b10cks/sdk/commit/91886008f5f5627f847b3efe7a57acff04aadeb8), [`02c2a5e`](https://github.com/b10cks/sdk/commit/02c2a5e16694a040cc33b4b65ac026bfc0b6b840), [`76d9636`](https://github.com/b10cks/sdk/commit/76d963689bbc188f57f051ab3a8294164d1151ee), [`bdf15db`](https://github.com/b10cks/sdk/commit/bdf15db2066c09497326cf24296f32de70978224), [`5720658`](https://github.com/b10cks/sdk/commit/572065879e001c1df8dacf7bea5bc605fff7d89c), [`abda30c`](https://github.com/b10cks/sdk/commit/abda30c4b9207dc48d71c73adacf1a03ecf6c32d)]:
+  - @b10cks/client@2.1.0
+  - @b10cks/richtext@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

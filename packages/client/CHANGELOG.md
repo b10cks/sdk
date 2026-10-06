@@ -1,5 +1,21 @@
 # @b10cks/client
 
+## 2.1.0
+
+### Minor Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`02c2a5e`](https://github.com/b10cks/sdk/commit/02c2a5e16694a040cc33b4b65ac026bfc0b6b840) Thanks [@badmike](https://github.com/badmike)! - `timeoutMs` now covers reading the response body. Every request method takes a `signal` that cancels the request, its retries and the remaining pages. Retries only cover network errors, timeouts, 429 and 5xx on GET requests, and wait for `Retry-After` up to 10 seconds. Errors from fetch clients like Nuxt's `$fetch` become `ApiError`, and no error message contains the request URL or token. Slugs and ids are encoded per path segment, and `.` or `..` segments are rejected.
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`76d9636`](https://github.com/b10cks/sdk/commit/76d963689bbc188f57f051ab3a8294164d1151ee) Thanks [@badmike](https://github.com/badmike)! - A click into an inline text field now selects its block like any other click, and keeps the caret. Blocks marked `interactive` (`attachEditable(el, { interactive: true })`, `v-editable.interactive` in Vue) select on click and let the click reach the page, so accordions, tabs and carousels work in the editor. Links and submit buttons inside still don't navigate.
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`5720658`](https://github.com/b10cks/sdk/commit/572065879e001c1df8dacf7bea5bc605fff7d89c) Thanks [@badmike](https://github.com/badmike)! - Rich text fields edited in place use the latest render options: `RichTextFieldHandle` gains `setRender`, which `B10cksRichText` calls in Vue, React and Svelte. Vue's `B10cksRichText` takes `nodes` and `marks` props, and Svelte's now forwards them.
+
+### Patch Changes
+
+- [#30](https://github.com/b10cks/sdk/pull/30) [`9188600`](https://github.com/b10cks/sdk/commit/91886008f5f5627f847b3efe7a57acff04aadeb8) Thanks [@badmike](https://github.com/badmike)! - `resolveB10cksLink` applies the rich text URL policy, so `javascript:` and other disallowed schemes resolve to `#`; pass `{ allowedSchemes }` to change it. The preview ignores field paths with a `__proto__` key, more than 64 segments, or an index past the end of an array.
+- Updated dependencies [[`bdf15db`](https://github.com/b10cks/sdk/commit/bdf15db2066c09497326cf24296f32de70978224), [`abda30c`](https://github.com/b10cks/sdk/commit/abda30c4b9207dc48d71c73adacf1a03ecf6c32d)]:
+  - @b10cks/richtext@1.1.0
+
 ## 2.0.1
 
 ### Patch Changes
