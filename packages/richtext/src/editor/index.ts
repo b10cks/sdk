@@ -39,6 +39,11 @@ export interface RichTextEditor {
    * caret stays put. Returns false when the schema can't hold the document.
    */
   setDocument: (document: RichTextDocument) => boolean
+  /**
+   * Use new render options, e.g. after the page changed its link handler. Links and placeholders
+   * use them from their next render, and so does the HTML left behind by `destroy`.
+   */
+  setRender: (render: RichTextHtmlOptions) => void
   /** Stop editing. The element is left showing the rendered document. */
   destroy: () => void
 }
@@ -55,7 +60,9 @@ export function createRichTextEditor(
   el: HTMLElement,
   options: RichTextEditorOptions
 ): RichTextEditor | null {
-  const { config = {}, render = {} } = options
+  const { config = {} } = options
+  // One object for the editor's lifetime: extensions read it when they render.
+  const render: RichTextHtmlOptions = { ...options.render }
   let toolbar: Toolbar | null = null
   const shortcuts = Extension.create({
     name: 'b10cksPreviewShortcuts',
@@ -92,7 +99,7 @@ export function createRichTextEditor(
     },
     onBlur: () => options.onBlur?.(),
   })
-  toolbar = createToolbar(editor, el, config)
+  toolbar = createToolbar(editor, el, config, render)
 
   const caret = options.at && editor.view.posAtCoords({ left: options.at.x, top: options.at.y })
   editor.commands.focus(caret ? caret.pos : 'end')
@@ -118,6 +125,10 @@ export function createRichTextEditor(
       const tr = state.tr.replace(start, endA, next.slice(start, endB))
       editor.view.dispatch(tr.setMeta('addToHistory', false).setMeta(REMOTE, true))
       return true
+    },
+    setRender(next) {
+      for (const key of Object.keys(render) as (keyof RichTextHtmlOptions)[]) delete render[key]
+      Object.assign(render, next)
     },
     destroy() {
       // Unchanged content renders as it came in, without the trailing paragraph.

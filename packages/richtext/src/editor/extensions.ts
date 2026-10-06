@@ -3,7 +3,7 @@ import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 
 import type { RichTextFeature, RichTextFieldConfig, RichTextHtmlOptions } from '../index'
-import { internalLinkAttributes } from '../links'
+import { internalLinkAttributes, isSafeUrl } from '../links'
 
 /**
  * The CMS rich text schema, mirrored from its Tiptap editor: same extensions,
@@ -42,7 +42,14 @@ export function createRichTextExtensions(
   const enabled = (feature: RichTextFeature) => isFeatureEnabled(config, feature)
   const starterKit: Partial<StarterKitOptions> = {
     heading: enabled('heading') ? { levels: [1, 2, 3, 4, 5, 6] } : false,
-    link: enabled('link') ? { openOnClick: false, autolink: true } : false,
+    link: enabled('link')
+      ? {
+          openOnClick: false,
+          autolink: true,
+          // Same scheme policy as `renderRichText`, for typed, pasted and autolinked URLs.
+          isAllowedUri: (url) => isSafeUrl(url, render),
+        }
+      : false,
   }
   for (const feature of TOGGLEABLE) {
     if (!enabled(feature)) starterKit[feature] = false

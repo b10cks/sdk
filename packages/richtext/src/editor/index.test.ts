@@ -156,4 +156,63 @@ describe('createRichTextEditor', () => {
     expect(el.getAttribute('contenteditable')).toBeNull()
     expect(el.innerHTML).toBe('<p>Hello again</p>')
   })
+
+  it('renders with the latest render options when editing stops', () => {
+    const token = { type: 'placeholderToken', attrs: { key: 'name', label: '{name}' } }
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const doc = { type: 'doc', content: [{ type: 'paragraph', content: [token] }] }
+    editor = createRichTextEditor(el, {
+      document: doc,
+      render: { placeholderHandler: () => 'Old' },
+      onChange: vi.fn(),
+    })
+
+    editor?.setRender({ placeholderHandler: () => 'New' })
+    editor?.destroy()
+    editor = null
+
+    expect(el.innerHTML).toBe('<p>New</p>')
+  })
+})
+
+describe('toolbar', () => {
+  function toolbar(): ShadowRoot {
+    const root = document.getElementById('b10cks-richtext-toolbar')?.shadowRoot
+    if (!root) throw new Error('No toolbar')
+    return root
+  }
+
+  it('stays visible while the format menu is open, even when the select takes no focus', async () => {
+    const { el } = mount(paragraph('Hello'))
+    const host = toolbar().host as HTMLElement
+    const tick = () => new Promise((resolve) => setTimeout(resolve))
+    // The editor takes focus asynchronously when it starts.
+    await tick()
+    expect(host.hidden).toBe(false)
+    const select = toolbar().querySelector('select')!
+
+    select.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+    // Safari leaves focus on the body instead of moving it to the select.
+    ;(el as TiptapEditorHTMLElement).editor?.commands.blur()
+    await tick()
+    expect(host.hidden).toBe(false)
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+    expect(host.hidden).toBe(true)
+  })
+
+  it('rejects links with a scheme the render options do not allow', () => {
+    const { el, onChange } = mount(paragraph('Hello'))
+    const root = toolbar()
+    root.querySelector<HTMLButtonElement>('button[aria-label="Link"]')!.click()
+    const input = root.querySelector('input')!
+    input.value = 'javascript:alert(1)'
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+    expect(root.querySelector<HTMLElement>('.error')?.hidden).toBe(false)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(el.querySelector('a')).toBeNull()
+  })
 })
