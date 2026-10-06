@@ -10,7 +10,7 @@ import { useRoute } from '#app'
  *
  * ```ts
  * const vid = useB10cksVersion()
- * const { data } = await useContent('home', { vid: vid.value })
+ * const { data } = await useContent('home', () => ({ vid: vid.value }))
  * ```
  */
 export function useB10cksVersion(): ComputedRef<string> {

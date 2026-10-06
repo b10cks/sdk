@@ -10,6 +10,12 @@ export interface ModuleOptions {
   scrollOffset?: number | string
   /** Editor origins allowed to drive the preview bridge. */
   allowedOrigins?: string[]
+  /** Timeout per API request attempt in milliseconds, including reading the body. Default none. */
+  timeoutMs?: number
+  /** Retries for network errors, timeouts, 429 and 5xx on GET requests. Default 0. */
+  retries?: number
+  /** Pages fetched at once by `allPages` requests. Default 6. */
+  maxConcurrency?: number
 }
 
 /** Public runtime config injected by the module under `runtimeConfig.public.b10cks`. */
@@ -18,6 +24,9 @@ export interface B10cksPublicRuntimeConfig {
   apiUrl: string
   scrollOffset?: number | string
   allowedOrigins?: string[]
+  timeoutMs?: number
+  retries?: number
+  maxConcurrency?: number
 }
 
 declare module '@nuxt/schema' {
