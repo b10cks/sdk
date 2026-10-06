@@ -20,6 +20,7 @@ import type {
   IBSearchResponse,
   IBSitemapEntry,
   IBSpace,
+  RequestOptions,
 } from './types'
 
 type ApiQueryParams = Omit<IBBaseQueryParams, 'token'> & Record<string, unknown>
@@ -32,7 +33,7 @@ type ApiCollectionResult<T> =
   | ApiCollectionResponse<T>
   | { data: ApiCollectionResponse<T>; rv?: string | number }
 
-export interface CollectionFetchOptions {
+export interface CollectionFetchOptions extends RequestOptions {
   allPages?: boolean
 }
 
@@ -43,10 +44,16 @@ export interface RedirectFetchOptions extends CollectionFetchOptions {
 export interface DataApiClient {
   get<T>(
     endpoint: Endpoint,
-    params?: ApiQueryParams
+    params?: ApiQueryParams,
+    options?: RequestOptions
   ): Promise<T | { data: T; rv?: string | number }>
-  getAll<T>(endpoint: Endpoint, params?: ApiQueryParams): Promise<T[]>
-  post?<T>(endpoint: string, body?: unknown, params?: ApiQueryParams): Promise<T>
+  getAll<T>(endpoint: Endpoint, params?: ApiQueryParams, options?: RequestOptions): Promise<T[]>
+  post?<T>(
+    endpoint: string,
+    body?: unknown,
+    params?: ApiQueryParams,
+    options?: RequestOptions
+  ): Promise<T>
   setRv(value: string | number): void
   getRv?(): string | number
 }
@@ -58,6 +65,24 @@ export interface GetConfigOptions extends Omit<IBContentQueryParams, 'token' | '
   /** @deprecated Use `language_iso`, matching every other content param. */
   language?: string
   bypassCache?: boolean
+  /** Cancels the request. A call with a signal never shares another caller's in-flight request. */
+  signal?: AbortSignal
+}
+
+/**
+ * One URL path segment. Dot segments are rejected because URL parsing would
+ * resolve them and let a slug or id reach a different endpoint.
+ */
+function pathSegment(value: string): string {
+  if (value === '.' || value === '..') {
+    throw new TypeError(`Invalid path segment "${value}"`)
+  }
+  return encodeURIComponent(value)
+}
+
+/** A slash-separated slug like `blog/my-post`, encoded segment by segment. */
+function slugPath(slug: string): string {
+  return slug.split('/').map(pathSegment).join('/')
 }
 
 function serializeFilterValue(value: unknown): string | undefined {
@@ -139,8 +164,12 @@ export class B10cksDataApi {
 
   constructor(private readonly client: DataApiClient) {}
 
-  async getResource<T>(endpoint: Endpoint, params: ApiQueryParams = {}): Promise<T> {
-    const response = await this.client.get<T>(endpoint, params)
+  async getResource<T>(
+    endpoint: Endpoint,
+    params: ApiQueryParams = {},
+    options: RequestOptions = {}
+  ): Promise<T> {
+    const response = await this.client.get<T>(endpoint, params, options)
     return this.unwrapResource(response)
   }
 
@@ -149,19 +178,25 @@ export class B10cksDataApi {
     params: ApiQueryParams = {},
     options: CollectionFetchOptions = {}
   ): Promise<T[]> {
-    if (options.allPages) {
-      return this.client.getAll<T>(endpoint, params)
+    const { allPages, ...requestOptions } = options
+    if (allPages) {
+      return this.client.getAll<T>(endpoint, params, requestOptions)
     }
 
-    const response = await this.client.get<ApiCollectionResponse<T>>(endpoint, params)
+    const response = await this.client.get<ApiCollectionResponse<T>>(
+      endpoint,
+      params,
+      requestOptions
+    )
     return this.unwrapCollection(response)
   }
 
   async getContent<T = Record<string, unknown>>(
     fullSlug: string,
-    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {}
+    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
+    options: RequestOptions = {}
   ): Promise<IBContent<T>> {
-    return this.getResource<IBContent<T>>(`contents/${fullSlug}`, params)
+    return this.getResource<IBContent<T>>(`contents/${slugPath(fullSlug)}`, params, options)
   }
 
   async getContents<T = Record<string, unknown>>(
@@ -186,9 +221,10 @@ export class B10cksDataApi {
    */
   async getBreadcrumb<T = Record<string, unknown>>(
     slug: string,
-    params: IBBreadcrumbParams = {}
+    params: IBBreadcrumbParams = {},
+    options: RequestOptions = {}
   ): Promise<IBBreadcrumbLevel<T>[]> {
-    const response = await this.getBreadcrumbResponse<T>(slug, params)
+    const response = await this.getBreadcrumbResponse<T>(slug, params, options)
     return response?.breadcrumb ?? []
   }
 
@@ -199,20 +235,26 @@ export class B10cksDataApi {
    */
   async getBreadcrumbResponse<T = Record<string, unknown>>(
     slug: string,
-    params: IBBreadcrumbParams = {}
+    params: IBBreadcrumbParams = {},
+    options: RequestOptions = {}
   ): Promise<IBBreadcrumbResponse<T>> {
     // Leading slashes are stripped so a `full_slug` taken straight off an entry
     // (`/products/shoes`) does not produce a double slash in the URL.
     const response = await this.client.get<IBBreadcrumbResponse<T>>(
-      `breadcrumbs/${slug.replace(/^\/+/, '')}`,
-      params as ApiQueryParams
+      `breadcrumbs/${slugPath(slug.replace(/^\/+/, ''))}`,
+      params as ApiQueryParams,
+      options
     )
 
     return this.unwrapResource(response)
   }
 
-  async getBlock(blockId: string, params: ApiQueryParams = {}): Promise<IBBlock> {
-    return this.getResource<IBBlock>(`blocks/${blockId}`, params)
+  async getBlock(
+    blockId: string,
+    params: ApiQueryParams = {},
+    options: RequestOptions = {}
+  ): Promise<IBBlock> {
+    return this.getResource<IBBlock>(`blocks/${pathSegment(blockId)}`, params, options)
   }
 
   async getBlocks(
@@ -227,10 +269,14 @@ export class B10cksDataApi {
     )
   }
 
-  async search<T = Record<string, unknown>>(params: IBSearchParams): Promise<IBSearchResponse<T>> {
+  async search<T = Record<string, unknown>>(
+    params: IBSearchParams,
+    options: RequestOptions = {}
+  ): Promise<IBSearchResponse<T>> {
     const response = await this.client.get<IBSearchResponse<T>>(
       'search',
-      params as unknown as ApiQueryParams
+      params as unknown as ApiQueryParams,
+      options
     )
     if (
       typeof response === 'object' &&
@@ -266,11 +312,7 @@ export class B10cksDataApi {
     params: Omit<IBContentQueryParams, 'token'> = {},
     options: CollectionFetchOptions = {}
   ): Promise<IBSitemapEntry[]> {
-    return this.getCollection<IBSitemapEntry>(
-      `sitemaps/${encodeURIComponent(name)}`,
-      params,
-      options
-    )
+    return this.getCollection<IBSitemapEntry>(`sitemaps/${pathSegment(name)}`, params, options)
   }
 
   async getDataEntries(
@@ -278,7 +320,11 @@ export class B10cksDataApi {
     params: IBDataEntryParams = {},
     options: CollectionFetchOptions = {}
   ): Promise<IBDataEntry[]> {
-    return this.getCollection<IBDataEntry>(`datasources/${source}/entries`, params, options)
+    return this.getCollection<IBDataEntry>(
+      `datasources/${pathSegment(source)}/entries`,
+      params,
+      options
+    )
   }
 
   async getDataSources(
@@ -288,17 +334,25 @@ export class B10cksDataApi {
     return this.getCollection<IBDataSource>('datasources', params, options)
   }
 
-  async getSpace(params: ApiQueryParams = {}): Promise<IBSpace> {
-    return this.getResource<IBSpace>('spaces/me', params)
+  async getSpace(params: ApiQueryParams = {}, options: RequestOptions = {}): Promise<IBSpace> {
+    return this.getResource<IBSpace>('spaces/me', params, options)
   }
 
-  async lookupRedirect(source: string): Promise<IBRedirectLookupResult | false> {
+  async lookupRedirect(
+    source: string,
+    options: RequestOptions = {}
+  ): Promise<IBRedirectLookupResult | false> {
     if (!this.client.post) {
       throw new Error(
         'lookupRedirect requires a client that supports POST. Use ApiClient from @b10cks/client.'
       )
     }
-    return this.client.post<IBRedirectLookupResult | false>('redirects/lookup', { source })
+    return this.client.post<IBRedirectLookupResult | false>(
+      'redirects/lookup',
+      { source },
+      {},
+      options
+    )
   }
 
   async getRedirects(params?: IBGetRedirectsParams, forceRefresh?: boolean): Promise<RedirectMap>
@@ -310,10 +364,13 @@ export class B10cksDataApi {
     params: IBGetRedirectsParams = {},
     forceRefreshOrOptions: boolean | RedirectFetchOptions = false
   ): Promise<RedirectMap> {
-    const { allPages = false, forceRefresh = false } =
-      typeof forceRefreshOrOptions === 'boolean'
-        ? { allPages: true, forceRefresh: forceRefreshOrOptions }
-        : forceRefreshOrOptions
+    const {
+      allPages = false,
+      forceRefresh = false,
+      signal,
+    } = typeof forceRefreshOrOptions === 'boolean'
+      ? { allPages: true, forceRefresh: forceRefreshOrOptions, signal: undefined }
+      : forceRefreshOrOptions
 
     // Key the cache on the params (and current revision) so a filtered lookup
     // can never serve its result to an unfiltered caller, and vice versa.
@@ -325,7 +382,10 @@ export class B10cksDataApi {
 
     const { filter, ...rest } = params
     const flatParams = buildParamsWithFilter(rest, filter, undefined)
-    const redirects = await this.getCollection<IBRedirect>('redirects', flatParams, { allPages })
+    const redirects = await this.getCollection<IBRedirect>('redirects', flatParams, {
+      allPages,
+      signal,
+    })
     const map = Object.fromEntries(
       redirects.map(({ source, target, status_code }) => [source, { target, status_code }])
     )
@@ -346,6 +406,7 @@ export class B10cksDataApi {
     language_iso,
     language,
     bypassCache = false,
+    signal,
     ...params
   }: GetConfigOptions = {}): Promise<T> {
     const normalizedLanguage = language_iso ?? language
@@ -362,15 +423,17 @@ export class B10cksDataApi {
     }
 
     // Dedupe concurrent misses so a cold-start burst issues one upstream fetch.
+    const shared = !bypassCache && !signal
     const inflight = this.configInflight.get(cacheKey)
-    if (!bypassCache && inflight) {
+    if (shared && inflight) {
       return inflight as Promise<T>
     }
 
-    const fetchPromise = this.getContent<Record<string, unknown>>(slug, {
-      ...params,
-      language_iso: normalizedLanguage,
-    })
+    const fetchPromise = this.getContent<Record<string, unknown>>(
+      slug,
+      { ...params, language_iso: normalizedLanguage },
+      { signal }
+    )
       .then((configEntry) => {
         // Carry the entry id into the returned object so the config is
         // addressable in the visual editor (`v-editable="config"`); without it
@@ -387,10 +450,10 @@ export class B10cksDataApi {
         return value
       })
       .finally(() => {
-        this.configInflight.delete(cacheKey)
+        if (this.configInflight.get(cacheKey) === fetchPromise) this.configInflight.delete(cacheKey)
       })
 
-    if (!bypassCache) {
+    if (shared) {
       this.configInflight.set(cacheKey, fetchPromise)
     }
 
@@ -407,8 +470,11 @@ export class B10cksDataApi {
     }
   }
 
-  async syncRevision(fallbackRv = 426713400): Promise<string | number> {
-    const space = await this.getSpace()
+  async syncRevision(
+    fallbackRv = 426713400,
+    options: RequestOptions = {}
+  ): Promise<string | number> {
+    const space = await this.getSpace({}, options)
     const nextRv = space.rv || fallbackRv
     this.client.setRv(nextRv)
     return nextRv

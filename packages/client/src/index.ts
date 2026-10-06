@@ -6,6 +6,7 @@ import type {
   IBCollectionResponse,
   IBMeta,
   IBResponse,
+  RequestOptions,
 } from './types'
 
 export interface B10cksApiClientRvOptions {
@@ -17,24 +18,67 @@ export interface B10cksApiClientRvOptions {
  * Error thrown for non-2xx API responses and transport failures. Carries the
  * HTTP `status` (0 for network/timeout errors), the requested `endpoint`, and a
  * best-effort parsed `body` so callers can branch on status (e.g. render a 404
- * page) without string-matching the message.
+ * page) without string-matching the message. Messages name the endpoint, never
+ * the request URL, so the access token stays out of logs.
  */
 export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
     public readonly endpoint: string,
-    public readonly body?: unknown
+    public readonly body?: unknown,
+    /** Delay the API asked for in a `Retry-After` header, in milliseconds. */
+    public readonly retryAfterMs?: number
   ) {
     super(message)
     this.name = 'ApiError'
   }
 }
 
-const isRetryableStatus = (status: number): boolean =>
-  status === 429 || (status >= 500 && status <= 599)
+/** A `Retry-After` longer than this is not waited for: the request fails instead. */
+const MAX_RETRY_AFTER_MS = 10_000
 
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+/** Network errors and timeouts (status 0), rate limits and server errors. */
+const isRetryableStatus = (status: number): boolean =>
+  status === 0 || status === 429 || (status >= 500 && status <= 599)
+
+/** Wait for `ms`, or reject with the signal's reason when it aborts first. */
+const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
+  abortable(new Promise((resolve) => setTimeout(resolve, ms)), signal)
+
+/** `promise`, or a rejection with the signal's reason when it aborts first. */
+function abortable<T>(promise: Promise<T>, signal: AbortSignal | undefined): Promise<T> {
+  if (!signal) return promise
+  if (signal.aborted) return Promise.reject(signal.reason)
+  return new Promise((resolve, reject) => {
+    const onAbort = () => reject(signal.reason)
+    signal.addEventListener('abort', onAbort, { once: true })
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort))
+  })
+}
+
+/** Milliseconds from a `Retry-After` header: delay seconds or an HTTP date. */
+function parseRetryAfter(value: string | null | undefined): number | undefined {
+  if (!value) return undefined
+  const seconds = Number(value)
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000)
+  const date = Date.parse(value)
+  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now())
+}
+
+function retryAfterOf(response: unknown): number | undefined {
+  if (typeof response !== 'object' || response === null || !('headers' in response)) return
+  const { headers } = response as { headers: unknown }
+  return headers instanceof Headers ? parseRetryAfter(headers.get('retry-after')) : undefined
+}
+
+/** The HTTP status and parsed body of an error a fetch client throws itself, like Nuxt's `$fetch`. */
+function httpErrorOf(error: unknown): { status: number; body: unknown; response: unknown } | null {
+  if (typeof error !== 'object' || error === null) return null
+  const { status, statusCode, data, response } = error as Record<string, unknown>
+  const code = typeof status === 'number' ? status : statusCode
+  return typeof code === 'number' && code > 0 ? { status: code, body: data, response } : null
+}
 
 export * from './breadcrumb'
 export * from './content'
@@ -100,7 +144,8 @@ export class ApiClient {
 
   async get<T>(
     endpoint: Endpoint,
-    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {},
+    options: RequestOptions = {}
   ): Promise<ApiResourceResponse<T>> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
@@ -109,7 +154,11 @@ export class ApiClient {
       token: this.token,
     })
 
-    const response = await this.requestWithRetry<ApiResourceResponse<T>>(url, endpoint)
+    const response = await this.requestWithRetry<ApiResourceResponse<T>>(
+      url,
+      endpoint,
+      options.signal
+    )
 
     if (this.hasRevision(response)) {
       this.setRv(response.rv)
@@ -121,7 +170,8 @@ export class ApiClient {
   async post<T>(
     endpoint: string,
     body?: unknown,
-    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {},
+    options: RequestOptions = {}
   ): Promise<T> {
     const url = this.buildUrl(endpoint, {
       vid: this.vid,
@@ -130,64 +180,118 @@ export class ApiClient {
       token: this.token,
     })
 
-    // POST is not retried (non-idempotent), but still honors the timeout.
-    const payload = await this.fetchWithTimeout(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    })
-
-    return this.parseResponse<T>(payload, endpoint)
+    // POST is not retried (non-idempotent), but still honors the timeout and the signal.
+    return this.request<T>(
+      url,
+      endpoint,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      },
+      options.signal
+    )
   }
 
-  private async fetchWithTimeout(url: string, init?: RequestInit): Promise<unknown> {
-    if (!this.timeoutMs) {
-      return this.fetchClient(url, init)
+  /**
+   * One attempt: the fetch and reading its body, both within `timeoutMs`.
+   * Failures reject with an {@link ApiError}, except an abort through `signal`,
+   * which rejects with the signal's reason.
+   */
+  private async request<T>(
+    url: string,
+    endpoint: string,
+    init: RequestInit | undefined,
+    signal: AbortSignal | undefined
+  ): Promise<T> {
+    signal?.throwIfAborted()
+    if (!signal && !this.timeoutMs) {
+      return this.fetchAndParse<T>(url, endpoint, init)
     }
 
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs)
+    const onAbort = () => controller.abort(signal?.reason)
+    signal?.addEventListener('abort', onAbort, { once: true })
+    let timedOut = false
+    const timer = this.timeoutMs
+      ? setTimeout(() => {
+          timedOut = true
+          controller.abort()
+        }, this.timeoutMs)
+      : undefined
+
     try {
-      return await this.fetchClient(url, { ...init, signal: controller.signal })
+      const attempt = this.fetchAndParse<T>(url, endpoint, { ...init, signal: controller.signal })
+      // Settle on abort even when the fetch client ignores the signal.
+      return await abortable(attempt, controller.signal)
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new ApiError(`Request timed out after ${this.timeoutMs}ms`, 0, url)
+      if (signal?.aborted) throw signal.reason
+      if (timedOut) {
+        throw new ApiError(
+          `Request to "${endpoint}" timed out after ${this.timeoutMs}ms`,
+          0,
+          endpoint
+        )
       }
       throw error
     } finally {
       clearTimeout(timer)
+      signal?.removeEventListener('abort', onAbort)
     }
   }
 
-  private async requestWithRetry<T>(url: string, endpoint: string): Promise<T> {
-    let lastError: unknown
-    for (let attempt = 0; attempt <= this.retries; attempt++) {
+  private async fetchAndParse<T>(
+    url: string,
+    endpoint: string,
+    init: RequestInit | undefined
+  ): Promise<T> {
+    let payload: unknown
+    try {
+      payload = await this.fetchClient(url, init)
+    } catch (error) {
+      if (init?.signal?.aborted) throw error
+      // Nuxt's `$fetch` throws for non-2xx statuses; its message holds the URL and token.
+      const http = httpErrorOf(error)
+      if (http) {
+        throw new ApiError(
+          `Request to "${endpoint}" failed with status ${http.status}`,
+          http.status,
+          endpoint,
+          http.body,
+          retryAfterOf(http.response)
+        )
+      }
+      throw new ApiError(`Request to "${endpoint}" failed: network error`, 0, endpoint)
+    }
+    return this.parseResponse<T>(payload, endpoint)
+  }
+
+  private async requestWithRetry<T>(
+    url: string,
+    endpoint: string,
+    signal: AbortSignal | undefined
+  ): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
       try {
-        const payload = await this.fetchWithTimeout(url)
-        return await this.parseResponse<T>(payload, endpoint)
+        return await this.request<T>(url, endpoint, undefined, signal)
       } catch (error) {
-        lastError = error
-        const retryable =
-          attempt < this.retries &&
-          (!(error instanceof ApiError) || error.status === 0 || isRetryableStatus(error.status))
-        if (!retryable) {
-          throw error
-        }
-        // Exponential backoff: 200ms, 400ms, 800ms, …
-        await sleep(200 * 2 ** attempt)
+        const delay = attempt < this.retries ? retryDelay(error, attempt) : undefined
+        if (delay === undefined) throw error
+        await sleep(delay, signal)
       }
     }
-    throw lastError
   }
 
   async getAll<T>(
     endpoint: Endpoint,
-    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {}
+    params: Omit<IBBaseQueryParams, 'token'> & Record<string, unknown> = {},
+    options: RequestOptions = {}
   ): Promise<T[]> {
-    const firstResponse = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(endpoint, {
-      ...params,
-      page: 1,
-    })
+    const firstResponse = await this.get<IBCollectionResponse<T> & { meta?: IBMeta }>(
+      endpoint,
+      { ...params, page: 1 },
+      options
+    )
     const normalizedFirstResponse = this.normalizeCollectionResponse<T>(firstResponse)
 
     if (normalizedFirstResponse.rv) {
@@ -203,13 +307,32 @@ export class ApiClient {
       (_, i) => i + 2
     )
 
-    const allResponses = await this.mapWithConcurrency(pages, (page) =>
-      this.get<IBCollectionResponse<T>>(endpoint, { ...params, page })
-    )
+    // A failed page cancels the pages still loading, and so does the caller's signal.
+    const controller = new AbortController()
+    const { signal } = options
+    const onAbort = () => controller.abort(signal?.reason)
+    signal?.addEventListener('abort', onAbort, { once: true })
+    const loadPage = async (page: number) => {
+      try {
+        return await this.get<IBCollectionResponse<T>>(
+          endpoint,
+          { ...params, page },
+          { signal: controller.signal }
+        )
+      } catch (error) {
+        controller.abort(error)
+        throw error
+      }
+    }
 
-    return normalizedFirstResponse.data.concat(
-      allResponses.flatMap((response) => this.normalizeCollectionResponse<T>(response).data)
-    )
+    try {
+      const allResponses = await this.mapWithConcurrency(pages, loadPage, controller.signal)
+      return normalizedFirstResponse.data.concat(
+        allResponses.flatMap((response) => this.normalizeCollectionResponse<T>(response).data)
+      )
+    } finally {
+      signal?.removeEventListener('abort', onAbort)
+    }
   }
 
   /**
@@ -217,12 +340,16 @@ export class ApiClient {
    * requests in flight, so paginated fan-out cannot open hundreds of sockets
    * at once and trip API rate limits.
    */
-  private async mapWithConcurrency<I, O>(items: I[], task: (item: I) => Promise<O>): Promise<O[]> {
+  private async mapWithConcurrency<I, O>(
+    items: I[],
+    task: (item: I) => Promise<O>,
+    signal: AbortSignal
+  ): Promise<O[]> {
     const results: O[] = Array.from({ length: items.length })
     let cursor = 0
 
     const worker = async (): Promise<void> => {
-      while (cursor < items.length) {
+      while (cursor < items.length && !signal.aborted) {
         const index = cursor++
         results[index] = await task(items[index] as I)
       }
@@ -259,11 +386,20 @@ export class ApiClient {
           `Request to "${endpoint}" failed with status ${payload.status}`,
           payload.status,
           endpoint,
-          body
+          body,
+          retryAfterOf(payload)
         )
       }
 
-      return (await payload.json()) as T
+      try {
+        return (await payload.json()) as T
+      } catch {
+        throw new ApiError(
+          `Response from "${endpoint}" is not valid JSON`,
+          payload.status,
+          endpoint
+        )
+      }
     }
 
     return payload as T
@@ -370,4 +506,15 @@ export class ApiClient {
       Array.isArray(value.data.data)
     )
   }
+}
+
+/** How long to wait before retrying a failed GET, or undefined to fail now. */
+function retryDelay(error: unknown, attempt: number): number | undefined {
+  // Aborts reject with the signal's reason, not an ApiError, so they never retry.
+  if (!(error instanceof ApiError) || !isRetryableStatus(error.status)) return undefined
+  if (error.retryAfterMs === undefined) {
+    // Exponential backoff: 200ms, 400ms, 800ms, …
+    return 200 * 2 ** attempt
+  }
+  return error.retryAfterMs <= MAX_RETRY_AFTER_MS ? error.retryAfterMs : undefined
 }

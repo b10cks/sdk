@@ -403,6 +403,15 @@ export interface B10cksAssetValue {
   [key: string]: unknown
 }
 
+/** Per-call request options. */
+export interface RequestOptions {
+  /**
+   * Cancels the request, including pending retries and the remaining pages of
+   * `getAll`. The call rejects with the signal's reason.
+   */
+  signal?: AbortSignal
+}
+
 export interface B10cksApiClientOptions {
   baseUrl: string
   token: string
@@ -412,14 +421,16 @@ export interface B10cksApiClientOptions {
   getRv?: () => string | number
   setRv?: (value: string | number) => void
   /**
-   * Per-request timeout in milliseconds. When exceeded the request is aborted
-   * and rejected with an {@link ApiError}. Defaults to no timeout.
+   * Timeout per request attempt in milliseconds, covering the response and
+   * reading its body. When exceeded the attempt is aborted and rejected with an
+   * `ApiError` of status 0. Defaults to no timeout.
    */
   timeoutMs?: number
   /**
-   * Number of retry attempts for transient failures (network errors, HTTP 429
-   * and 5xx) on idempotent GET requests, using exponential backoff. Defaults
-   * to 0 (no retries).
+   * Number of retry attempts for transient failures (network errors, timeouts,
+   * HTTP 429 and 5xx) on GET requests, using exponential backoff or the
+   * response's `Retry-After` (up to 10 seconds). Aborts, invalid JSON and other
+   * statuses are not retried. Defaults to 0 (no retries).
    */
   retries?: number
   /**
