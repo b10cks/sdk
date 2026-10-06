@@ -4,9 +4,11 @@ import {
   createRichTextRenderer,
   createRichTextTextRenderer,
   DEFAULT_ALLOWED_SCHEMES,
+  escapeHtml,
   isRichTextEmpty,
   renderRichText,
   renderRichTextAsText,
+  sanitizeUrl,
 } from './index'
 import type { RichTextDocument } from './index'
 
@@ -582,6 +584,74 @@ describe('renderRichText', () => {
       const linkDoc = doc(p(text('x', mark('internalLink', { content: 'abc' }))))
       expect(renderer.render(linkDoc)).toContain('href="/resolved/abc"')
     })
+  })
+})
+
+// ─── Untrusted input ──────────────────────────────────────────────────────────
+
+describe('malformed documents', () => {
+  it('renders attrs and nodes of the wrong type safely instead of throwing', () => {
+    const broken = {
+      type: 'doc',
+      content: [
+        null,
+        { type: 'paragraph', content: 'not a list' },
+        { type: 'paragraph', content: [{ type: 'text', text: 42, marks: [null, { type: 7 }] }] },
+        p(text('x', mark('link', { href: 42 }))),
+        { type: 'image', attrs: { src: {}, alt: ['a'] } },
+      ],
+    } as unknown as RichTextDocument
+
+    expect(renderRichText(broken)).toBe('<p></p><p></p><p><a href="#">x</a></p><img src="#">')
+    expect(renderRichTextAsText(broken)).toBe('\n\nx')
+    expect(isRichTextEmpty({ type: 'doc', content: [null] } as unknown as RichTextDocument)).toBe(
+      true
+    )
+  })
+})
+
+// ─── Custom renderers ─────────────────────────────────────────────────────────
+
+describe('custom node and mark renderers', () => {
+  it('replaces built-in output and falls back when a renderer returns nothing', () => {
+    const html = renderRichText(
+      doc(
+        { type: 'heading', attrs: { level: 2, id: 'intro"' }, content: [text('Intro')] },
+        { type: 'heading', attrs: { level: 3 }, content: [text('Plain')] },
+        p(text('bold', mark('bold')))
+      ),
+      {
+        nodes: {
+          heading: ({ attrs, children }) =>
+            typeof attrs.id === 'string'
+              ? `<h2 id="${escapeHtml(attrs.id)}">${children}</h2>`
+              : null,
+        },
+        marks: { bold: ({ children }) => `<b>${children}</b>` },
+      }
+    )
+
+    expect(html).toBe('<h2 id="intro&quot;">Intro</h2><h3>Plain</h3><p><b>bold</b></p>')
+  })
+
+  it('renders unknown nodes through their renderer, or as their children by default', () => {
+    const embed = { type: 'embed', attrs: { url: 'javascript:alert(1)' }, content: [text('cap')] }
+
+    expect(renderRichText(doc(embed))).toBe('cap')
+    expect(
+      renderRichText(doc(embed), {
+        nodes: {
+          embed: ({ attrs, renderDefault }) =>
+            `<figure data-src="${sanitizeUrl(attrs.url)}">${renderDefault()}</figure>`,
+        },
+      })
+    ).toBe('<figure data-src="#">cap</figure>')
+  })
+
+  it('ignores inherited keys when looking up renderers', () => {
+    expect(renderRichText(doc({ type: 'constructor', content: [text('x')] }), { nodes: {} })).toBe(
+      'x'
+    )
   })
 })
 

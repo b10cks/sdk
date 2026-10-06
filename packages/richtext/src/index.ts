@@ -1,6 +1,6 @@
-import { DEFAULT_ALLOWED_SCHEMES, internalLinkAttributes, sanitizeUrl } from './links'
+import { internalLinkAttributes, sanitizeUrl, text as stringAttr } from './links'
 
-export { DEFAULT_ALLOWED_SCHEMES }
+export { DEFAULT_ALLOWED_SCHEMES, isSafeUrl, sanitizeUrl, type UrlPolicy } from './links'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -12,10 +12,74 @@ export interface RichTextDocument {
   attrs?: Record<string, unknown>
 }
 
-interface RichTextMark {
+export interface RichTextMark {
   type: string
   attrs?: Record<string, unknown>
 }
+
+/** Node types the renderer knows. Documents can carry others, e.g. from CMS extensions. */
+export type RichTextNodeType =
+  | 'doc'
+  | 'paragraph'
+  | 'text'
+  | 'heading'
+  | 'blockquote'
+  | 'codeBlock'
+  | 'bulletList'
+  | 'orderedList'
+  | 'listItem'
+  | 'hardBreak'
+  | 'horizontalRule'
+  | 'image'
+  | 'table'
+  | 'tableRow'
+  | 'tableHeader'
+  | 'tableCell'
+  | 'placeholderToken'
+
+/** Mark types the renderer knows. */
+export type RichTextMarkType =
+  | 'bold'
+  | 'italic'
+  | 'strike'
+  | 'underline'
+  | 'code'
+  | 'link'
+  | 'internalLink'
+  | 'textClass'
+
+export interface RichTextNodeRenderContext {
+  node: RichTextDocument
+  /** The node's attributes, `{}` when it has none. */
+  attrs: Record<string, unknown>
+  /** The node's children, already rendered and escaped. Empty for text and atoms. */
+  children: string
+  /** The HTML the built-in renderer produces for this node. */
+  renderDefault: () => string
+}
+
+export interface RichTextMarkRenderContext {
+  mark: RichTextMark
+  /** The mark's attributes, `{}` when it has none. */
+  attrs: Record<string, unknown>
+  /** The marked content, already rendered and escaped. */
+  children: string
+  /** The HTML the built-in renderer produces for this mark. */
+  renderDefault: () => string
+}
+
+/**
+ * Renders one node or mark. Return `null` or `undefined` to fall back to the built-in output.
+ *
+ * Renderers are trusted code: the returned string goes into the page as HTML, unescaped. Escape
+ * every value taken from the document with {@link escapeHtml}, and pass URLs through
+ * {@link sanitizeUrl}. `children` and `renderDefault()` are already safe.
+ */
+export type RichTextNodeRenderer = (context: RichTextNodeRenderContext) => string | null | undefined
+export type RichTextMarkRenderer = (context: RichTextMarkRenderContext) => string | null | undefined
+
+/** Known types autocomplete; any other type string is accepted too. */
+type RendererMap<Type extends string, Renderer> = { [K in Type | (string & {})]?: Renderer }
 
 export interface RichTextInternalLinkAttrs {
   url?: string | null
@@ -61,7 +125,16 @@ export interface RichTextHtmlOptions {
    * `javascript:` URLs, pass
    * `[...DEFAULT_ALLOWED_SCHEMES, 'javascript']`.
    */
-  allowedSchemes?: string[]
+  allowedSchemes?: readonly string[]
+  /**
+   * Custom HTML per node type, e.g. responsive images, heading anchors or embeds. Unknown node
+   * types render their children unless a renderer handles them. See {@link RichTextNodeRenderer}
+   * for the escaping contract. The in-place preview editor shows the built-in markup while a
+   * field is edited.
+   */
+  nodes?: RendererMap<RichTextNodeType, RichTextNodeRenderer>
+  /** Custom HTML per mark type. See {@link RichTextNodeRenderer} for the escaping contract. */
+  marks?: RendererMap<RichTextMarkType, RichTextMarkRenderer>
 }
 
 export interface RichTextTextOptions {
@@ -117,7 +190,8 @@ export interface RichTextExtensionOptions {
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
 
-function escapeHtml(str: string): string {
+/** Escape text for HTML content and double-quoted attribute values. */
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -157,11 +231,36 @@ function classAttr(a: Record<string, unknown>): Record<string, unknown> {
   return typeof cls === 'string' && cls.length > 0 ? { class: cls } : {}
 }
 
+// ─── Input guards ─────────────────────────────────────────────────────────────
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** A custom renderer registered for `type`, ignoring inherited object keys. */
+function customRenderer<R>(
+  renderers: { [type: string]: R | undefined } | undefined,
+  type: string
+): R | undefined {
+  return renderers && Object.hasOwn(renderers, type) ? renderers[type] : undefined
+}
+
+function validMarks(marks: unknown): RichTextMark[] {
+  if (!Array.isArray(marks)) return []
+  return marks.filter(
+    (mark): mark is RichTextMark => isRecord(mark) && typeof mark.type === 'string'
+  )
+}
+
 // ─── Mark rendering ───────────────────────────────────────────────────────────
 
-function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptions): string {
-  const a = mark.attrs ?? {}
-  switch (mark.type) {
+function defaultMark(
+  type: string,
+  a: Record<string, unknown>,
+  inner: string,
+  options: RichTextHtmlOptions
+): string {
+  switch (type) {
     case 'bold':
       return tag('strong', inner)
     case 'italic':
@@ -173,17 +272,18 @@ function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptio
     case 'code':
       return tag('code', inner)
     case 'link': {
-      const href = sanitizeUrl((a.href || a.url || '#') as string, options)
-      const linkAttrs: Record<string, unknown> = { href }
-      if (a.target) linkAttrs.target = a.target
-      if (a.rel) linkAttrs.rel = a.rel
-      if (a.title) linkAttrs.title = a.title
+      const linkAttrs: Record<string, unknown> = {
+        href: sanitizeUrl(a.href || a.url || '#', options),
+        target: stringAttr(a.target),
+        rel: stringAttr(a.rel),
+        title: stringAttr(a.title),
+      }
       return tag('a', inner, linkAttrs)
     }
     case 'internalLink':
       return tag('a', inner, internalLinkAttributes(a, options))
     case 'textClass': {
-      const cls = a.class as string | null | undefined
+      const cls = stringAttr(a.class)
       return cls ? tag('span', inner, { class: cls }) : inner
     }
     default:
@@ -191,16 +291,19 @@ function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptio
   }
 }
 
-function renderText(
-  text: string,
-  marks: RichTextMark[] | undefined,
-  options: RichTextHtmlOptions
-): string {
+function applyMark(mark: RichTextMark, inner: string, options: RichTextHtmlOptions): string {
+  const attrs = isRecord(mark.attrs) ? mark.attrs : {}
+  const renderDefault = () => defaultMark(mark.type, attrs, inner, options)
+  const custom = customRenderer(options.marks, mark.type)
+  return custom?.({ mark, attrs, children: inner, renderDefault }) ?? renderDefault()
+}
+
+function renderText(text: string, marks: unknown, options: RichTextHtmlOptions): string {
   let result = escapeHtml(text)
-  if (!marks || marks.length === 0) return result
+  const valid = validMarks(marks)
   // Apply marks innermost-first (last in array = innermost)
-  for (let i = marks.length - 1; i >= 0; i--) {
-    const mark = marks[i]
+  for (let i = valid.length - 1; i >= 0; i--) {
+    const mark = valid[i]
     if (mark) result = applyMark(mark, result, options)
   }
   return result
@@ -208,53 +311,68 @@ function renderText(
 
 // ─── Node rendering ───────────────────────────────────────────────────────────
 
-function renderChildren(
-  nodes: RichTextDocument[] | undefined,
-  options: RichTextHtmlOptions
-): string {
-  if (!nodes) return ''
+function renderChildren(nodes: unknown, options: RichTextHtmlOptions): string {
+  if (!Array.isArray(nodes)) return ''
   return nodes.map((n) => renderNode(n, options)).join('')
 }
 
-function renderNode(node: RichTextDocument, options: RichTextHtmlOptions): string {
-  const a = node.attrs ?? {}
+function cellAttrs(a: Record<string, unknown>): Record<string, unknown> {
+  const attrs: Record<string, unknown> = {}
+  if (a.colspan && a.colspan !== 1) attrs.colspan = a.colspan
+  if (a.rowspan && a.rowspan !== 1) attrs.rowspan = a.rowspan
+  return attrs
+}
 
-  switch (node.type) {
+function renderNode(input: unknown, options: RichTextHtmlOptions): string {
+  if (!isRecord(input)) return ''
+  const node = input as unknown as RichTextDocument
+  const type = typeof input.type === 'string' ? input.type : ''
+  const attrs = isRecord(input.attrs) ? input.attrs : {}
+  const children = renderChildren(input.content, options)
+  const renderDefault = () => defaultNode(type, input, attrs, children, options)
+  const custom = customRenderer(options.nodes, type)
+  return custom?.({ node, attrs, children, renderDefault }) ?? renderDefault()
+}
+
+function defaultNode(
+  type: string,
+  node: Record<string, unknown>,
+  a: Record<string, unknown>,
+  children: string,
+  options: RichTextHtmlOptions
+): string {
+  switch (type) {
     case 'doc':
-      return renderChildren(node.content, options)
+      return children
 
     case 'paragraph':
-      return tag('p', renderChildren(node.content, options))
+      return tag('p', children)
 
     case 'text':
-      return renderText(node.text ?? '', node.marks, options)
+      return renderText(typeof node.text === 'string' ? node.text : '', node.marks, options)
 
     case 'heading': {
       const level = Math.min(6, Math.max(1, Number(a.level) || 1))
-      const h = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
-      return tag(h, renderChildren(node.content, options))
+      return tag(`h${level}`, children)
     }
 
     case 'blockquote':
-      return tag('blockquote', renderChildren(node.content, options))
+      return tag('blockquote', children)
 
-    case 'codeBlock': {
-      const langAttr: Record<string, unknown> = {}
-      if (a.language) langAttr['data-language'] = a.language
-      return tag('pre', tag('code', renderChildren(node.content, options), langAttr))
-    }
+    case 'codeBlock':
+      return tag('pre', tag('code', children, { 'data-language': stringAttr(a.language) }))
 
     case 'bulletList':
-      return tag('ul', renderChildren(node.content, options), classAttr(a))
+      return tag('ul', children, classAttr(a))
 
     case 'orderedList': {
       const listAttrs: Record<string, unknown> = { ...classAttr(a) }
       if (a.start && a.start !== 1) listAttrs.start = a.start
-      return tag('ol', renderChildren(node.content, options), listAttrs)
+      return tag('ol', children, listAttrs)
     }
 
     case 'listItem':
-      return tag('li', renderChildren(node.content, options), classAttr(a))
+      return tag('li', children, classAttr(a))
 
     case 'hardBreak':
       return voidTag('br')
@@ -262,51 +380,40 @@ function renderNode(node: RichTextDocument, options: RichTextHtmlOptions): strin
     case 'horizontalRule':
       return voidTag('hr')
 
-    case 'image': {
-      const imgAttrs: Record<string, unknown> = {
-        src: sanitizeUrl((a.src ?? '') as string, options),
-      }
-      if (a.alt) imgAttrs.alt = a.alt
-      if (a.title) imgAttrs.title = a.title
-      return voidTag('img', imgAttrs)
-    }
+    case 'image':
+      return voidTag('img', {
+        src: sanitizeUrl(a.src ?? '', options),
+        alt: stringAttr(a.alt),
+        title: stringAttr(a.title),
+      })
 
     case 'table':
-      return tag('table', renderChildren(node.content, options))
+      return tag('table', children)
 
     case 'tableRow':
-      return tag('tr', renderChildren(node.content, options))
+      return tag('tr', children)
 
-    case 'tableHeader': {
-      const cellAttrs: Record<string, unknown> = {}
-      if (a.colspan && a.colspan !== 1) cellAttrs.colspan = a.colspan
-      if (a.rowspan && a.rowspan !== 1) cellAttrs.rowspan = a.rowspan
-      return tag('th', renderChildren(node.content, options), cellAttrs)
-    }
+    case 'tableHeader':
+      return tag('th', children, cellAttrs(a))
 
-    case 'tableCell': {
-      const cellAttrs: Record<string, unknown> = {}
-      if (a.colspan && a.colspan !== 1) cellAttrs.colspan = a.colspan
-      if (a.rowspan && a.rowspan !== 1) cellAttrs.rowspan = a.rowspan
-      return tag('td', renderChildren(node.content, options), cellAttrs)
-    }
+    case 'tableCell':
+      return tag('td', children, cellAttrs(a))
 
     // Inline atom inserted by the CMS placeholder-token extension
     case 'placeholderToken': {
-      const key = (a.key ?? '') as string
-      const label = (a.label ?? '') as string
-      if (options.placeholderHandler) {
-        const resolved = options.placeholderHandler(key, label)
-        if (resolved != null) return escapeHtml(resolved)
-      }
-      const tokenAttrs: Record<string, unknown> = { 'data-type': 'placeholder-token' }
-      if (key) tokenAttrs['data-key'] = key
-      if (label) tokenAttrs['data-label'] = label
-      return tag('span', '', tokenAttrs)
+      const key = stringAttr(a.key) ?? ''
+      const label = stringAttr(a.label) ?? ''
+      const resolved = options.placeholderHandler?.(key, label)
+      if (typeof resolved === 'string') return escapeHtml(resolved)
+      return tag('span', '', {
+        'data-type': 'placeholder-token',
+        'data-key': key || undefined,
+        'data-label': label || undefined,
+      })
     }
 
     default:
-      return renderChildren(node.content, options)
+      return children
   }
 }
 
@@ -329,41 +436,40 @@ const BLOCK_NODES = new Set([
 ])
 
 function collectText(
-  node: RichTextDocument,
+  node: unknown,
   parts: string[],
   separator: string,
   placeholderHandler: RichTextPlaceholderHandler | undefined
 ): void {
-  if (node.type === 'text') {
-    parts.push(node.text ?? '')
+  if (!isRecord(node)) return
+  const type = typeof node.type === 'string' ? node.type : ''
+  if (type === 'text') {
+    parts.push(typeof node.text === 'string' ? node.text : '')
     return
   }
-  if (node.type === 'hardBreak') {
+  if (type === 'hardBreak') {
     parts.push('\n')
     return
   }
-  if (node.type === 'horizontalRule') {
+  if (type === 'horizontalRule') {
     parts.push(separator)
     return
   }
-  if (node.type === 'placeholderToken') {
-    const key = (node.attrs?.key ?? '') as string
-    const label = (node.attrs?.label ?? '') as string
-    if (placeholderHandler) {
-      const resolved = placeholderHandler(key, label)
-      if (resolved != null) {
-        parts.push(resolved)
-        return
-      }
-    }
-    // No handler — emit nothing (it's an empty atom in plain text)
+  if (type === 'placeholderToken') {
+    const attrs = isRecord(node.attrs) ? node.attrs : {}
+    const resolved = placeholderHandler?.(
+      stringAttr(attrs.key) ?? '',
+      stringAttr(attrs.label) ?? ''
+    )
+    // No handler or no value: emit nothing (it's an empty atom in plain text)
+    if (typeof resolved === 'string') parts.push(resolved)
     return
   }
 
-  const isBlock = BLOCK_NODES.has(node.type)
+  const isBlock = BLOCK_NODES.has(type)
   const childParts: string[] = []
 
-  for (const child of node.content ?? []) {
+  for (const child of Array.isArray(node.content) ? node.content : []) {
     collectText(child, childParts, separator, placeholderHandler)
   }
 
@@ -441,11 +547,15 @@ const CONTAINER_NODES = new Set([
  * Whitespace-only text is empty; an image, horizontal rule or table is not.
  */
 export function isRichTextEmpty(document: RichTextDocument | null | undefined): boolean {
-  if (!document) return true
-  if (document.type === 'text') return (document.text ?? '').trim() === ''
-  if (!CONTAINER_NODES.has(document.type)) return false
+  return isEmptyNode(document)
+}
 
-  return (document.content ?? []).every(isRichTextEmpty)
+function isEmptyNode(node: unknown): boolean {
+  if (!isRecord(node)) return true
+  if (node.type === 'text') return typeof node.text !== 'string' || node.text.trim() === ''
+  if (typeof node.type !== 'string' || !CONTAINER_NODES.has(node.type)) return false
+
+  return !Array.isArray(node.content) || node.content.every(isEmptyNode)
 }
 
 export function renderRichTextAsText(
