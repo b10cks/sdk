@@ -38,6 +38,10 @@ export default defineNuxtConfig({
     scrollOffset: 80,
     // Optional: restrict the preview bridge handshake to known editor origins.
     allowedOrigins: ['https://app.b10cks.com'],
+    // Optional transport limits, for the app and `useB10cksServerApi()`:
+    timeoutMs: 5000, // per attempt, including reading the body
+    retries: 2, // network errors, timeouts, 429 and 5xx on GET requests
+    maxConcurrency: 6, // pages fetched at once by `allPages` requests
   },
 })
 ```
@@ -50,6 +54,17 @@ var so the token stays out of the repository.
 ## Usage
 
 Each composable returns the same object as Nuxt's `useAsyncData()` — destructure `data`, `pending`, `error`, and `refresh` as needed.
+
+Every query waits for the space revision, which is fetched once per server request, so the first page load already reads the latest published content. Slugs, names and params accept refs and getters: the async-data key follows them, so a change fetches the new query. When Nuxt cancels a query, its request is aborted too. A custom `key` replaces the derived one, so make it a getter as well when the inputs change.
+
+```typescript
+const route = useRoute()
+const vid = useB10cksVersion()
+const { data: page } = await useContent(
+  () => route.params.slug as string,
+  () => ({ vid: vid.value })
+)
+```
 
 If your app runs inside the visual editor, wrap the fetched content in
 [`usePreviewContent`](#live-preview) so edits stream into the page. It is a
@@ -100,8 +115,8 @@ const { useRedirects, useB10cksConfig } = useB10cksApi()
 const redirects = await useRedirects()
 const { data: config, pending, error, refresh } = await useB10cksConfig()
 
-// Config is language-aware and refetches when the locale changes
-const { config } = await useB10cksConfig({ language_iso: locale.value })
+// Pass a getter so the config refetches when the locale changes
+const { config } = await useB10cksConfig(() => ({ language_iso: locale.value }))
 ```
 
 `useB10cksConfig` takes `language_iso`, like every other content param.
@@ -115,7 +130,7 @@ null`) to a version string defaulting to `published`:
 
 ```typescript
 const vid = useB10cksVersion()
-const { data: page } = await useContent('home', { vid: vid.value })
+const { data: page } = await useContent('home', () => ({ vid: vid.value }))
 ```
 
 ### Server routes and middleware

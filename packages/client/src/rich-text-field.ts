@@ -29,6 +29,8 @@ export type EditableRichTextField = Pick<AttachRichTextFieldOptions, 'id' | 'pat
 export interface RichTextFieldHandle {
   /** Pass the field's latest document whenever it changes. */
   update: (document: RichTextDocument | null | undefined) => void
+  /** Pass the latest render options whenever they change, so editing never uses stale ones. */
+  setRender: (render: RichTextHtmlOptions | undefined) => void
   destroy: () => void
 }
 
@@ -67,11 +69,12 @@ export function attachRichTextField(
   options: AttachRichTextFieldOptions
 ): RichTextFieldHandle {
   if (!previewBridge.isInPreviewMode() || !options.id) {
-    return { update() {}, destroy() {} }
+    return { update() {}, setRender() {}, destroy() {} }
   }
 
   ensurePreviewStyles()
-  const { id, path, render, onEditingChange } = options
+  const { id, path, onEditingChange } = options
+  let render = options.render
   let document = options.document ?? EMPTY_DOCUMENT
   let editor: RichTextEditor | null = null
   /** Bumped on every start and stop, so a start still loading can tell it's stale. */
@@ -164,6 +167,10 @@ export function attachRichTextField(
       document = synced = incoming
       // Unsent typing now sits on top of the incoming document.
       if (pending) pending = editor.getDocument()
+    },
+    setRender(next) {
+      render = next
+      editor?.setRender(next ?? {})
     },
     destroy() {
       stop()

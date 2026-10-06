@@ -14,7 +14,11 @@ function bind(el: EditableElement, binding: DirectiveBinding, vnode: VNode) {
     return
   }
 
-  const detach = attachEditable(el, { id, label: block.block })
+  const detach = attachEditable(el, {
+    id,
+    label: block.block,
+    interactive: binding.modifiers.interactive === true,
+  })
 
   // Backwards-compatible live updates: when the editor pushes new content for
   // this block, patch the bound block in place so the rendering component

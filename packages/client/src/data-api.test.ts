@@ -60,6 +60,23 @@ describe('ApiClient', () => {
 })
 
 describe('B10cksDataApi', () => {
+  it('encodes slugs and ids per path segment and rejects dot segments', async () => {
+    const client: DataApiClient = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    }
+    const dataApi = new B10cksDataApi(client)
+
+    await dataApi.getContent('blog/a?x=1#y')
+    await dataApi.getBlock('id/../spaces')
+
+    expect(client.get).toHaveBeenNthCalledWith(1, 'contents/blog/a%3Fx%3D1%23y', {}, {})
+    expect(client.get).toHaveBeenNthCalledWith(2, 'blocks/id%2F..%2Fspaces', {}, {})
+    await expect(dataApi.getContent('blog/../spaces/me')).rejects.toThrow('Invalid path segment')
+    await expect(dataApi.getDataEntries('..')).rejects.toThrow('Invalid path segment')
+  })
+
   const buildContent = (id: string, theme = id) => ({
     id,
     slug: id,
@@ -110,7 +127,7 @@ describe('B10cksDataApi', () => {
     const contents = await dataApi.getContents({ vid: 'published' }, { allPages: false })
 
     expect(contents).toEqual([buildContent('content-1')])
-    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' })
+    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' }, {})
     expect(client.getAll).not.toHaveBeenCalled()
   })
 
@@ -137,7 +154,7 @@ describe('B10cksDataApi', () => {
       '/old': { target: '/new', status_code: 301 },
       '/old-2': { target: '/new-2', status_code: 302 },
     })
-    expect(client.get).toHaveBeenCalledWith('redirects', {})
+    expect(client.get).toHaveBeenCalledWith('redirects', {}, {})
     expect(client.getAll).toHaveBeenCalledTimes(1)
   })
 
@@ -154,7 +171,7 @@ describe('B10cksDataApi', () => {
 
     await dataApi.getContent('home', { vid: 'draft' })
 
-    expect(client.get).toHaveBeenCalledWith('contents/home', { vid: 'draft' })
+    expect(client.get).toHaveBeenCalledWith('contents/home', { vid: 'draft' }, {})
   })
 
   it('passes an explicitly provided vid through collection requests', async () => {
@@ -168,7 +185,7 @@ describe('B10cksDataApi', () => {
 
     await dataApi.getContents({ vid: 'published' })
 
-    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' })
+    expect(client.get).toHaveBeenCalledWith('contents', { vid: 'published' }, {})
     expect(client.getAll).not.toHaveBeenCalled()
   })
 
@@ -183,7 +200,7 @@ describe('B10cksDataApi', () => {
 
     await dataApi.getContents({ vid: 'published' }, { allPages: true })
 
-    expect(client.getAll).toHaveBeenCalledWith('contents', { vid: 'published' })
+    expect(client.getAll).toHaveBeenCalledWith('contents', { vid: 'published' }, {})
   })
 
   it('passes sitemap params through sitemap requests', async () => {
@@ -202,12 +219,16 @@ describe('B10cksDataApi', () => {
       page: 1,
     })
 
-    expect(client.get).toHaveBeenCalledWith('sitemap', {
-      vid: 'published',
-      language_iso: 'en',
-      per_page: 100,
-      page: 1,
-    })
+    expect(client.get).toHaveBeenCalledWith(
+      'sitemap',
+      {
+        vid: 'published',
+        language_iso: 'en',
+        per_page: 100,
+        page: 1,
+      },
+      {}
+    )
     expect(client.getAll).not.toHaveBeenCalled()
   })
 
@@ -223,8 +244,8 @@ describe('B10cksDataApi', () => {
     await dataApi.getNamedSitemap('news', { language_iso: 'en' })
     await dataApi.getNamedSitemap('my sitemap', {}, { allPages: true })
 
-    expect(client.get).toHaveBeenCalledWith('sitemaps/news', { language_iso: 'en' })
-    expect(client.getAll).toHaveBeenCalledWith('sitemaps/my%20sitemap', {})
+    expect(client.get).toHaveBeenCalledWith('sitemaps/news', { language_iso: 'en' }, {})
+    expect(client.getAll).toHaveBeenCalledWith('sitemaps/my%20sitemap', {}, {})
   })
 
   it('returns the breadcrumb trail and strips a leading slash from the slug', async () => {
@@ -242,7 +263,7 @@ describe('B10cksDataApi', () => {
 
     const levels = await dataApi.getBreadcrumb('/products/shoes', { language: 'en' })
 
-    expect(client.get).toHaveBeenCalledWith('breadcrumbs/products/shoes', { language: 'en' })
+    expect(client.get).toHaveBeenCalledWith('breadcrumbs/products/shoes', { language: 'en' }, {})
     expect(levels).toEqual(breadcrumb)
   })
 
@@ -257,7 +278,7 @@ describe('B10cksDataApi', () => {
 
     const response = await dataApi.getBreadcrumbResponse('home', { vid: 'draft' })
 
-    expect(client.get).toHaveBeenCalledWith('breadcrumbs/home', { vid: 'draft' })
+    expect(client.get).toHaveBeenCalledWith('breadcrumbs/home', { vid: 'draft' }, {})
     expect(response.meta).toEqual({ levels: 0 })
   })
 
@@ -285,14 +306,24 @@ describe('B10cksDataApi', () => {
 
     expect(draftConfig).toEqual({ theme: 'draft', id: 'config-1' })
     expect(publishedConfig).toEqual({ theme: 'published', id: 'config-2' })
-    expect(client.get).toHaveBeenNthCalledWith(1, 'contents/_config', {
-      vid: 'draft',
-      language_iso: undefined,
-    })
-    expect(client.get).toHaveBeenNthCalledWith(2, 'contents/_config', {
-      vid: 'published',
-      language_iso: undefined,
-    })
+    expect(client.get).toHaveBeenNthCalledWith(
+      1,
+      'contents/_config',
+      {
+        vid: 'draft',
+        language_iso: undefined,
+      },
+      {}
+    )
+    expect(client.get).toHaveBeenNthCalledWith(
+      2,
+      'contents/_config',
+      {
+        vid: 'published',
+        language_iso: undefined,
+      },
+      {}
+    )
   })
 
   it('exposes the config entry id so the config is editable in the visual editor', async () => {

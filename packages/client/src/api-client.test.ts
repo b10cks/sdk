@@ -142,3 +142,103 @@ describe('ApiClient error handling', () => {
     }
   })
 })
+
+describe('ApiClient request limits', () => {
+  const json = (body: unknown, init: ResponseInit = {}) =>
+    new Response(JSON.stringify(body), {
+      ...init,
+      headers: { 'content-type': 'application/json', ...init.headers },
+    })
+
+  it('times out while reading the body, without the token in the error', async () => {
+    const fetchClient: FetchClient = async () => ({
+      ok: true,
+      status: 200,
+      json: () => new Promise(() => {}),
+    })
+    const client = new ApiClient({
+      baseUrl: 'https://api.example.com',
+      token: 'secret-token',
+      fetchClient,
+      timeoutMs: 20,
+    })
+
+    const error = await client.get('spaces/me').catch((e) => e)
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error.status).toBe(0)
+    expect(error.endpoint).toBe('spaces/me')
+    expect(error.message).not.toContain('secret-token')
+  })
+
+  it('stops on the caller signal, also while waiting to retry', async () => {
+    const controller = new AbortController()
+    const fetchClient = vi.fn(async () => {
+      setTimeout(() => controller.abort(new Error('left the page')))
+      return new Response('down', { status: 503 })
+    })
+    const client = makeClient({ fetchClient, retries: 3 })
+
+    await expect(client.get('spaces/me', {}, { signal: controller.signal })).rejects.toThrow(
+      'left the page'
+    )
+    expect(fetchClient).toHaveBeenCalledTimes(1)
+  })
+
+  it('waits for Retry-After and does not retry invalid JSON', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchClient = vi
+        .fn<FetchClient>()
+        .mockResolvedValueOnce(new Response('', { status: 429, headers: { 'retry-after': '2' } }))
+        .mockResolvedValueOnce(new Response('<html>', { status: 200 }))
+      const client = makeClient({ fetchClient, retries: 3 })
+
+      const result = client.get('spaces/me').catch((e) => e)
+      await vi.advanceTimersByTimeAsync(1999)
+      expect(fetchClient).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(1)
+
+      const error = await result
+      expect(error).toBeInstanceOf(ApiError)
+      expect(error.message).toBe('Response from "spaces/me" is not valid JSON')
+      expect(fetchClient).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('turns errors thrown by Nuxt $fetch into ApiError without the request URL', async () => {
+    const fetchError = Object.assign(
+      new Error('[GET] "https://api.example.com/v1/contents/x?token=test-token": 404 Not Found'),
+      { status: 404, data: { message: 'Not found' } }
+    )
+    const client = makeClient({
+      fetchClient: async () => {
+        throw fetchError
+      },
+      retries: 2,
+    })
+
+    const error = await client.get('contents/x').catch((e) => e)
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error).toMatchObject({ status: 404, body: { message: 'Not found' } })
+    expect(error.message).not.toContain('test-token')
+  })
+
+  it('cancels the remaining pages when one page fails', async () => {
+    const loading: AbortSignal[] = []
+    const fetchClient = vi.fn(async (input: URL | string | RequestInfo, init?: RequestInit) => {
+      const page = Number(new URL(String(input)).searchParams.get('page'))
+      if (page === 1) return json({ data: [1], meta: { last_page: 10 } })
+      if (page === 2) return new Response('gone', { status: 410 })
+      if (init?.signal) loading.push(init.signal)
+      return new Promise<never>(() => {})
+    })
+    const client = makeClient({ fetchClient, maxConcurrency: 2 })
+
+    await expect(client.getAll('contents')).rejects.toMatchObject({ status: 410 })
+    // Pages 2 and 3 ran side by side; page 3 was cancelled and nothing started after.
+    expect(fetchClient).toHaveBeenCalledTimes(3)
+    expect(loading.map((signal) => signal.aborted)).toEqual([true])
+  })
+})

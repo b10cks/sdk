@@ -1,6 +1,7 @@
 import type { ChainedCommands, Editor } from '@tiptap/core'
 
 import type { RichTextFeature, RichTextFieldConfig, RichTextHeadingLevel } from '../index'
+import { DEFAULT_ALLOWED_SCHEMES, isSafeUrl, type UrlPolicy } from '../links'
 import { isFeatureEnabled } from './extensions'
 
 /**
@@ -122,12 +123,15 @@ const CSS = `
     all: unset; box-sizing: border-box; width: 240px; height: 26px; padding: 0 6px;
     border-radius: 4px; background: #f3f4f6;
   }
+  input[aria-invalid="true"] { background: #fef2f2; outline: 2px solid #dc2626; outline-offset: -2px; }
+  .error { padding: 0 6px; color: #b91c1c; white-space: nowrap; }
 `
 
 export function createToolbar(
   editor: Editor,
   el: HTMLElement,
-  config: RichTextFieldConfig
+  config: RichTextFieldConfig,
+  policy: UrlPolicy = {}
 ): Toolbar {
   const enabled = (feature: RichTextFeature) => isFeatureEnabled(config, feature)
   const host = document.createElement('div')
@@ -144,6 +148,19 @@ export function createToolbar(
   linkForm.hidden = true
   bar.append(tools, linkForm)
   root.append(style, bar)
+
+  // Safari doesn't focus a clicked select, so focus alone can't tell that its
+  // menu is open. Stay visible until the editor has focus again or the next
+  // pointer press lands outside the toolbar.
+  let selecting = false
+  bar.addEventListener('pointerdown', (event) => {
+    selecting = event.target instanceof HTMLSelectElement
+  })
+  const onOutsidePointer = (event: PointerEvent) => {
+    if (!selecting || event.composedPath().includes(host)) return
+    selecting = false
+    refresh()
+  }
 
   // Keep the editor focused, except for the controls that take input.
   bar.addEventListener('mousedown', (event) => {
@@ -177,8 +194,20 @@ export function createToolbar(
   input.type = 'url'
   input.placeholder = 'Paste or type a link'
   input.setAttribute('aria-label', 'Link address')
+  const error = element('span', 'error')
+  error.id = 'b10cks-link-error'
+  error.hidden = true
+  error.textContent = `Use ${(policy.allowedSchemes ?? DEFAULT_ALLOWED_SCHEMES).join(', ')} or a relative link`
+  input.setAttribute('aria-describedby', error.id)
+  const setInvalid = (invalid: boolean) => {
+    if (invalid) input.setAttribute('aria-invalid', 'true')
+    else input.removeAttribute('aria-invalid')
+    error.hidden = !invalid
+    place()
+  }
+  input.addEventListener('input', () => setInvalid(false))
   const unlink = iconButton('Remove link', REMOVE_ICON)
-  linkForm.append(input, unlink)
+  linkForm.append(input, error, unlink)
 
   const closeLink = () => {
     linkForm.hidden = true
@@ -190,12 +219,17 @@ export function createToolbar(
     tools.hidden = true
     linkForm.hidden = false
     input.value = editor.getAttributes('link').href ?? ''
+    setInvalid(false)
     unlink.disabled = !editor.isActive('link')
     place()
     input.focus()
   }
   const applyLink = () => {
     const href = input.value.trim()
+    if (href && !isSafeUrl(href, policy)) {
+      setInvalid(true)
+      return
+    }
     const chain = editor.chain().focus().extendMarkRange('link')
     if (!href) chain.unsetLink()
     else if (editor.state.selection.empty && !editor.isActive('link')) {
@@ -242,7 +276,7 @@ export function createToolbar(
   }
 
   function refresh() {
-    const visible = editor.isFocused || document.activeElement === host
+    const visible = editor.isFocused || document.activeElement === host || selecting
     host.hidden = !visible
     if (!visible) {
       linkForm.hidden = true
@@ -253,8 +287,12 @@ export function createToolbar(
     place()
   }
 
+  const onFocus = () => {
+    selecting = false
+    refresh()
+  }
   editor.on('transaction', refresh)
-  editor.on('focus', refresh)
+  editor.on('focus', onFocus)
   // Focus moving into the link input blurs the editor; wait for it to land.
   const onBlur = () => setTimeout(refresh)
   editor.on('blur', onBlur)
@@ -262,14 +300,16 @@ export function createToolbar(
   window.addEventListener('scroll', place, scrollOptions)
   window.addEventListener('resize', place)
   input.addEventListener('blur', onBlur)
+  document.addEventListener('pointerdown', onOutsidePointer, true)
   refresh()
 
   return {
     openLink,
     destroy() {
       editor.off('transaction', refresh)
-      editor.off('focus', refresh)
+      editor.off('focus', onFocus)
       editor.off('blur', onBlur)
+      document.removeEventListener('pointerdown', onOutsidePointer, true)
       window.removeEventListener('scroll', place, scrollOptions)
       window.removeEventListener('resize', place)
       host.remove()

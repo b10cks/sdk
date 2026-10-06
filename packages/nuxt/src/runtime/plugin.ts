@@ -1,4 +1,3 @@
-import type { FetchClient } from '@b10cks/client'
 // ApiClient/createB10cksDataApi are imported directly from @b10cks/client (a
 // direct dependency) so the emitted module type can name them portably.
 import { ApiClient, createB10cksDataApi } from '@b10cks/client'
@@ -7,6 +6,8 @@ import { defineNuxtPlugin, useRequestURL, useRuntimeConfig } from 'nuxt/app'
 import type { InjectionKey } from 'vue'
 
 import { useState } from '#app'
+
+import { createFetchClient } from './fetch-client'
 
 // In this monorepo @b10cks/client is reachable both as source (this package's
 // resolution) and as built types (via @b10cks/vue's published d.ts). The two
@@ -37,10 +38,10 @@ export default defineNuxtPlugin({
       {
         baseUrl: config.public.b10cks.apiUrl || 'https://api.b10cks.com/api',
         token: config.public.b10cks.accessToken,
-        // $fetch auto-parses the response body; the client handles a non-Response
-        // payload by passing it through. Its init type (NitroFetchOptions) is
-        // wider than RequestInit, so the cast is required.
-        fetchClient: $fetch as unknown as FetchClient,
+        fetchClient: createFetchClient(),
+        timeoutMs: config.public.b10cks.timeoutMs,
+        retries: config.public.b10cks.retries,
+        maxConcurrency: config.public.b10cks.maxConcurrency,
         rv: rvState.value,
         getRv: () => {
           return rvState.value

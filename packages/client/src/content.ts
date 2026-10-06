@@ -1,3 +1,5 @@
+import { sanitizeUrl, type UrlPolicy } from '@b10cks/richtext'
+
 import type { B10cksLink, IBContent } from './types'
 
 export type RootBlock<T> = T & { id: string; block: string }
@@ -48,10 +50,13 @@ export interface B10cksLinkResolved {
  *   string and `anchor` as a `#fragment` (`/page?x=1#01kh…`). An href that already carries a
  *   fragment keeps it.
  * - `'asset'` links cannot be resolved to a URL without the asset record — returns `undefined`.
+ * - Hrefs with a scheme outside `allowedSchemes` (`javascript:` and the like) become `'#'`, the
+ *   same policy `renderRichText` applies to rich text links.
  * - Locale prefixing and router integration are intentionally left to the caller.
  */
 export function resolveB10cksLink(
-  link: B10cksLink | undefined | null
+  link: B10cksLink | undefined | null,
+  policy: UrlPolicy = {}
 ): B10cksLinkResolved | undefined {
   if (!link) return undefined
 
@@ -71,7 +76,7 @@ export function resolveB10cksLink(
 
   // 'url' and 'internal' share url + target + optional params and anchor
   const target = link.target ?? '_self'
-  let href = (link.url ?? '').trimEnd()
+  let href = typeof link.url === 'string' ? link.url.trimEnd() : ''
 
   const query = link.params ? new URLSearchParams(link.params).toString() : ''
   if (query) {
@@ -85,7 +90,7 @@ export function resolveB10cksLink(
     href = `${href}#${encodeURIComponent(link.anchor)}`
   }
 
-  return { href, target }
+  return { href: sanitizeUrl(href, policy), target }
 }
 
 /**

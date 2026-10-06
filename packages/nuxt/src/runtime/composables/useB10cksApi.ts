@@ -17,7 +17,7 @@ import type {
 } from '@b10cks/client'
 import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
 import type { AsyncDataOptions } from 'nuxt/app'
-import { computed, getCurrentScope, toValue, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 import { callOnce, useAsyncData } from '#app'
 
@@ -38,15 +38,19 @@ type AwaitedContentsAsyncData<T> = Awaited<
   ReturnType<typeof useAsyncData<IBContent<T>[] | undefined, Error>>
 >
 
+/**
+ * Without `key`, the key derives from the query's inputs and follows them when
+ * they are refs or getters. A custom key should do the same, e.g. a getter.
+ */
 type AsyncDataConfig<T> = Omit<AsyncDataOptions<T, T>, 'default' | 'transform' | 'watch'> & {
-  key?: string
+  key?: MaybeRefOrGetter<string>
 }
 
 type AsyncDataCollectionConfig<T> = Omit<
   AsyncDataOptions<T[], T[]>,
   'default' | 'transform' | 'watch'
 > & {
-  key?: string
+  key?: MaybeRefOrGetter<string>
 }
 
 export type UseNuxtB10cksConfigResult<T> = AwaitedAsyncData<T> & {
@@ -54,7 +58,7 @@ export type UseNuxtB10cksConfigResult<T> = AwaitedAsyncData<T> & {
 }
 
 export type UseNuxtB10cksApiOptions<T, P extends QueryParams = QueryParams> = AsyncDataConfig<T> & {
-  params?: P
+  params?: MaybeRefOrGetter<P>
   transform?: (value: T) => T
 }
 
@@ -63,7 +67,7 @@ export type UseNuxtB10cksCollectionOptions<
   P extends QueryParams = QueryParams,
 > = AsyncDataCollectionConfig<T> & {
   allPages?: boolean
-  params?: P
+  params?: MaybeRefOrGetter<P>
   transform?: (value: T[]) => T[]
 }
 
@@ -82,7 +86,7 @@ export type UseNuxtB10cksBreadcrumbOptions<T> = AsyncDataCollectionConfig<IBBrea
 
 export type UseNuxtB10cksRedirectsOptions = AsyncDataConfig<RedirectMap> & {
   allPages?: boolean
-  params?: QueryParams
+  params?: MaybeRefOrGetter<QueryParams>
   transform?: (value: RedirectMap) => RedirectMap
   forceRefresh?: boolean
 }
@@ -104,175 +108,221 @@ export type NuxtB10cksApi = Omit<
   | 'useB10cksConfig'
 > & {
   useApiResource: <T>(
-    endpoint: Endpoint,
+    endpoint: MaybeRefOrGetter<Endpoint>,
     options?: UseNuxtB10cksApiOptions<T>
   ) => Promise<AwaitedAsyncData<T>>
   useApiCollection: <T>(
-    endpoint: Endpoint,
+    endpoint: MaybeRefOrGetter<Endpoint>,
     options?: UseNuxtB10cksCollectionOptions<T>
   ) => Promise<AwaitedCollectionAsyncData<T>>
   useContent: <T = Record<string, unknown>>(
-    fullSlug: string,
-    params?: Omit<IBContentQueryParams, 'token' | 'full_slug'>,
+    fullSlug: MaybeRefOrGetter<string>,
+    params?: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token' | 'full_slug'>>,
     options?: UseNuxtB10cksContentOptions<T>
   ) => Promise<AwaitedContentAsyncData<T>>
   useContents: <T = Record<string, unknown>>(
-    params?: IBGetContentsParams,
+    params?: MaybeRefOrGetter<IBGetContentsParams>,
     options?: UseNuxtB10cksContentsOptions<T>
   ) => Promise<AwaitedContentsAsyncData<T>>
   useBreadcrumb: <T = Record<string, unknown>>(
-    slug: string,
-    params?: IBBreadcrumbParams,
+    slug: MaybeRefOrGetter<string>,
+    params?: MaybeRefOrGetter<IBBreadcrumbParams>,
     options?: UseNuxtB10cksBreadcrumbOptions<T>
   ) => Promise<AwaitedCollectionAsyncData<IBBreadcrumbLevel<T>>>
   useBlocks: (
-    params?: QueryParams,
+    params?: MaybeRefOrGetter<QueryParams>,
     options?: UseNuxtB10cksCollectionOptions<IBBlock>
   ) => Promise<AwaitedCollectionAsyncData<IBBlock>>
   useDataEntries: (
-    source: string,
-    params?: IBDataEntryParams,
+    source: MaybeRefOrGetter<string>,
+    params?: MaybeRefOrGetter<IBDataEntryParams>,
     options?: UseNuxtB10cksCollectionOptions<IBDataEntry>
   ) => Promise<AwaitedCollectionAsyncData<IBDataEntry>>
   useDataSources: (
     options?: UseNuxtB10cksCollectionOptions<IBDataSource>
   ) => Promise<AwaitedCollectionAsyncData<IBDataSource>>
   useSitemap: (
-    params?: Omit<IBContentQueryParams, 'token'>,
+    params?: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token'>>,
     options?: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>>
   ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
   useNamedSitemap: (
-    name: string,
-    params?: Omit<IBContentQueryParams, 'token'>,
+    name: MaybeRefOrGetter<string>,
+    params?: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token'>>,
     options?: UseNuxtB10cksCollectionOptions<IBSitemapEntry, Omit<IBContentQueryParams, 'token'>>
   ) => Promise<AwaitedCollectionAsyncData<IBSitemapEntry>>
   useSpace: (options?: UseNuxtB10cksApiOptions<IBSpace>) => Promise<AwaitedAsyncData<IBSpace>>
   useRedirects: (options?: UseNuxtB10cksRedirectsOptions) => Promise<AwaitedAsyncData<RedirectMap>>
   useB10cksConfig: <T = Record<string, unknown>>(
-    params?: GetConfigOptions,
+    params?: MaybeRefOrGetter<Omit<GetConfigOptions, 'signal'>>,
     options?: AsyncDataConfig<T>
   ) => Promise<UseNuxtB10cksConfigResult<T>>
 }
 
+/** `callOnce` key of the revision sync, shared by every `useB10cksApi` call. */
+const REVISION_KEY = 'b10cks:sync-revision'
+
+/**
+ * Data composables backed by `useAsyncData`. Slugs, names and params accept
+ * refs or getters: the default async-data key follows them, so a change
+ * fetches the new query. Requests are cancelled when Nuxt aborts the handler.
+ */
 export const useB10cksApi = (): NuxtB10cksApi => {
   const api = useVueB10cksApi()
 
-  callOnce(async () => {
+  // Every query waits for the space revision, so the first requests already
+  // read the latest published state. Runs once per server request; the client
+  // takes the result from the payload. A failed sync leaves the current
+  // revision in place, and the query reports its own error if the API is down.
+  const revision = callOnce(REVISION_KEY, async () => {
     await api.syncRevision()
-  })
+  }).catch(() => {})
+
+  /** Run `load` after the revision is synced, under the handler's abort signal. */
+  const query =
+    <T>(load: (signal: AbortSignal) => Promise<T>) =>
+    async (_nuxtApp: unknown, { signal }: { signal: AbortSignal }) => {
+      await revision
+      return load(signal)
+    }
+
+  const keyOf = (
+    key: MaybeRefOrGetter<string> | undefined,
+    scope: string,
+    inputs: () => unknown
+  ): MaybeRefOrGetter<string> => key ?? (() => createAsyncDataKey(scope, inputs()))
 
   const useApiResource = async <T>(
-    endpoint: Endpoint,
+    endpoint: MaybeRefOrGetter<Endpoint>,
     options: UseNuxtB10cksApiOptions<T> = {}
   ): Promise<AwaitedAsyncData<T>> => {
     const { key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<T | undefined, Error>(
-      key ?? createAsyncDataKey('resource', { endpoint, params }),
-      async () => {
-        const value = await api.dataApi.getResource<T>(endpoint, params)
+      keyOf(key, 'resource', () => ({ endpoint: toValue(endpoint), params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getResource<T>(toValue(endpoint), toValue(params), {
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useApiCollection = async <T>(
-    endpoint: Endpoint,
+    endpoint: MaybeRefOrGetter<Endpoint>,
     options: UseNuxtB10cksCollectionOptions<T> = {}
   ): Promise<AwaitedCollectionAsyncData<T>> => {
     const { allPages = false, key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<T[] | undefined, Error>(
-      key ?? createAsyncDataKey('collection', { allPages, endpoint, params }),
-      async () => {
-        const value = await api.dataApi.getCollection<T>(endpoint, params, { allPages })
+      keyOf(key, 'collection', () => ({
+        allPages,
+        endpoint: toValue(endpoint),
+        params: toValue(params),
+      })),
+      query(async (signal) => {
+        const value = await api.dataApi.getCollection<T>(toValue(endpoint), toValue(params), {
+          allPages,
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useContent = async <T = Record<string, unknown>>(
-    fullSlug: string,
-    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
+    fullSlug: MaybeRefOrGetter<string>,
+    params: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token' | 'full_slug'>> = {},
     options: UseNuxtB10cksContentOptions<T> = {}
   ): Promise<AwaitedContentAsyncData<T>> => {
     const { key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBContent<T> | undefined, Error>(
-      key ?? createAsyncDataKey('content', { fullSlug, params }),
-      async () => {
-        const value = await api.dataApi.getContent<T>(fullSlug, params)
+      keyOf(key, 'content', () => ({ fullSlug: toValue(fullSlug), params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getContent<T>(toValue(fullSlug), toValue(params), {
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useContents = async <T = Record<string, unknown>>(
-    params: IBGetContentsParams = {},
+    params: MaybeRefOrGetter<IBGetContentsParams> = {},
     options: UseNuxtB10cksContentsOptions<T> = {}
   ): Promise<AwaitedContentsAsyncData<T>> => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBContent<T>[] | undefined, Error>(
-      key ?? createAsyncDataKey('contents', { allPages, params }),
-      async () => {
-        const value = await api.dataApi.getContents<T>(params, { allPages })
+      keyOf(key, 'contents', () => ({ allPages, params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getContents<T>(toValue(params), { allPages, signal })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   /** The ancestor trail of an entry, root first, addressed by full slug or id. */
   const useBreadcrumb = async <T = Record<string, unknown>>(
-    slug: string,
-    params: IBBreadcrumbParams = {},
+    slug: MaybeRefOrGetter<string>,
+    params: MaybeRefOrGetter<IBBreadcrumbParams> = {},
     options: UseNuxtB10cksBreadcrumbOptions<T> = {}
   ): Promise<AwaitedCollectionAsyncData<IBBreadcrumbLevel<T>>> => {
     const { key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBBreadcrumbLevel<T>[] | undefined, Error>(
-      key ?? createAsyncDataKey('breadcrumb', { slug, params }),
-      async () => {
-        const value = await api.dataApi.getBreadcrumb<T>(slug, params)
+      keyOf(key, 'breadcrumb', () => ({ slug: toValue(slug), params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getBreadcrumb<T>(toValue(slug), toValue(params), {
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useBlocks = async (
-    params: QueryParams = {},
+    params: MaybeRefOrGetter<QueryParams> = {},
     options: UseNuxtB10cksCollectionOptions<IBBlock> = {}
   ): Promise<AwaitedCollectionAsyncData<IBBlock>> => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBBlock[] | undefined, Error>(
-      key ?? createAsyncDataKey('blocks', { allPages, params }),
-      async () => {
-        const value = await api.dataApi.getBlocks(params, { allPages })
+      keyOf(key, 'blocks', () => ({ allPages, params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getBlocks(toValue(params), { allPages, signal })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useDataEntries = async (
-    source: string,
-    params: IBDataEntryParams = {},
+    source: MaybeRefOrGetter<string>,
+    params: MaybeRefOrGetter<IBDataEntryParams> = {},
     options: UseNuxtB10cksCollectionOptions<IBDataEntry> = {}
   ): Promise<AwaitedCollectionAsyncData<IBDataEntry>> => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBDataEntry[] | undefined, Error>(
-      key ?? createAsyncDataKey('data-entries', { allPages, source, params }),
-      async () => {
-        const value = await api.dataApi.getDataEntries(source, params, { allPages })
+      keyOf(key, 'data-entries', () => ({
+        allPages,
+        source: toValue(source),
+        params: toValue(params),
+      })),
+      query(async (signal) => {
+        const value = await api.dataApi.getDataEntries(toValue(source), toValue(params), {
+          allPages,
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
@@ -283,17 +333,17 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     const { allPages = false, key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBDataSource[] | undefined, Error>(
-      key ?? createAsyncDataKey('data-sources', { allPages, params }),
-      async () => {
-        const value = await api.dataApi.getDataSources(params, { allPages })
+      keyOf(key, 'data-sources', () => ({ allPages, params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getDataSources(toValue(params), { allPages, signal })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   const useSitemap = async (
-    params: Omit<IBContentQueryParams, 'token'> = {},
+    params: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token'>> = {},
     options: UseNuxtB10cksCollectionOptions<
       IBSitemapEntry,
       Omit<IBContentQueryParams, 'token'>
@@ -302,19 +352,19 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
-      key ?? createAsyncDataKey('sitemap', { allPages, params }),
-      async () => {
-        const value = await api.dataApi.getSitemap(params, { allPages })
+      keyOf(key, 'sitemap', () => ({ allPages, params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getSitemap(toValue(params), { allPages, signal })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
   /** A named sitemap from the space's `settings.sitemaps`, e.g. `news`. */
   const useNamedSitemap = async (
-    name: string,
-    params: Omit<IBContentQueryParams, 'token'> = {},
+    name: MaybeRefOrGetter<string>,
+    params: MaybeRefOrGetter<Omit<IBContentQueryParams, 'token'>> = {},
     options: UseNuxtB10cksCollectionOptions<
       IBSitemapEntry,
       Omit<IBContentQueryParams, 'token'>
@@ -323,11 +373,14 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     const { allPages = false, key, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBSitemapEntry[] | undefined, Error>(
-      key ?? createAsyncDataKey('sitemap', { allPages, name, params }),
-      async () => {
-        const value = await api.dataApi.getNamedSitemap(name, params, { allPages })
+      keyOf(key, 'sitemap', () => ({ allPages, name: toValue(name), params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getNamedSitemap(toValue(name), toValue(params), {
+          allPages,
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
@@ -338,11 +391,11 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     const { key, params = {}, transform, ...asyncDataOptions } = options
 
     return await useAsyncData<IBSpace | undefined, Error>(
-      key ?? createAsyncDataKey('space', { params }),
-      async () => {
-        const value = await api.dataApi.getSpace(params)
+      keyOf(key, 'space', () => ({ params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getSpace(toValue(params), { signal })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
@@ -360,51 +413,31 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     } = options
 
     return await useAsyncData<RedirectMap | undefined, Error>(
-      key ?? createAsyncDataKey('redirects', { allPages, params, forceRefresh }),
-      async () => {
-        const value = await api.dataApi.getRedirects(params, { allPages, forceRefresh })
+      keyOf(key, 'redirects', () => ({ allPages, params: toValue(params), forceRefresh })),
+      query(async (signal) => {
+        const value = await api.dataApi.getRedirects(toValue(params), {
+          allPages,
+          forceRefresh,
+          signal,
+        })
         return transform ? transform(value) : value
-      },
+      }),
       asyncDataOptions
     )
   }
 
+  /** The `_config` entry. A ref or getter for `params`, e.g. its language, refetches on change. */
   const useB10cksConfig = async <T = Record<string, unknown>>(
-    params: GetConfigOptions = {},
+    params: MaybeRefOrGetter<Omit<GetConfigOptions, 'signal'>> = {},
     options: AsyncDataConfig<T> = {}
   ): Promise<UseNuxtB10cksConfigResult<T>> => {
     const { key, ...asyncDataOptions } = options
 
-    const resolvedParams = computed(() => toValue(params))
-
-    // Capture the effect scope before awaiting: after the await the active
-    // scope/component instance is lost, so registering the watch directly would
-    // warn and leak an undisposed watcher across navigations.
-    const scope = getCurrentScope()
-
     const asyncData = await useAsyncData<T | undefined, Error>(
-      key ?? createAsyncDataKey('config', { params: resolvedParams.value }),
-      () => api.dataApi.getConfig<T>(resolvedParams.value),
+      keyOf(key, 'config', () => ({ params: toValue(params) })),
+      query((signal) => api.dataApi.getConfig<T>({ ...toValue(params), signal })),
       asyncDataOptions
     )
-
-    // `language_iso` matches every other content param; `language` is the
-    // deprecated alias, so watch whichever the caller passed.
-    const registerLanguageWatch = () =>
-      watch(
-        () => resolvedParams.value.language_iso ?? resolvedParams.value.language,
-        (language, previousLanguage) => {
-          if (language !== previousLanguage) {
-            void asyncData.refresh()
-          }
-        }
-      )
-
-    if (scope) {
-      scope.run(registerLanguageWatch)
-    } else {
-      registerLanguageWatch()
-    }
 
     return Object.assign(asyncData, {
       config: computed(() => asyncData.data.value ?? ({} as T)),

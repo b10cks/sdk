@@ -69,6 +69,16 @@ const blocks = useBlocks({}, { immediate: true })
 
 The `immediate` option controls whether the request fires on composable setup (`true`) or must be triggered manually (`false`). Pass `immediate: false` to defer requests that depend on reactive values not yet available.
 
+Slugs, names and params accept refs and getters. Once a query has run, a change to them fetches again, and the request it replaces is aborted. Unmounting the component aborts a request still in flight.
+
+```typescript
+const route = useRoute()
+const { data } = useContent(
+  () => route.params.slug as string,
+  () => ({ vid: vid.value })
+)
+```
+
 ### Components
 
 Use `B10cksComponent` to render block-specific Vue components dynamically:
@@ -134,6 +144,10 @@ When your app is rendered inside the b10cks visual editor, these directives and 
 <!-- Inline-edit a simple string field (contenteditable, streams plain-text edits) -->
 <h1 v-editable-field="{ id: block.id, field: 'headline' }">{{ block.headline }}</h1>
 
+<!-- Accordions, tabs, carousels: a click selects the block and still reaches the
+     component. Links and submit buttons inside don't navigate. -->
+<section v-editable.interactive="block">…</section>
+
 <!-- Rich text / complex fields: deep-select so the editor opens its own editor.
      Use `mode: 'select'` with a `path` instead of inline editing. -->
 <B10cksRichText
@@ -141,6 +155,8 @@ When your app is rendered inside the b10cks visual editor, these directives and 
   v-editable-field="{ id: block.id, path: ['body'], mode: 'select' }"
 />
 ```
+
+By default a click on a block only selects it, so links, buttons and router links inside don't fire while editing. A click into an inline field selects its block too, and keeps the caret. `.interactive` is for components that need their own clicks in the editor; Alt-click (Option on macOS) reaches the page for any block. `v-editable-field` follows its element: when a keyed list reorders, edits go to the item's new index.
 
 ### `usePreviewContent` (recommended)
 
@@ -340,6 +356,37 @@ Link and image URLs from CMS content are validated against a scheme allowlist (d
 ```vue
 <B10cksRichText :document="doc" :allowed-schemes="['https', 'mailto']" />
 ```
+
+### Custom node and mark rendering
+
+Pass `nodes` and `marks` to change the HTML of single node or mark types, for responsive images, heading anchors or embeds. Return `null` to keep the built-in output for that node. Node types the renderer doesn't know render their children unless you give them a renderer.
+
+```vue
+<script setup lang="ts">
+import { B10cksRichText, escapeHtml, sanitizeUrl } from '@b10cks/vue/rich-text'
+import type { RichTextNodeRenderer } from '@b10cks/vue/rich-text'
+
+const nodes: Record<string, RichTextNodeRenderer> = {
+  heading: ({ node, attrs, children }) => {
+    const level = Number(attrs.level) || 2
+    // `slugify` stands for your own slug helper.
+    const id = slugify(node.content?.map((child) => child.text ?? '').join('') ?? '')
+    return `<h${level} id="${escapeHtml(id)}">${children}</h${level}>`
+  },
+  image: ({ attrs }) =>
+    `<img src="${escapeHtml(sanitizeUrl(attrs.src))}" alt="${escapeHtml(String(attrs.alt ?? ''))}" loading="lazy">`,
+}
+</script>
+
+<template>
+  <B10cksRichText
+    :document="block.body"
+    :nodes="nodes"
+  />
+</template>
+```
+
+Renderers are trusted code: their return value goes into the page as HTML. `children` and `renderDefault()` are already escaped; escape everything else you take from the document with `escapeHtml`, and pass URLs through `sanitizeUrl`. While a field is edited in place, the editor shows the built-in markup; your renderers apply again when editing ends.
 
 > **Custom extensions are no longer used.** The renderer is a custom, dependency-free implementation — it does not run TipTap. The `extensions` prop and `createB10cksRichTextExtensions()` remain as no-op stubs for backwards compatibility only.
 

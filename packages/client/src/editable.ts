@@ -47,11 +47,18 @@ export interface AttachEditableOptions {
   onHoverChange?: (hovered: boolean) => void
   /** Scroll the element into view when it becomes selected. Default true. */
   scrollOnSelect?: boolean
+  /**
+   * Let clicks inside the element reach the page after selecting it, for
+   * components like accordions, tabs or carousels. Links and form submit
+   * buttons still don't navigate. Default false: a click only selects.
+   */
+  interactive?: boolean
 }
 
 /**
  * Wire a DOM element as a selectable block. A click selects it in the editor
- * and never reaches links or buttons inside it. Only the innermost editable
+ * and, unless `interactive` is set, never reaches links or buttons inside it.
+ * Only the innermost editable
  * under the pointer or matching the editor's selection is highlighted, with a
  * label. Toggles `b10cks-selected`, `b10cks-hover`, and `b10cks-hidden` (while
  * the editor hides the block) on the element. Returns a
@@ -63,7 +70,7 @@ export function attachEditable(el: HTMLElement, options: AttachEditableOptions):
   }
 
   ensurePreviewStyles()
-  const { id, label, onSelectChange, onHoverChange, scrollOnSelect = true } = options
+  const { id, label, onSelectChange, onHoverChange, scrollOnSelect = true, interactive } = options
 
   el.classList.add('b10cks-preview')
   const unregister = registerEditable(el, {
@@ -71,6 +78,7 @@ export function attachEditable(el: HTMLElement, options: AttachEditableOptions):
     kind: 'block',
     label,
     scrollOnSelect,
+    interactive,
     onSelectChange,
     onHoverChange,
     activate: () => previewBridge.selectItem(id),

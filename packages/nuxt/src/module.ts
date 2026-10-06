@@ -63,6 +63,9 @@ export default defineNuxtModule<ModuleOptions>({
       apiUrl: options.apiUrl,
       scrollOffset: options.scrollOffset,
       allowedOrigins: options.allowedOrigins,
+      timeoutMs: options.timeoutMs,
+      retries: options.retries,
+      maxConcurrency: options.maxConcurrency,
     })
 
     addPlugin(resolver.resolve('./runtime/plugin'))

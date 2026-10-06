@@ -188,8 +188,8 @@ interface B10cksApiClientOptions {
   fetchClient?: FetchClient // Custom fetch implementation (required in environments without globalThis.fetch)
   getRv?: () => string | number // Custom getter for the shared revision token
   setRv?: (value: string | number) => void // Custom setter for the shared revision token
-  timeoutMs?: number // Per-request timeout; aborts and throws ApiError when exceeded (default: none)
-  retries?: number // Retry attempts for transient GET failures (network/429/5xx) with backoff (default: 0)
+  timeoutMs?: number // Timeout per attempt, including reading the body; throws ApiError with status 0 (default: none)
+  retries?: number // Retry attempts for transient GET failures (network/timeout/429/5xx) (default: 0)
   maxConcurrency?: number // Max pages fetched concurrently by getAll/allPages (default: 6)
 }
 ```
@@ -212,7 +212,22 @@ try {
 }
 ```
 
-Set `retries` to automatically retry transient failures (network errors, HTTP 429 and 5xx) on idempotent GET requests with exponential backoff, and `timeoutMs` to bound each request.
+Set `retries` to retry transient failures (network errors, timeouts, HTTP 429 and 5xx) on GET requests. The client waits as long as a `Retry-After` header asks, up to 10 seconds, and otherwise backs off exponentially (200 ms, 400 ms, …). Other statuses, invalid JSON and aborts are never retried, and POST requests are never retried. `timeoutMs` bounds each attempt from the request until its body is read.
+
+Errors thrown by a custom fetch client, like Nuxt's `$fetch`, become an `ApiError` too, with the status and parsed body they carry. Error messages name the endpoint and never contain the request URL, so the access token stays out of logs.
+
+### Cancelling requests
+
+Every data API method takes a `signal` in its options (the last argument; for `getConfig`, its only argument). Aborting cancels the request, a pending retry, and for `allPages` the pages still loading. The call rejects with the signal's reason. A failed page of an `allPages` request also cancels the pages still loading.
+
+```typescript
+const controller = new AbortController()
+const entry = dataApi.getContent('home', {}, { signal: controller.signal })
+const all = dataApi.getContents({}, { allPages: true, signal: controller.signal })
+controller.abort()
+```
+
+Slugs and ids are encoded per path segment, so `?`, `#` and `%` in a slug can't change the request. A `.` or `..` segment is rejected with a `TypeError`.
 
 ## Low-level `ApiClient`
 
@@ -230,6 +245,9 @@ const fresh = await client.get('contents', { rv: Date.now() })
 
 // GET all pages
 const all = await client.getAll('blocks')
+
+// Cancel with a signal
+const space = await client.get('spaces/me', {}, { signal: controller.signal })
 
 // POST (e.g. redirects/lookup)
 const result = await client.post('redirects/lookup', { source: '/old' })
@@ -267,6 +285,12 @@ const resolved = resolveB10cksLink(block.ctaLink)
 ```
 
 `url` and `internal` links get their `params` as a query string and their `anchor` as a fragment, in that order: `/about?ref=nav#01kh6h981yh1s5z7s3f80wmrw2`. An href that already has a `#` keeps its fragment.
+
+Hrefs go through the same URL policy as rich text links: a scheme outside `http`, `https`, `mailto` and `tel` (like `javascript:`) turns the href into `#`. Relative URLs always pass. Pass the allowlist as the second argument to change it:
+
+```typescript
+resolveB10cksLink(block.ctaLink, { allowedSchemes: ['https', 'mailto'] })
+```
 
 ### Block anchors
 
@@ -425,7 +449,7 @@ Event protocol:
 | `FIELD_CONFIG`   | editor → preview | `{ itemId, path, richtext }`       | Allow in-place editing of a rich text field            |
 | `HIDDEN_BLOCKS`  | editor → preview | `{ ids }`                          | Ids of all hidden blocks, to dim them                  |
 
-`path` is a `FieldPath` (`(string | number)[]`) that addresses any value at any depth, including array indices — e.g. `['body', 2, 'headline']`.
+`path` is a `FieldPath` (`(string | number)[]`) that addresses any value at any depth, including array indices — e.g. `['body', 2, 'headline']`. The preview ignores paths longer than 64 segments, a `__proto__` key, and indices past the end of an array (appending at the end works), so a message can't change an object's prototype or create a huge sparse array.
 
 #### Security
 
@@ -454,6 +478,15 @@ attachEditableField(el, { id: block.id, path: ['link'] })
 Path-only fields and fields wrapping links or buttons select the CMS field by default. Pass `mode: 'inline'` for a path to a string value. The SDK lets an inline field inside a selectable link receive focus and blocks the link click while editing. An inline edit targeting the whole `actions` array would replace the array with text.
 
 In the editor, a click on an editable element selects it and nothing else: it is intercepted before any handler on the page, so links, buttons, and router links inside a block don't fire. Clicks outside editables behave as usual.
+
+Two kinds of elements let the click through after selecting:
+
+- **Text edited in place**, like an inline field or a rich text field being edited: the first click selects the block like a click anywhere else in it, and the caret lands where you clicked. Later clicks only move the caret.
+- **Interactive blocks**: pass `interactive: true` for components whose own clicks matter in the editor, like accordions, tabs or carousels. Clicks inside select the block and then reach the page, so the accordion still opens. Links and form submit buttons inside it still don't navigate.
+
+```typescript
+attachEditable(el, { id: block.id, label: block.block, interactive: true })
+```
 
 Selection and hover are drawn in an overlay layer, in a shadow root above the page, so your styles and layout stay untouched. Only the innermost editable is highlighted, with a label: the block type for blocks (`hero_section` reads as `Hero section`), the field name for `select`-mode fields. Pass `label` to override it. The highlighted elements also get the `b10cks-selected` and `b10cks-hover` classes if you want to add your own styling. Blocks the editor hides get `b10cks-hidden` and are shown at reduced opacity; they stay in the preview and selectable.
 
@@ -486,6 +519,7 @@ const field = attachRichTextField(el, {
 })
 
 field.update(nextBody) // whenever the document changes, e.g. from usePreviewContent
+field.setRender(nextOptions) // whenever the render options change
 field.destroy()
 ```
 

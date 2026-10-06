@@ -1,7 +1,9 @@
-import type { B10cksDataApi, FetchClient } from '@b10cks/client'
+import type { B10cksDataApi } from '@b10cks/client'
 import { ApiClient, createB10cksDataApi } from '@b10cks/client'
 
 import { useRuntimeConfig } from '#imports'
+
+import { createFetchClient } from '../fetch-client'
 
 /** One data API per space, so its caches outlive a single request. */
 const instances = new Map<string, B10cksDataApi>()
@@ -25,7 +27,8 @@ const instances = new Map<string, B10cksDataApi>()
  * ```
  */
 export function useB10cksServerApi(): B10cksDataApi {
-  const { apiUrl, accessToken } = useRuntimeConfig().public.b10cks
+  const { apiUrl, accessToken, timeoutMs, retries, maxConcurrency } =
+    useRuntimeConfig().public.b10cks
   const baseUrl = apiUrl || 'https://api.b10cks.com/api'
   const cacheKey = `${baseUrl}|${accessToken}`
 
@@ -36,8 +39,10 @@ export function useB10cksServerApi(): B10cksDataApi {
     new ApiClient({
       baseUrl,
       token: accessToken,
-      // $fetch's init type (NitroFetchOptions) is wider than RequestInit.
-      fetchClient: $fetch as unknown as FetchClient,
+      fetchClient: createFetchClient(),
+      timeoutMs,
+      retries,
+      maxConcurrency,
     })
   )
   instances.set(cacheKey, api)

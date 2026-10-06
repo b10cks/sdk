@@ -3,6 +3,19 @@ import type { RichTextFieldConfig, RichTextHeadingLevel } from '@b10cks/richtext
 /** Addresses a field within a block, supporting nested objects and arrays. */
 export type FieldPath = (string | number)[]
 
+/** Longest field path the preview accepts. Real content nests far less deeply. */
+export const MAX_FIELD_PATH_LENGTH = 64
+
+/**
+ * A key a path may name: any string except `__proto__`, which would swap the
+ * prototype of the copied object instead of setting a field, or an array index.
+ */
+export function isFieldPathSegment(segment: unknown): segment is string | number {
+  return typeof segment === 'string'
+    ? segment !== '__proto__'
+    : Number.isSafeInteger(segment) && (segment as number) >= 0
+}
+
 export type ContentUpdateEvent = {
   content: Record<string, unknown>
 }
@@ -135,12 +148,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const isFieldPath = (value: unknown): value is FieldPath =>
-  Array.isArray(value) &&
-  value.every(
-    (segment) =>
-      typeof segment === 'string' ||
-      (typeof segment === 'number' && Number.isInteger(segment) && segment >= 0)
-  )
+  Array.isArray(value) && value.length <= MAX_FIELD_PATH_LENGTH && value.every(isFieldPathSegment)
 
 const HEADING_LEVELS: readonly RichTextHeadingLevel[] = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']
 

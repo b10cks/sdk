@@ -175,6 +175,50 @@ renderRichText(document, {
 
 `allowedSchemes` is part of `RichTextHtmlOptions`, so the `@b10cks/react`, `@b10cks/vue`, and `@b10cks/svelte` components forward it too.
 
+The same policy is exported for your own code, and `resolveB10cksLink` in `@b10cks/client` and the preview editor's link field use it as well:
+
+```ts
+import { isSafeUrl, sanitizeUrl } from '@b10cks/richtext'
+
+isSafeUrl('javascript:alert(1)') // false
+sanitizeUrl(attrs.src) // the URL, or '#' when unsafe or not a string
+sanitizeUrl(url, { allowedSchemes: ['https'] })
+```
+
+Attributes of the wrong type, like a numeric `href` or an object as `src`, render as `#` or are left out, and malformed nodes render nothing, instead of throwing.
+
+## Custom rendering
+
+`nodes` and `marks` replace the HTML of single node or mark types. Each renderer gets the node or mark, its `attrs`, the already rendered `children`, and `renderDefault()` for the built-in output. Return `null` or `undefined` to fall back to the built-in output.
+
+```ts
+import { escapeHtml, renderRichText, sanitizeUrl } from '@b10cks/richtext'
+
+renderRichText(document, {
+  nodes: {
+    // Responsive images
+    image: ({ attrs }) => {
+      const src = escapeHtml(sanitizeUrl(attrs.src))
+      return `<img src="${src}" srcset="${src}?w=640 640w, ${src}?w=1280 1280w" loading="lazy">`
+    },
+    // Embeds from a custom node type
+    youtube: ({ attrs }) =>
+      typeof attrs.videoId === 'string'
+        ? `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(attrs.videoId)}"></iframe>`
+        : null,
+  },
+  marks: {
+    // External links open in a new tab
+    link: ({ attrs, children }) =>
+      typeof attrs.href === 'string' && attrs.href.startsWith('https://')
+        ? `<a href="${escapeHtml(attrs.href)}" target="_blank" rel="noopener">${children}</a>`
+        : null,
+  },
+})
+```
+
+Renderers are trusted code: the string they return goes into the page as HTML, unescaped. `children` and `renderDefault()` are safe. Escape every other value from the document with `escapeHtml`, and pass URLs through `sanitizeUrl`. Node types the renderer doesn't know render their children, as before, unless a renderer handles them. Renderers registered under inherited object keys like `constructor` are ignored.
+
 ## Supported node and mark types
 
 | Node                                               | HTML output                                              |
@@ -241,6 +285,8 @@ editor?.destroy() // leaves the element showing the rendered document
 - It renders like `renderRichText`, so the page doesn't shift when editing starts.
 - `createRichTextEditor` returns `null` for a document with content the field's schema doesn't know, instead of dropping it. Leave such fields to the b10cks editor.
 - A small toolbar in a shadow root above the element offers the formats the field allows. Links to other content, placeholders, tables, text classes and list styles are kept, but edited in the b10cks editor.
+- Links typed, pasted or autolinked follow `render.allowedSchemes`. A link with another scheme is refused in the toolbar with a visible message.
+- `editor.setRender(options)` swaps the render options while editing, so the HTML left by `destroy` uses the latest ones. Custom `nodes` and `marks` renderers don't run inside the editor; the field shows the built-in markup until editing ends.
 
 ## Types
 
@@ -255,10 +301,13 @@ import type {
   RichTextPlaceholderHandler,
   RichTextRenderer,
   RichTextTextRenderer,
+  RichTextNodeRenderer,
+  RichTextMarkRenderer,
+  UrlPolicy,
 } from '@b10cks/richtext'
 
-// Runtime value: the default URL scheme allowlist
-import { DEFAULT_ALLOWED_SCHEMES } from '@b10cks/richtext'
+// Runtime values: the default URL scheme allowlist and the escaping helpers
+import { DEFAULT_ALLOWED_SCHEMES, escapeHtml, isSafeUrl, sanitizeUrl } from '@b10cks/richtext'
 ```
 
 ## Framework components
