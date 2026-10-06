@@ -33,11 +33,19 @@
     internalLinkHandler,
     placeholderHandler,
     allowedSchemes,
+    nodes,
+    marks,
     editable,
     ...restProps
   }: B10cksRichTextProps & HTMLAttributes<HTMLElement> = $props()
 
-  const renderOptions = $derived({ internalLinkHandler, placeholderHandler, allowedSchemes })
+  const renderOptions = $derived({
+    internalLinkHandler,
+    placeholderHandler,
+    allowedSchemes,
+    nodes,
+    marks,
+  })
   const resolvedHtml = $derived(html ?? renderRichText(document, { extensions, ...renderOptions }))
 
   let el: HTMLElement | undefined = $state()
@@ -75,6 +83,10 @@
 
   $effect(() => {
     handle?.update(document)
+  })
+
+  $effect(() => {
+    handle?.setRender(renderOptions)
   })
 </script>
 

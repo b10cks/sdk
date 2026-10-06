@@ -4,6 +4,8 @@ import {
   type RichTextFieldHandle,
 } from '@b10cks/client'
 import {
+  escapeHtml,
+  sanitizeUrl,
   renderRichText as renderBaseRichText,
   renderRichTextAsText as renderBaseRichTextAsText,
   createRichTextTextRenderer,
@@ -12,6 +14,8 @@ import {
   type RichTextHtmlOptions,
   type RichTextInternalLinkAttrs,
   type RichTextInternalLinkHandler,
+  type RichTextMarkRenderer,
+  type RichTextNodeRenderer,
   type RichTextPlaceholderHandler,
   type RichTextTextOptions,
   type RichTextTextRenderer,
@@ -34,10 +38,12 @@ export type {
   RichTextDocument,
   RichTextInternalLinkAttrs,
   RichTextInternalLinkHandler,
+  RichTextMarkRenderer,
+  RichTextNodeRenderer,
   RichTextTextOptions,
   RichTextTextRenderer,
 }
-export { createRichTextTextRenderer, isRichTextEmpty }
+export { createRichTextTextRenderer, escapeHtml, isRichTextEmpty, sanitizeUrl }
 
 export interface B10cksRichTextProps extends RichTextRenderOptions {
   document: RichTextDocument | null | undefined
@@ -106,7 +112,19 @@ export const B10cksRichText = defineComponent({
       default: undefined,
     },
     allowedSchemes: {
-      type: Array as PropType<string[]>,
+      type: Array as PropType<readonly string[]>,
+      required: false,
+      default: undefined,
+    },
+    /** Custom HTML per node type. See `RichTextNodeRenderer` for the escaping contract. */
+    nodes: {
+      type: Object as PropType<RichTextRenderOptions['nodes']>,
+      required: false,
+      default: undefined,
+    },
+    /** Custom HTML per mark type. See `RichTextMarkRenderer` for the escaping contract. */
+    marks: {
+      type: Object as PropType<RichTextRenderOptions['marks']>,
       required: false,
       default: undefined,
     },
@@ -121,6 +139,8 @@ export const B10cksRichText = defineComponent({
       internalLinkHandler: props.internalLinkHandler,
       placeholderHandler: props.placeholderHandler,
       allowedSchemes: props.allowedSchemes,
+      nodes: props.nodes,
+      marks: props.marks,
     }))
     const html = computed(() => props.html ?? renderRichText(props.document, renderOptions.value))
 
@@ -155,6 +175,7 @@ export const B10cksRichText = defineComponent({
       () => props.document,
       (document) => handle?.update(document)
     )
+    watch(renderOptions, (render) => handle?.setRender(render))
     onBeforeUnmount(() => handle?.destroy())
 
     return () =>

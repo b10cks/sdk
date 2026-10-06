@@ -88,6 +88,10 @@ function EditableRichText({
     handle.current?.update(document)
   }, [document, html, options])
 
+  useEffect(() => {
+    handle.current?.setRender(options)
+  }, [options])
+
   const { id, path, label } = field
   const pathKey = path.join('\u0000')
   useEffect(() => {
