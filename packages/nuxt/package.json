@@ -35,8 +35,12 @@
   "main": "./dist/module.mjs",
   "exports": {
     ".": {
-      "types": "./dist/types.d.mts",
+      "types": "./dist/module.d.mts",
       "import": "./dist/module.mjs"
+    },
+    "./rich-text": {
+      "types": "./dist/runtime/rich-text.d.ts",
+      "import": "./dist/runtime/rich-text.js"
     }
   },
   "publishConfig": {
