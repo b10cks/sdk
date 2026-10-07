@@ -1,5 +1,11 @@
 # @b10cks/nuxt
 
+## 4.2.0
+
+### Minor Changes
+
+- [#34](https://github.com/b10cks/sdk/pull/34) [`fc8a5c3`](https://github.com/b10cks/sdk/commit/fc8a5c3c2dd6f0f9865783d8077b136864ea1512) Thanks [@badmike](https://github.com/badmike)! - Add `@b10cks/nuxt/rich-text` for components and rendering helpers in app code without loading Nuxt Kit. Correct the module entry's declarations so existing value exports remain usable. Document explicit rich text component imports and the interactive preview click policy.
+
 ## 4.1.0
 
 ### Minor Changes
