@@ -182,6 +182,12 @@ const block = computed(() => toRootBlock(entry.value))
 </template>
 ```
 
+`B10cksRichText` is not auto-registered. Import it in components that render rich text:
+
+```typescript
+import { B10cksRichText } from '@b10cks/nuxt/rich-text'
+```
+
 ```vue
 <!-- Mark a block as selectable; it also live-updates in place while editing -->
 <div v-editable="block">…</div>
@@ -195,6 +201,8 @@ const block = computed(() => toRootBlock(entry.value))
 <!-- Other complex fields: deep-select so the editor opens its own editor -->
 <LinkCard :link="block.link" v-editable-field="{ id: block.id, path: ['link'], mode: 'select' }" />
 ```
+
+In preview, clicking a block selects it and prevents its links and buttons from firing. Clicking an inline text field selects its block while keeping the caret. For accordions, tabs, and other components that need click handlers, use `v-editable.interactive="block"`. It selects the block and allows its handlers, while links and form submit buttons still cannot navigate. Alt-click passes through for any block.
 
 The rich text editor loads only when an editor clicks the field in the visual editor, never during SSR or for visitors. See [`@b10cks/vue`](../vue/README.md#editing-rich-text-in-the-preview) for details.
 
@@ -262,12 +270,14 @@ onBeforeRouteLeave(() => clear())
 
 ## Rich text usage
 
-Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) on the server and client with a dependency-free renderer.
+Use `B10cksRichText` to render a b10cks `RichTextDocument` (a TipTap/ProseMirror-style JSON document) on the server and client with a dependency-free renderer. Import it explicitly; the module does not auto-register this component.
 
 ```vue
 <script setup lang="ts">
+import { B10cksRichText, type RichTextDocument } from '@b10cks/nuxt/rich-text'
+
 const { useContent } = useB10cksApi()
-const { data: page, pending } = await useContent<{ body?: Record<string, unknown> }>('home')
+const { data: page, pending } = await useContent<{ body?: RichTextDocument }>('home')
 </script>
 
 <template>
@@ -284,12 +294,14 @@ const { data: page, pending } = await useContent<{ body?: Record<string, unknown
 If you need to render HTML manually, you can use `renderRichText`:
 
 ```typescript
-import { renderRichText } from '@b10cks/nuxt'
+import { renderRichText } from '@b10cks/nuxt/rich-text'
 
 const html = renderRichText(document)
 ```
 
-> **Migrating from v2:** `renderRichText` and `B10cksRichText` are re-exported from `@b10cks/vue/rich-text` via `@b10cks/nuxt`. Imports from `@b10cks/nuxt` continue to work — no import path change required for Nuxt consumers.
+Use `@b10cks/nuxt/rich-text` in app code. It exports the Vue rich text component, rendering helpers, and their types without importing `@nuxt/kit`. The package root is the Nuxt module entry for `nuxt.config.ts`. Its existing rich text exports remain available for compatibility, but importing them also loads module tooling.
+
+`@nuxt/kit` remains a package dependency because Nuxt loads the module in consuming projects. It is only needed by the module entry, not the rich text entry.
 
 ## License
 
