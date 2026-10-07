@@ -60,13 +60,13 @@
     "@b10cks/richtext": "workspace:^"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.59.2",
+    "@microsoft/api-extractor": "^7.59.3",
     "chalk": "^6.0.1",
     "happy-dom": "^20.14.5",
-    "vite": "^8.3.1",
+    "vite": "^8.3.2",
     "vite-plugin-banner": "^0.8.1",
-    "vite-plugin-dts": "^5.1.1",
-    "vitest": "^5.0.2"
+    "vite-plugin-dts": "^5.1.2",
+    "vitest": "^5.0.3"
   },
   "release": {
     "branches": [
