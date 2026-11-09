@@ -132,6 +132,7 @@ const params = serializeFilter({
 | ----------------------------------------- | ------------------------------------------------------------- |
 | `getContent(slug, params)`                | Single content entry by full slug                             |
 | `getContents(params, options)`            | List of content entries                                       |
+| `getReferencedContents(ids, params)`      | Entries a reference field points at, in any language          |
 | `getBreadcrumb(slug, params)`             | Ancestor trail of an entry, root first                        |
 | `getBreadcrumbResponse(slug, params)`     | Same trail, with the response's `meta` block                  |
 | `getBlock(blockId, params)`               | Single block by ID                                            |
@@ -176,6 +177,27 @@ Filtering by `id`, `canonical_id`, `canonical_parent_id`, `parent_id` and
 `filter: { canonical_id: { in: [...] } }` serializes to the same
 `canonical_id=in:a,b` the API expects, so there is no reason to build that
 string yourself.
+
+### Referenced entries
+
+Reference fields, `link.content` and `parent_id` hold the default-language row
+id, and every translation is its own row. A `filter: { id: { in: refs } }`
+therefore finds nothing outside the default language, without an error. Fetch
+references with `getReferencedContents` instead:
+
+```typescript
+const products = await dataApi.getReferencedContents(block.products, { language_iso: 'nl' })
+```
+
+It filters by `canonical_id`, fetches every page, returns the entries in the
+order of `ids` and drops ids without a published entry. A version id in `vid`
+(a live preview of one version) reads `draft`, because the contents list only
+accepts `published` and `draft`.
+
+To match an entry of any language against a reference in your own code, use
+`canonicalId(entry, defaultLanguage?)`. It reads `entry.canonical_id` and falls
+back to the default-language sibling in `translations` on API deployments
+without that field.
 
 ## `ApiClient` configuration
 

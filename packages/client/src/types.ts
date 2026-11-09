@@ -77,6 +77,11 @@ export interface IBContentRelation {
 
 export interface IBContent<Content = IBContentBlock<string> & { [index: string]: unknown }> {
   id: string
+  /**
+   * Id of the default-language row of this entry, the id references point at.
+   * Missing on older API deployments, see `canonicalId`.
+   */
+  canonical_id?: string
   name: string
   slug: string
   block: string
@@ -495,6 +500,17 @@ export type ContentSortItem = ContentSortField | `-${ContentSortField}`
 export interface IBGetContentsParams extends Omit<IBContentQueryParams, 'token' | 'sort'> {
   filter?: IBContentFilter
   sort?: string | ContentSortItem[]
+}
+
+/**
+ * Params for `getReferencedContents`. The id filter and the sort order are set
+ * by the method, so they are not accepted here.
+ */
+export interface IBReferencedContentsParams extends Omit<
+  IBGetContentsParams,
+  'filter' | 'sort' | 'page' | 'per_page'
+> {
+  filter?: Omit<IBContentFilter, 'id' | 'canonical_id'>
 }
 
 export interface IBBlockFilter {

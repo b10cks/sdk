@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { canonicalId } from './content'
 import type { DataApiClient, GetConfigOptions } from './data-api'
 import { B10cksDataApi } from './data-api'
 import { ApiClient } from './index'
@@ -339,5 +340,89 @@ describe('B10cksDataApi', () => {
 
     expect(config.id).toBe('config-entry')
     expect(config.theme).toBe('dark')
+  })
+
+  describe('getReferencedContents', () => {
+    const translation = (id: string, language_iso: string) => ({
+      id,
+      name: id,
+      slug: id,
+      full_slug: id,
+      language_iso,
+      published_at: null,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+    })
+    const clientReturning = (entries: unknown[]): DataApiClient => ({
+      get: vi.fn(),
+      getAll: vi.fn().mockResolvedValue(entries),
+      setRv: vi.fn(),
+    })
+
+    it('filters by canonical_id, fetches every page and maps each result to its reference', async () => {
+      const client = clientReturning([
+        // Newer APIs deliver canonical_id.
+        { ...buildContent('nl-b'), language_iso: 'nl', canonical_id: 'de-b' },
+        // Older ones only list the default-language sibling among the translations.
+        {
+          ...buildContent('nl-a'),
+          language_iso: 'nl',
+          translations: [translation('fr-a', 'fr'), translation('de-a', 'de')],
+        },
+      ])
+      const dataApi = new B10cksDataApi(client)
+
+      const entries = await dataApi.getReferencedContents(['de-a', 'de-missing', 'de-b', 'de-a'], {
+        language_iso: 'nl',
+      })
+
+      expect(entries.map((entry) => entry.id)).toEqual(['nl-a', 'nl-b'])
+      expect(client.getAll).toHaveBeenCalledTimes(1)
+      expect(client.getAll).toHaveBeenCalledWith(
+        'contents',
+        { language_iso: 'nl', per_page: 3, canonical_id: 'in:de-a,de-missing,de-b' },
+        {}
+      )
+    })
+
+    it('makes no request without ids', async () => {
+      const client = clientReturning([])
+
+      expect(await new B10cksDataApi(client).getReferencedContents([])).toEqual([])
+      expect(client.getAll).not.toHaveBeenCalled()
+    })
+
+    it('reads a version id as draft and keeps published and draft as they are', async () => {
+      const client = clientReturning([])
+      const dataApi = new B10cksDataApi(client)
+
+      await dataApi.getReferencedContents(['a'], { vid: '01kkk9mqjw2kn06vknz28t7ncg' })
+      await dataApi.getReferencedContents(['a'], { vid: 'published' })
+
+      expect(client.getAll).toHaveBeenNthCalledWith(
+        1,
+        'contents',
+        expect.objectContaining({ vid: 'draft' }),
+        {}
+      )
+      expect(client.getAll).toHaveBeenNthCalledWith(
+        2,
+        'contents',
+        expect.objectContaining({ vid: 'published' }),
+        {}
+      )
+    })
+
+    it('canonicalId prefers canonical_id, then the default-language sibling', () => {
+      const entry = { id: 'nl-a', translations: [], canonical_id: 'de-a' }
+      const legacy = {
+        id: 'nl-a',
+        translations: [translation('de-a', 'de')],
+      }
+
+      expect(canonicalId(entry)).toBe('de-a')
+      expect(canonicalId(legacy, 'de')).toBe('de-a')
+      expect(canonicalId(legacy)).toBe('nl-a')
+    })
   })
 })

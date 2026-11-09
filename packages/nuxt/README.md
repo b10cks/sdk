@@ -101,6 +101,21 @@ const { data: people } = await useContents({
 ```
 
 ```typescript
+// Entries a reference field points at, in the editor's order, in any language
+const { useReferencedContents } = useB10cksApi()
+const vid = useB10cksVersion()
+const { data: products } = await useReferencedContents(
+  () => props.block.products,
+  () => ({ language_iso: 'nl', vid: vid.value })
+)
+```
+
+Never fetch references with `filter: { id: { in: refs } }`: references hold the
+default-language id, so that filter finds nothing in any other language.
+`useReferencedContents` filters by `canonical_id`, keeps the editor's order and
+reads a preview version id as `draft`, which the contents list requires.
+
+```typescript
 // Breadcrumb trail of an entry, root first — one request, no tree walking
 const { useBreadcrumb } = useB10cksApi()
 const { data: trail } = await useBreadcrumb('products/shoes', { language: 'de' })
