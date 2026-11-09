@@ -13,6 +13,7 @@ import type {
   IBDataEntryParams,
   IBDataSource,
   IBGetContentsParams,
+  IBReferencedContentsParams,
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
@@ -140,6 +141,28 @@ export function useB10cksApi() {
       },
       immediate,
       () => toValue(params)
+    )
+  }
+
+  /**
+   * The entries a reference field points at, in the order of `ids`, in any
+   * language. See `getReferencedContents`: never filter references by `id`.
+   */
+  const useReferencedContents = <T = Record<string, unknown>>(
+    ids: MaybeRefOrGetter<readonly string[]>,
+    params: MaybeRefOrGetter<IBReferencedContentsParams> = {},
+    options: Omit<UseB10cksApiOptions<IBContent<T>[]>, 'params'> = {}
+  ): AsyncState<IBContent<T>[]> => {
+    const { immediate = false, transform } = options
+    return createAsyncState(
+      async (signal) => {
+        const value = await dataApi.getReferencedContents<T>(toValue(ids), toValue(params), {
+          signal,
+        })
+        return transform ? transform(value) : value
+      },
+      immediate,
+      () => [toValue(ids), toValue(params)]
     )
   }
 
@@ -304,6 +327,7 @@ export function useB10cksApi() {
     useApiCollection,
     useContent,
     useContents,
+    useReferencedContents,
     useBreadcrumb,
     useSitemap,
     useNamedSitemap,

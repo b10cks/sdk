@@ -47,7 +47,7 @@ app.mount('#app')
 ```typescript
 import { useB10cksApi } from '@b10cks/vue'
 
-const { useContent, useContents, useBlocks } = useB10cksApi()
+const { useContent, useContents, useReferencedContents, useBlocks } = useB10cksApi()
 
 // Single content entry by slug
 const content = useContent('home', { vid: 'published' }, { immediate: true })
@@ -65,7 +65,18 @@ const { data: items } = useContents(
 )
 
 const blocks = useBlocks({}, { immediate: true })
+
+// Entries a reference field points at, in the editor's order, in any language
+const { data: products } = useReferencedContents(
+  () => block.products,
+  { language_iso: 'nl' },
+  { immediate: true }
+)
 ```
+
+Never fetch references with `filter: { id: { in: refs } }`: references hold the
+default-language id, so that filter finds nothing in any other language.
+`useReferencedContents` filters by `canonical_id` and restores the order.
 
 The `immediate` option controls whether the request fires on composable setup (`true`) or must be triggered manually (`false`). Pass `immediate: false` to defer requests that depend on reactive values not yet available.
 

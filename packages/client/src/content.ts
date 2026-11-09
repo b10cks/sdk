@@ -37,6 +37,27 @@ export function toRootBlock<T extends Record<string, unknown>>(
   } as RootBlock<T>
 }
 
+/**
+ * The id that references to this entry hold: the default-language row id.
+ *
+ * Every translation is its own row with its own id, while reference fields,
+ * `link.content` and `parent_id` point at the default-language row. Use this to
+ * match an entry of any language against such a reference. It reads
+ * `canonical_id` and, on API deployments without it, the default-language
+ * sibling in `translations`. Without either it returns `entry.id`, which is
+ * only right for an entry in the default language.
+ */
+export function canonicalId(
+  entry: Pick<IBContent, 'id' | 'canonical_id' | 'translations'>,
+  defaultLanguage?: string
+): string {
+  if (entry.canonical_id) return entry.canonical_id
+  const sibling = defaultLanguage
+    ? entry.translations?.find((translation) => translation.language_iso === defaultLanguage)
+    : undefined
+  return sibling?.id ?? entry.id
+}
+
 export interface B10cksLinkResolved {
   href: string
   target: string

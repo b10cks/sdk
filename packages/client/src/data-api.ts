@@ -16,6 +16,7 @@ import type {
   IBGetRedirectsParams,
   IBRedirect,
   IBRedirectLookupResult,
+  IBReferencedContentsParams,
   IBSearchParams,
   IBSearchResponse,
   IBSitemapEntry,
@@ -153,6 +154,17 @@ function buildParamsWithFilter(
   return { ...params, ...filterParams, ...sortParam }
 }
 
+/**
+ * Ids per `getReferencedContents` request, which keeps the query string well
+ * below common URL length limits.
+ */
+const REFERENCE_CHUNK_SIZE = 100
+
+/** The contents list only reads these versions. It answers a version id with 422. */
+function listVersion(vid: string | undefined): string | undefined {
+  return vid === undefined || vid === 'published' || vid === 'draft' ? vid : 'draft'
+}
+
 /** Maximum number of distinct config entries kept in memory (LRU-evicted). */
 const CONFIG_CACHE_MAX = 128
 
@@ -209,6 +221,62 @@ export class B10cksDataApi {
       buildParamsWithFilter(rest, filter, sort),
       options
     )
+  }
+
+  /**
+   * The entries a reference field, `link.content` or `parent_id` points at,
+   * in the order of `ids`, in the language of `params.language_iso`.
+   *
+   * References hold the default-language row id, and every translation is its
+   * own row, so a `filter: { id: { in: ids } }` finds nothing outside the
+   * default language. This filters by `canonical_id` instead, fetches every
+   * page, drops ids without a published entry and keeps the order of `ids`.
+   * A version id in `vid` (a live preview of one version) reads `draft`, since
+   * the list endpoint only accepts `published` and `draft`.
+   */
+  async getReferencedContents<T = Record<string, unknown>>(
+    ids: readonly string[],
+    params: IBReferencedContentsParams = {},
+    options: RequestOptions = {}
+  ): Promise<IBContent<T>[]> {
+    const wanted = [...new Set(ids.filter(Boolean))]
+    if (wanted.length === 0) return []
+
+    const { filter, vid, ...rest } = params
+    const version = listVersion(vid)
+    const chunks: string[][] = []
+    for (let i = 0; i < wanted.length; i += REFERENCE_CHUNK_SIZE) {
+      chunks.push(wanted.slice(i, i + REFERENCE_CHUNK_SIZE))
+    }
+
+    const pages = await Promise.all(
+      chunks.map((chunk) =>
+        this.getContents<T>(
+          {
+            ...rest,
+            ...(version === undefined ? {} : { vid: version }),
+            per_page: chunk.length,
+            filter: { ...filter, canonical_id: { in: chunk } },
+          },
+          { ...options, allPages: true }
+        )
+      )
+    )
+
+    // Without `canonical_id` (older APIs), the reference is whichever of the
+    // entry's own id and its translations' ids was asked for.
+    const wantedSet = new Set(wanted)
+    const byReference = new Map<string, IBContent<T>>()
+    for (const entry of pages.flat()) {
+      const reference =
+        entry.canonical_id ??
+        [entry.id, ...(entry.translations ?? []).map((translation) => translation.id)].find((id) =>
+          wantedSet.has(id)
+        )
+      if (reference && !byReference.has(reference)) byReference.set(reference, entry)
+    }
+
+    return wanted.flatMap((id) => byReference.get(id) ?? [])
   }
 
   /**

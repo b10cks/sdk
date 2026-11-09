@@ -11,6 +11,7 @@ import type {
   IBDataEntryParams,
   IBDataSource,
   IBGetContentsParams,
+  IBReferencedContentsParams,
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
@@ -80,6 +81,10 @@ export type UseNuxtB10cksContentsOptions<T> = UseNuxtB10cksCollectionOptions<
   IBGetContentsParams
 >
 
+export type UseNuxtB10cksReferencedContentsOptions<T> = AsyncDataCollectionConfig<IBContent<T>> & {
+  transform?: (value: IBContent<T>[]) => IBContent<T>[]
+}
+
 export type UseNuxtB10cksBreadcrumbOptions<T> = AsyncDataCollectionConfig<IBBreadcrumbLevel<T>> & {
   transform?: (value: IBBreadcrumbLevel<T>[]) => IBBreadcrumbLevel<T>[]
 }
@@ -97,6 +102,7 @@ export type NuxtB10cksApi = Omit<
   | 'useApiCollection'
   | 'useContent'
   | 'useContents'
+  | 'useReferencedContents'
   | 'useBreadcrumb'
   | 'useBlocks'
   | 'useDataEntries'
@@ -123,6 +129,11 @@ export type NuxtB10cksApi = Omit<
   useContents: <T = Record<string, unknown>>(
     params?: MaybeRefOrGetter<IBGetContentsParams>,
     options?: UseNuxtB10cksContentsOptions<T>
+  ) => Promise<AwaitedContentsAsyncData<T>>
+  useReferencedContents: <T = Record<string, unknown>>(
+    ids: MaybeRefOrGetter<readonly string[]>,
+    params?: MaybeRefOrGetter<IBReferencedContentsParams>,
+    options?: UseNuxtB10cksReferencedContentsOptions<T>
   ) => Promise<AwaitedContentsAsyncData<T>>
   useBreadcrumb: <T = Record<string, unknown>>(
     slug: MaybeRefOrGetter<string>,
@@ -261,6 +272,29 @@ export const useB10cksApi = (): NuxtB10cksApi => {
       keyOf(key, 'contents', () => ({ allPages, params: toValue(params) })),
       query(async (signal) => {
         const value = await api.dataApi.getContents<T>(toValue(params), { allPages, signal })
+        return transform ? transform(value) : value
+      }),
+      asyncDataOptions
+    )
+  }
+
+  /**
+   * The entries a reference field points at, in the order of `ids`, in any
+   * language. See `getReferencedContents`: never filter references by `id`.
+   */
+  const useReferencedContents = async <T = Record<string, unknown>>(
+    ids: MaybeRefOrGetter<readonly string[]>,
+    params: MaybeRefOrGetter<IBReferencedContentsParams> = {},
+    options: UseNuxtB10cksReferencedContentsOptions<T> = {}
+  ): Promise<AwaitedContentsAsyncData<T>> => {
+    const { key, transform, ...asyncDataOptions } = options
+
+    return await useAsyncData<IBContent<T>[] | undefined, Error>(
+      keyOf(key, 'referenced-contents', () => ({ ids: toValue(ids), params: toValue(params) })),
+      query(async (signal) => {
+        const value = await api.dataApi.getReferencedContents<T>(toValue(ids), toValue(params), {
+          signal,
+        })
         return transform ? transform(value) : value
       }),
       asyncDataOptions
@@ -450,6 +484,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     useApiCollection,
     useContent,
     useContents,
+    useReferencedContents,
     useBreadcrumb,
     useBlocks,
     useDataEntries,
