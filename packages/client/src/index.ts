@@ -1,3 +1,4 @@
+import { ApiError } from './errors'
 import type {
   B10cksApiClientOptions,
   Endpoint,
@@ -8,7 +9,6 @@ import type {
   IBResponse,
   RequestOptions,
 } from './types'
-import { ApiError } from './errors'
 
 export interface B10cksApiClientRvOptions {
   getRv?: () => string | number

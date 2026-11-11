@@ -404,7 +404,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     options: UseNuxtB10cksRedirectsOptions = {}
   ): Promise<AwaitedAsyncData<RedirectMap>> => {
     const {
-      allPages = false,
+      allPages = true,
       key,
       params = {},
       transform,

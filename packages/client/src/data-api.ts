@@ -1,3 +1,4 @@
+import { ApiError, ContentRedirectError } from './errors'
 import type {
   IBCollectionResponse,
   Endpoint,
@@ -22,7 +23,6 @@ import type {
   IBSpace,
   RequestOptions,
 } from './types'
-import { ApiError, ContentRedirectError } from './errors'
 
 type ApiQueryParams = Omit<IBBaseQueryParams, 'token'> & Record<string, unknown>
 type ApiCollectionResponse<T> =
@@ -39,6 +39,8 @@ export interface CollectionFetchOptions extends RequestOptions {
 }
 
 export interface RedirectFetchOptions extends CollectionFetchOptions {
+  /** Defaults to true: a redirect map that stops after the first page is incomplete. */
+  allPages?: boolean
   forceRefresh?: boolean
 }
 
@@ -429,7 +431,7 @@ export class B10cksDataApi {
     forceRefreshOrOptions: boolean | RedirectFetchOptions = false
   ): Promise<RedirectMap> {
     const {
-      allPages = false,
+      allPages = true,
       forceRefresh = false,
       signal,
     } = typeof forceRefreshOrOptions === 'boolean'

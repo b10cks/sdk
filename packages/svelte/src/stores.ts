@@ -170,7 +170,7 @@ export function createB10cksStores(dataApi: B10cksDataApi = getB10cksDataApi()) 
       CollectionFetchOptions & { forceRefresh?: boolean } = {}
   ): AsyncStore<RedirectMap> => {
     const {
-      allPages = false,
+      allPages = true,
       immediate = true,
       params = {},
       transform,

@@ -216,7 +216,7 @@ export function useB10cksApi() {
       CollectionFetchOptions & { forceRefresh?: boolean } = {}
   ): AsyncState<RedirectMap> => {
     const {
-      allPages = false,
+      allPages = true,
       immediate = true,
       params = {},
       transform,

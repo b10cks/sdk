@@ -128,27 +128,27 @@ const params = serializeFilter({
 
 ## Data API Methods
 
-| Method                                    | Description                                                   |
-| ----------------------------------------- | ------------------------------------------------------------- |
-| `getContent(slug, params)`                | Single content entry by full slug                             |
-| `getContents(params, options)`            | List of content entries                                       |
-| `getBreadcrumb(slug, params)`             | Ancestor trail of an entry, root first                        |
-| `getBreadcrumbResponse(slug, params)`     | Same trail, with the response's `meta` block                  |
-| `getBlock(blockId, params)`               | Single block by ID                                            |
-| `getBlocks(params, options)`              | List of blocks                                                |
-| `search(params)`                          | Full-text content search (`q`, `limit`, `offset`, `language`) |
-| `lookupRedirect(source)`                  | POST redirect lookup for a given source path                  |
-| `getRedirects(params, options)`           | Redirect map (cached when `allPages: true`)                   |
-| `getDataEntries(source, params, options)` | Entries for a data source slug                                |
-| `getDataSources(params, options)`         | List of data sources                                          |
-| `getSitemap(params, options)`             | Sitemap entries (default sitemap)                             |
-| `getNamedSitemap(name, params, options)`  | Entries of a named sitemap from `settings.sitemaps`           |
-| `getSpace(params)`                        | Current space info                                            |
-| `getConfig(options)`                      | Config entry content plus its `id` (cached)                   |
-| `syncRevision(fallbackRv)`                | Sync local RV from the space                                  |
-| `clearCache()`                            | Clear redirect and config caches                              |
+| Method                                    | Description                                                    |
+| ----------------------------------------- | -------------------------------------------------------------- |
+| `getContent(slug, params)`                | Single content entry by full slug                              |
+| `getContents(params, options)`            | List of content entries                                        |
+| `getBreadcrumb(slug, params)`             | Ancestor trail of an entry, root first                         |
+| `getBreadcrumbResponse(slug, params)`     | Same trail, with the response's `meta` block                   |
+| `getBlock(blockId, params)`               | Single block by ID                                             |
+| `getBlocks(params, options)`              | List of blocks                                                 |
+| `search(params)`                          | Full-text content search (`q`, `limit`, `offset`, `language`)  |
+| `lookupRedirect(source)`                  | POST redirect lookup for a given source path                   |
+| `getRedirects(params, options)`           | Redirect map of every page, cached (`allPages: false` for one) |
+| `getDataEntries(source, params, options)` | Entries for a data source slug                                 |
+| `getDataSources(params, options)`         | List of data sources                                           |
+| `getSitemap(params, options)`             | Sitemap entries (default sitemap)                              |
+| `getNamedSitemap(name, params, options)`  | Entries of a named sitemap from `settings.sitemaps`            |
+| `getSpace(params)`                        | Current space info                                             |
+| `getConfig(options)`                      | Config entry content plus its `id` (cached)                    |
+| `syncRevision(fallbackRv)`                | Sync local RV from the space                                   |
+| `clearCache()`                            | Clear redirect and config caches                               |
 
-Pass `{ allPages: true }` as the second argument to any collection method to fetch every page automatically.
+Pass `{ allPages: true }` as the second argument to any collection method to fetch every page automatically. `getRedirects` does so by default, because a redirect map that stops after the first page is incomplete.
 
 Every collection method normalizes the response envelope, so a bare array, a
 `{ data }` wrapper and a `{ data: { data } }` wrapper all resolve to a plain

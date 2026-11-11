@@ -129,7 +129,7 @@ describe('B10cksDataApi', () => {
     updated_at: '2024-01-01T00:00:00Z',
   })
 
-  it('caches redirects until force refresh is requested', async () => {
+  it('fetches every redirect page by default and caches until force refresh', async () => {
     const client: DataApiClient = {
       get: vi.fn(),
       getAll: vi
@@ -141,8 +141,8 @@ describe('B10cksDataApi', () => {
 
     const dataApi = new B10cksDataApi(client)
 
-    const first = await dataApi.getRedirects({}, { allPages: true })
-    const second = await dataApi.getRedirects({}, { allPages: true })
+    const first = await dataApi.getRedirects()
+    const second = await dataApi.getRedirects({}, {})
     const third = await dataApi.getRedirects({}, true)
 
     expect(first).toEqual({ '/old': { target: '/new', status_code: 301 } })
