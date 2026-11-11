@@ -11,6 +11,8 @@ export default defineConfig({
       bundleTypes: false,
       outDir: 'dist',
       entryRoot: 'src',
+      // Keep `@b10cks/*` imports as package imports, not paths into their sources.
+      pathsToAliases: false,
     }),
   ],
   build: {
