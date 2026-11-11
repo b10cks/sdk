@@ -22,6 +22,7 @@ import type {
   IBSpace,
   RequestOptions,
 } from './types'
+import { ApiError, ContentRedirectError } from './errors'
 
 type ApiQueryParams = Omit<IBBaseQueryParams, 'token'> & Record<string, unknown>
 type ApiCollectionResponse<T> =
@@ -39,6 +40,30 @@ export interface CollectionFetchOptions extends RequestOptions {
 
 export interface RedirectFetchOptions extends CollectionFetchOptions {
   forceRefresh?: boolean
+}
+
+/** What a slug resolves to: its entry, a redirect, or nothing. */
+export type ContentResolution<T = Record<string, unknown>> =
+  | { type: 'content'; content: IBContent<T> }
+  | { type: 'redirect'; target: string; status_code: number }
+  | { type: 'not_found' }
+
+/** The delivery API's answer for a slug that has a redirect: HTTP 301 with this body and no `Location`. */
+interface ContentRedirectBody {
+  redirect: true
+  to: string
+  status_code?: number
+}
+
+function isContentRedirect(value: unknown): value is ContentRedirectBody {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'redirect' in value &&
+    value.redirect === true &&
+    'to' in value &&
+    typeof value.to === 'string'
+  )
 }
 
 export interface DataApiClient {
@@ -191,12 +216,51 @@ export class B10cksDataApi {
     return this.unwrapCollection(response)
   }
 
+  /**
+   * The entry at `fullSlug`. A slug that has a redirect rejects with a
+   * {@link ContentRedirectError}, a missing slug with an `ApiError` of status
+   * 404. Use {@link resolveContent} to get those cases as values instead.
+   */
   async getContent<T = Record<string, unknown>>(
     fullSlug: string,
     params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
     options: RequestOptions = {}
   ): Promise<IBContent<T>> {
-    return this.getResource<IBContent<T>>(`contents/${slugPath(fullSlug)}`, params, options)
+    const endpoint: Endpoint = `contents/${slugPath(fullSlug)}`
+    const redirect = (body: ContentRedirectBody) =>
+      new ContentRedirectError(endpoint, body.to, body.status_code ?? 301, body)
+
+    const response = await this.client
+      .get<IBContent<T>>(endpoint, params, options)
+      .catch((error: unknown) => {
+        // `fetch` does not follow a 301 without `Location`, so it arrives as a failed response.
+        if (error instanceof ApiError && isContentRedirect(error.body)) throw redirect(error.body)
+        throw error
+      })
+    // Clients that only reject 4xx and 5xx, like Nuxt's `$fetch`, return the redirect body.
+    if (isContentRedirect(response)) throw redirect(response)
+
+    return this.unwrapResource(response)
+  }
+
+  /**
+   * Like {@link getContent}, but a redirect and a missing slug are results, not
+   * errors, so a page can answer them with a redirect or a 404.
+   */
+  async resolveContent<T = Record<string, unknown>>(
+    fullSlug: string,
+    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
+    options: RequestOptions = {}
+  ): Promise<ContentResolution<T>> {
+    try {
+      return { type: 'content', content: await this.getContent<T>(fullSlug, params, options) }
+    } catch (error) {
+      if (error instanceof ContentRedirectError) {
+        return { type: 'redirect', target: error.target, status_code: error.status }
+      }
+      if (error instanceof ApiError && error.status === 404) return { type: 'not_found' }
+      throw error
+    }
   }
 
   async getContents<T = Record<string, unknown>>(
