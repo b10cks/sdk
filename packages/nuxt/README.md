@@ -83,6 +83,19 @@ const { data: page } = await useContent('home', {
 })
 ```
 
+#### Redirected and missing pages
+
+The delivery API answers a slug that has a redirect with the redirect, and a slug without an entry with a 404. Neither is content. In the page that renders the entry of the current route, pass `forRoute: true`:
+
+```typescript
+// pages/[...slug].vue
+const { data: page } = await useContent(slug, params, { forRoute: true })
+```
+
+A redirected slug then navigates to its target with the redirect's status code (`navigateTo`, so it also works during client-side navigation), and a missing slug shows Nuxt's error page with status 404. There is no need to inspect `page.value.id`.
+
+Leave `forRoute` off for entries that are not the page, such as an entry a block loads by slug. Both cases then only set `error`, to a `ContentRedirectError` or an `ApiError` with status 404, and `data` stays `undefined`.
+
 ```typescript
 // List of content entries — params accepts the same filter object as dataApi.getContents()
 const { useContents } = useB10cksApi()

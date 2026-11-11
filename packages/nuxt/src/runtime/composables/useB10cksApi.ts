@@ -15,11 +15,12 @@ import type {
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
+import { ApiError, ContentRedirectError } from '@b10cks/client'
 import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
 import type { AsyncDataOptions } from 'nuxt/app'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-import { callOnce, useAsyncData } from '#app'
+import { callOnce, navigateTo, showError, useAsyncData, useNuxtApp } from '#app'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 // `sort` is omitted because content params widen it to `string | ContentSortItem[]`,
@@ -64,7 +65,15 @@ export type UseNuxtB10cksCollectionOptions<
   params?: MaybeRefOrGetter<P>
 }
 
-export type UseNuxtB10cksContentOptions<T, R = IBContent<T>> = AsyncDataConfig<IBContent<T>, R>
+export type UseNuxtB10cksContentOptions<T, R = IBContent<T>> = AsyncDataConfig<IBContent<T>, R> & {
+  /**
+   * The entry is the page of the current route. A slug that has a redirect
+   * navigates to its target with the redirect's status code, and a missing
+   * slug shows Nuxt's error page with status 404. Without it both cases only
+   * set `error`, as a `ContentRedirectError` or an `ApiError` of status 404.
+   */
+  forRoute?: boolean
+}
 
 export type UseNuxtB10cksContentsOptions<T, R = IBContent<T>[]> = UseNuxtB10cksCollectionOptions<
   IBContent<T>,
@@ -158,6 +167,9 @@ export type NuxtB10cksApi = Omit<
   ) => Promise<UseNuxtB10cksConfigResult<T>>
 }
 
+/** A redirect target on another host, which `navigateTo` only follows when told so. */
+const ABSOLUTE_URL = /^(?:[a-z][a-z\d+.-]*:)?\/\//i
+
 /** `callOnce` key of the revision sync, shared by every `useB10cksApi` call. */
 const REVISION_KEY = 'b10cks:sync-revision'
 
@@ -168,6 +180,7 @@ const REVISION_KEY = 'b10cks:sync-revision'
  */
 export const useB10cksApi = (): NuxtB10cksApi => {
   const api = useVueB10cksApi()
+  const nuxtApp = useNuxtApp()
 
   // Every query waits for the space revision, so the first requests already
   // read the latest published state. Runs once per server request; the client
@@ -223,16 +236,39 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     )
   }
 
+  /**
+   * Answers a failed page request the way a server would: a redirect
+   * navigates, a missing entry shows the 404 page. The error is thrown again
+   * either way, because there is no entry to return.
+   */
+  const answerRoute = async (error: unknown): Promise<never> => {
+    if (error instanceof ContentRedirectError) {
+      await navigateTo(error.target, {
+        redirectCode: error.status,
+        replace: true,
+        external: ABSOLUTE_URL.test(error.target),
+      })
+    } else if (error instanceof ApiError && error.status === 404) {
+      showError({ statusCode: 404, statusMessage: 'Page not found' })
+    }
+    throw error
+  }
+
   const useContent = async <T = Record<string, unknown>, R = IBContent<T>>(
     fullSlug: MaybeRefOrGetter<string>,
     params: MaybeRefOrGetter<ContentParams> = {},
     options: UseNuxtB10cksContentOptions<T, R> = {}
   ): Promise<AwaitedAsyncData<R>> => {
-    const { key, ...asyncDataOptions } = options
+    const { key, forRoute = false, ...asyncDataOptions } = options
 
     return await useAsyncData<IBContent<T>, Error, R | undefined>(
       keyOf(key, 'content', () => ({ fullSlug: toValue(fullSlug), params: toValue(params) })),
-      query((signal) => api.dataApi.getContent<T>(toValue(fullSlug), toValue(params), { signal })),
+      query((signal) => {
+        const content = api.dataApi.getContent<T>(toValue(fullSlug), toValue(params), { signal })
+        return forRoute
+          ? content.catch((error: unknown) => nuxtApp.runWithContext(() => answerRoute(error)))
+          : content
+      }),
       asyncDataOptions
     )
   }
