@@ -100,6 +100,34 @@ const { data: people } = await useContents({
 })
 ```
 
+#### Map listings down with `transform`
+
+`transform` maps the fetched value before it is stored. Its return type becomes the type of `data`, and only its result is serialised into the page payload. A block that lists other entries should map them down to the fields its cards show. Without that, every listed entry lands in the HTML in full, body included.
+
+```typescript
+interface Article {
+  title: string
+  teaser: string
+  body: RichTextDocument
+}
+
+// `data` is `Ref<{ id: string; href: string; title: string; teaser: string }[] | undefined>`
+const { data: cards } = await useContents(
+  { filter: { content_type: 'article' }, per_page: 6 },
+  {
+    transform: (entries: IBContent<Article>[]) =>
+      entries.map((entry) => ({
+        id: entry.id,
+        href: `/${entry.full_slug}`,
+        title: entry.content.title,
+        teaser: entry.content.teaser,
+      })),
+  }
+)
+```
+
+Type the parameter of `transform` as above, or pass both type arguments (`useContents<Article, Card[]>`). Giving only the first leaves the result type at its default, the full entries. Every composable takes `transform`. The server still downloads the full entries, the mapping only keeps them out of the payload.
+
 ```typescript
 // Breadcrumb trail of an entry, root first — one request, no tree walking
 const { useBreadcrumb } = useB10cksApi()
