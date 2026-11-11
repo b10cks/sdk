@@ -42,6 +42,8 @@ export default defineNuxtConfig({
     timeoutMs: 5000, // per attempt, including reading the body
     retries: 2, // network errors, timeouts, 429 and 5xx on GET requests
     maxConcurrency: 6, // pages fetched at once by `allPages` requests
+    // Optional: answer b10cks redirects on the server, see "Redirects".
+    redirects: true,
   },
 })
 ```
@@ -151,9 +153,8 @@ const { data: trail } = await useBreadcrumb('products/shoes', { language: 'de' }
 ```
 
 ```typescript
-// Redirects and config
-const { useRedirects, useB10cksConfig } = useB10cksApi()
-const redirects = await useRedirects()
+// Config
+const { useB10cksConfig } = useB10cksApi()
 const { data: config, pending, error, refresh } = await useB10cksConfig()
 
 // Pass a getter so the config refetches when the locale changes
@@ -174,27 +175,58 @@ const vid = useB10cksVersion()
 const { data: page } = await useContent('home', () => ({ vid: vid.value }))
 ```
 
-### Server routes and middleware
+### Redirects
 
-Nitro has no access to the Vue injection the module's plugin sets up, so server
-code gets its own entry point. `useB10cksServerApi()` is auto-imported in the
-server bundle and returns the same `B10cksDataApi` — including its paginated
-`getRedirects`, `getSitemap` and `getNamedSitemap`, and their built-in caching:
+Turn on `redirects` and the module answers every request whose path has a b10cks redirect, in a server middleware, before anything renders:
+
+```typescript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@b10cks/nuxt'],
+  b10cks: {
+    redirects: true,
+    // or keep the list longer than the default 60 seconds:
+    // redirects: { maxAge: 300 },
+  },
+})
+```
+
+The server fetches the full redirect list, all pages, and keeps it per server instance for `maxAge` seconds. A burst of requests shares one fetch, and a failed refresh keeps the list it had. The list never reaches the browser. Requests with `b10cks_vid`, the visual editor's preview, are not redirected.
+
+Do not resolve redirects in a route middleware with `useRedirects`. That serialises the whole list into the payload of every page, which is 50 KB or more of HTML per page for a few hundred redirects. `useRedirects` is still there for pages that show the list itself.
+
+A redirect of a slug the page requests is followed during client-side navigation too, through [`forRoute`](#redirected-and-missing-pages). Redirects of other paths apply on a full page load.
+
+For a middleware with its own rules, `resolveB10cksRedirect` is auto-imported in the server bundle and reads the same cached list:
 
 ```typescript
 // server/middleware/redirects.ts
 export default defineEventHandler(async (event) => {
-  const url = getRequestURL(event)
-  if (url.searchParams.has('b10cks_vid')) return
+  const { pathname } = getRequestURL(event)
+  if (pathname.startsWith('/api/')) return
 
-  const redirects = await useB10cksServerApi().getRedirects({}, { allPages: true })
-  const hit = redirects[url.pathname]
+  const hit = await resolveB10cksRedirect(pathname)
   if (hit) return sendRedirect(event, hit.target, hit.status_code || 301)
 })
 ```
 
+### Server routes and middleware
+
+Nitro has no access to the Vue injection the module's plugin sets up, so server
+code gets its own entry point. `useB10cksServerApi()` is auto-imported in the
+server bundle and returns the same `B10cksDataApi`, including its paginated
+`getSitemap` and `getNamedSitemap`, and their built-in caching:
+
+```typescript
+// server/routes/sitemap.xml.ts
+export default defineEventHandler(async () => {
+  const entries = await useB10cksServerApi().getSitemap({}, { allPages: true })
+  return renderSitemap(entries)
+})
+```
+
 The instance is shared per space so its caches outlive a single request. That
-also means the revision is shared — call `syncRevision()` when a route must
+also means the revision is shared. Call `syncRevision()` when a route must
 read the newest published state.
 
 The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched during hydration. Each helper derives a stable async-data key from its inputs — no manual `key` needed.

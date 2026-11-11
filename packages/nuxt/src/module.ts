@@ -2,6 +2,7 @@ import {
   addComponentsDir,
   addImports,
   addPlugin,
+  addServerHandler,
   addServerImports,
   createResolver,
   defineNuxtModule,
@@ -66,6 +67,7 @@ export default defineNuxtModule<ModuleOptions>({
       timeoutMs: options.timeoutMs,
       retries: options.retries,
       maxConcurrency: options.maxConcurrency,
+      redirectsMaxAge: typeof options.redirects === 'object' ? options.redirects.maxAge : undefined,
     })
 
     addPlugin(resolver.resolve('./runtime/plugin'))
@@ -116,7 +118,19 @@ export default defineNuxtModule<ModuleOptions>({
         as: 'useB10cksServerApi',
         from: resolver.resolve('./runtime/server/useB10cksServerApi'),
       },
+      {
+        name: 'resolveB10cksRedirect',
+        as: 'resolveB10cksRedirect',
+        from: resolver.resolve('./runtime/server/resolveB10cksRedirect'),
+      },
     ])
+
+    if (options.redirects) {
+      addServerHandler({
+        middleware: true,
+        handler: resolver.resolve('./runtime/server/middleware/redirects'),
+      })
+    }
 
     nuxt.options.typescript.hoist.push('@b10cks/vue')
   },

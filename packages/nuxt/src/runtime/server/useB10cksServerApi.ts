@@ -18,13 +18,13 @@ const instances = new Map<string, B10cksDataApi>()
  * route must read the newest published state.
  *
  * ```ts
- * export default defineEventHandler(async (event) => {
- *   const api = useB10cksServerApi()
- *   const redirects = await api.getRedirects({}, { allPages: true })
- *   const hit = redirects[getRequestURL(event).pathname]
- *   if (hit) return sendRedirect(event, hit.target, hit.status_code || 301)
+ * export default defineEventHandler(async () => {
+ *   const entries = await useB10cksServerApi().getSitemap({}, { allPages: true })
+ *   return renderSitemap(entries)
  * })
  * ```
+ *
+ * For redirects use `resolveB10cksRedirect`, which refreshes its list on a timer.
  */
 export function useB10cksServerApi(): B10cksDataApi {
   const { apiUrl, accessToken, timeoutMs, retries, maxConcurrency } =
