@@ -1,5 +1,11 @@
 # @b10cks/client
 
+## 2.2.0
+
+### Minor Changes
+
+- [#45](https://github.com/b10cks/sdk/pull/45) [`3c9efaa`](https://github.com/b10cks/sdk/commit/3c9efaa056269d5825ef64d96a23fea04d72084a) Thanks [@badmike](https://github.com/badmike)! - Type the fields the delivery API already returns on content entries: `canonical_id`, `external_id`, `position` and `cache` (`IBContentCache`). Add optional `resolved_language_iso` and `is_fallback`, which tell which language an entry was actually served in, for single-language entries whose canonical version is not in the default language.
+
 ## 2.1.0
 
 ### Minor Changes
