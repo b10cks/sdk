@@ -75,15 +75,31 @@ export interface IBContentRelation {
   updated_at: string
 }
 
+/** Cache settings of a content entry. */
+export interface IBContentCache {
+  ttl: number | null
+  tags: string[]
+}
+
 export interface IBContent<Content = IBContentBlock<string> & { [index: string]: unknown }> {
   id: string
+  /** Id of the entry's i18n family, shared by all its translations. */
+  canonical_id: string
   name: string
   slug: string
   block: string
+  external_id: string | null
   parent_id: string | null
+  position: number
   full_slug: string
   content: Content
+  cache: IBContentCache
+  /** The requested language. */
   language_iso: string
+  /** The language the entry was actually served from. Not sent by older APIs. */
+  resolved_language_iso?: string
+  /** True when the entry was served from another language than requested. Not sent by older APIs. */
+  is_fallback?: boolean
   translations: IBContentRelation[]
   published_at: string | null
   first_published_at: string | null
