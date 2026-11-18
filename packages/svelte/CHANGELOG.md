@@ -1,5 +1,17 @@
 # @b10cks/svelte
 
+## 1.1.0
+
+### Minor Changes
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`d243234`](https://github.com/b10cks/sdk/commit/d2432340844c470e2d3ef6eafebb31867f6f9f09) Thanks [@badmike](https://github.com/badmike)! - `getRedirects` and `useRedirects` fetch every page by default. They returned only the first page unless `allPages: true` was passed, so redirect maps were silently incomplete. Pass `allPages: false` to get a single page.
+
+### Patch Changes
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`781a831`](https://github.com/b10cks/sdk/commit/781a83191e7b35bdac1a1f8441b330b1dddcf4e4) Thanks [@badmike](https://github.com/badmike)! - Emit declarations that import from `@b10cks/client`, `@b10cks/react` and `@b10cks/richtext` instead of relative paths into the monorepo. In an installed package those paths did not exist, so types like `B10cksDataApi` and `ApiClient` resolved to `any`.
+- Updated dependencies [[`273a4bc`](https://github.com/b10cks/sdk/commit/273a4bcf47e5903ce0a8c146488600defb1ae167), [`ee204a1`](https://github.com/b10cks/sdk/commit/ee204a1c0faadfed358dc34eedde1066213554d5), [`d243234`](https://github.com/b10cks/sdk/commit/d2432340844c470e2d3ef6eafebb31867f6f9f09)]:
+  - @b10cks/client@2.3.0
+
 ## 1.0.1
 
 ### Patch Changes
