@@ -164,6 +164,8 @@ const { config } = await useB10cksConfig(() => ({ language_iso: locale.value }))
 `useB10cksConfig` takes `language_iso`, like every other content param.
 `language` still works as a deprecated alias.
 
+Each set of params is its own request and its own payload entry. Calling it once with `language_iso` and once without loads the config twice, so wrap it in one composable of your site that always passes the language.
+
 ### `useB10cksVersion()`
 
 The visual editor appends `?b10cks_vid` to preview a draft. The composable
