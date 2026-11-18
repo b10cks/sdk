@@ -21,6 +21,8 @@ export default defineConfig({
         index: resolve(__dirname, 'src/index.ts'),
         server: resolve(__dirname, 'src/server.ts'),
         client: resolve(__dirname, 'src/client.ts'),
+        middleware: resolve(__dirname, 'src/middleware.ts'),
+        image: resolve(__dirname, 'src/image.tsx'),
       },
       name: 'b10cksNext',
       formats: ['es', 'cjs'],
@@ -29,7 +31,9 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'next',
+        'next/image',
         'next/navigation',
+        'next/server',
         'react',
         'react-dom',
         '@b10cks/client',
