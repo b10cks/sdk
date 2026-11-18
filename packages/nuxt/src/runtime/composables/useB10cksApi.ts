@@ -20,7 +20,16 @@ import { useB10cksApi as useVueB10cksApi } from '@b10cks/vue'
 import type { AsyncDataOptions } from 'nuxt/app'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-import { callOnce, navigateTo, showError, useAsyncData, useNuxtApp } from '#app'
+import {
+  callOnce,
+  navigateTo,
+  reloadNuxtApp,
+  showError,
+  useAsyncData,
+  useNuxtApp,
+  useRouter,
+  useRuntimeConfig,
+} from '#app'
 
 type VueB10cksApi = ReturnType<typeof useVueB10cksApi>
 // `sort` is omitted because content params widen it to `string | ContentSortItem[]`,
@@ -239,7 +248,7 @@ export const useB10cksApi = (): NuxtB10cksApi => {
   /**
    * Answers a failed page request the way a server would: a redirect
    * navigates, a missing entry shows the 404 page. The error is thrown again
-   * either way, because there is no entry to return.
+   * afterwards, because there is no entry to return.
    */
   const answerRoute = async (error: unknown): Promise<never> => {
     if (error instanceof ContentRedirectError) {
@@ -249,6 +258,17 @@ export const useB10cksApi = (): NuxtB10cksApi => {
         external: ABSOLUTE_URL.test(error.target),
       })
     } else if (error instanceof ApiError && error.status === 404) {
+      // Only the server knows the redirects of paths without an entry, so a client-side
+      // navigation asks it once. The full page load renders the 404 if there is none.
+      if (
+        import.meta.client &&
+        !nuxtApp.isHydrating &&
+        useRuntimeConfig().public.b10cks.redirects
+      ) {
+        const router = useRouter()
+        reloadNuxtApp({ path: router.resolve(router.currentRoute.value).href, force: true })
+        return new Promise<never>(() => {})
+      }
       showError({ statusCode: 404, statusMessage: 'Page not found' })
     }
     throw error
