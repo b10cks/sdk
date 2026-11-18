@@ -9,30 +9,41 @@ import type {
   IBContent,
   IBContentQueryParams,
   IBDataEntry,
+  IBDataEntryParams,
   IBDataSource,
+  IBGetContentsParams,
   IBSitemapEntry,
   IBSpace,
   RedirectMap,
 } from '@b10cks/client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useB10cksDataApi } from './provider'
+import { useB10cksClient, useB10cksDataApi } from './provider'
 
 type QueryParams = Omit<IBBaseQueryParams, 'token'>
+type ContentParams = Omit<IBContentQueryParams, 'token' | 'full_slug'>
+type SitemapParams = Omit<IBContentQueryParams, 'token'>
 
-export interface UseB10cksApiOptions<T, P extends QueryParams = QueryParams> {
+export interface UseB10cksApiOptions<T, P extends QueryParams = QueryParams, R = T> {
   immediate?: boolean
   params?: P
-  transform?: (value: T) => T
+  /** Maps the fetched value. Its return type becomes the type of `data`. */
+  transform?: (value: T) => R
 }
 
-export interface UseB10cksCollectionOptions<T, P extends QueryParams = QueryParams>
-  extends UseB10cksApiOptions<T, P>, CollectionFetchOptions {}
+export interface UseB10cksCollectionOptions<T, P extends QueryParams = QueryParams, R = T>
+  extends UseB10cksApiOptions<T, P, R>, Pick<CollectionFetchOptions, 'allPages'> {}
+
+export type UseB10cksContentOptions<T, R = IBContent<T>> = Omit<
+  UseB10cksApiOptions<IBContent<T>, QueryParams, R>,
+  'params'
+>
 
 export interface AsyncState<T> {
   data: T | null
   pending: boolean
   error: Error | null
+  /** Fetch now. A newer call, or the component unmounting, aborts it. */
   execute: () => Promise<T>
   refresh: () => Promise<T>
 }
@@ -41,180 +52,178 @@ export interface UseB10cksConfigResult<T> extends AsyncState<T> {
   config: T
 }
 
+/** `R` defaults to `T`, so without a `transform` the value already is the result. */
+function applyTransform<T, R>(value: T, transform?: (value: T) => R): R {
+  return transform ? transform(value) : (value as unknown as R)
+}
+
+/**
+ * Hooks for every delivery API query. Once a query has run, a change to its
+ * slug, name or params fetches it again.
+ */
 export function useB10cksApi() {
   const dataApi = useB10cksDataApi()
+  const client = useB10cksClient()
 
-  const useApiResource = <T>(
+  const useApiResource = <T, R = T>(
     endpoint: Endpoint,
-    options: UseB10cksApiOptions<T> = {}
-  ): AsyncState<T> => {
+    options: UseB10cksApiOptions<T, QueryParams, R> = {}
+  ): AsyncState<R> => {
     const { immediate = true, params = {}, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getResource<T>(endpoint, params)
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getResource<T>(endpoint, params, { signal }), transform),
       [dataApi, endpoint, stableKey(params)],
       immediate
     )
   }
 
-  const useApiCollection = <T>(
+  const useApiCollection = <T, R = T[]>(
     endpoint: Endpoint,
-    options: UseB10cksCollectionOptions<T[], QueryParams> = {}
-  ): AsyncState<T[]> => {
+    options: UseB10cksCollectionOptions<T[], QueryParams, R> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, params = {}, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getCollection<T>(endpoint, params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(
+          await dataApi.getCollection<T>(endpoint, params, { allPages, signal }),
+          transform
+        ),
       [allPages, dataApi, endpoint, stableKey(params)],
       immediate
     )
   }
 
-  const useContent = <T = Record<string, unknown>>(
+  const useContent = <T = Record<string, unknown>, R = IBContent<T>>(
     fullSlug: string,
-    params: Omit<IBContentQueryParams, 'token' | 'full_slug'> = {},
-    options: Omit<UseB10cksApiOptions<IBContent<T>>, 'params'> = {}
-  ): AsyncState<IBContent<T>> => {
+    params: ContentParams = {},
+    options: UseB10cksContentOptions<T, R> = {}
+  ): AsyncState<R> => {
     const { immediate = true, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getContent<T>(fullSlug, params)
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getContent<T>(fullSlug, params, { signal }), transform),
       [dataApi, fullSlug, stableKey(params)],
       immediate
     )
   }
 
-  const useContents = <T = Record<string, unknown>>(
-    params: Omit<IBContentQueryParams, 'token'> = {},
-    options: Omit<UseB10cksCollectionOptions<IBContent<T>[]>, 'params'> = {}
-  ): AsyncState<IBContent<T>[]> => {
+  const useContents = <T = Record<string, unknown>, R = IBContent<T>[]>(
+    params: IBGetContentsParams = {},
+    options: Omit<UseB10cksCollectionOptions<IBContent<T>[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getContents<T>(params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getContents<T>(params, { allPages, signal }), transform),
       [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
 
   /** The ancestor trail of an entry, root first, addressed by full slug or id. */
-  const useBreadcrumb = <T = Record<string, unknown>>(
+  const useBreadcrumb = <T = Record<string, unknown>, R = IBBreadcrumbLevel<T>[]>(
     slug: string,
     params: IBBreadcrumbParams = {},
-    options: Omit<UseB10cksApiOptions<IBBreadcrumbLevel<T>[]>, 'params'> = {}
-  ): AsyncState<IBBreadcrumbLevel<T>[]> => {
+    options: Omit<UseB10cksApiOptions<IBBreadcrumbLevel<T>[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { immediate = true, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getBreadcrumb<T>(slug, params)
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getBreadcrumb<T>(slug, params, { signal }), transform),
       [dataApi, slug, stableKey(params)],
       immediate
     )
   }
 
-  const useBlocks = (
+  const useBlocks = <R = IBBlock[]>(
     params: QueryParams = {},
-    options: Omit<UseB10cksCollectionOptions<IBBlock[]>, 'params'> = {}
-  ): AsyncState<IBBlock[]> => {
+    options: Omit<UseB10cksCollectionOptions<IBBlock[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getBlocks(params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getBlocks(params, { allPages, signal }), transform),
       [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
 
-  const useSitemap = (
-    params: Omit<IBContentQueryParams, 'token'> = {},
-    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[]>, 'params'> = {}
-  ): AsyncState<IBSitemapEntry[]> => {
+  const useSitemap = <R = IBSitemapEntry[]>(
+    params: SitemapParams = {},
+    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getSitemap(params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getSitemap(params, { allPages, signal }), transform),
       [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
 
   /** A named sitemap from the space's `settings.sitemaps`, e.g. `news`. */
-  const useNamedSitemap = (
+  const useNamedSitemap = <R = IBSitemapEntry[]>(
     name: string,
-    params: Omit<IBContentQueryParams, 'token'> = {},
-    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[]>, 'params'> = {}
-  ): AsyncState<IBSitemapEntry[]> => {
+    params: SitemapParams = {},
+    options: Omit<UseB10cksCollectionOptions<IBSitemapEntry[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getNamedSitemap(name, params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(
+          await dataApi.getNamedSitemap(name, params, { allPages, signal }),
+          transform
+        ),
       [allPages, dataApi, name, stableKey(params)],
       immediate
     )
   }
 
-  const useDataEntries = (
+  const useDataEntries = <R = IBDataEntry[]>(
     source: string,
-    params: QueryParams = {},
-    options: Omit<UseB10cksCollectionOptions<IBDataEntry[]>, 'params'> = {}
-  ): AsyncState<IBDataEntry[]> => {
+    params: IBDataEntryParams = {},
+    options: Omit<UseB10cksCollectionOptions<IBDataEntry[], QueryParams, R>, 'params'> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getDataEntries(source, params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(
+          await dataApi.getDataEntries(source, params, { allPages, signal }),
+          transform
+        ),
       [allPages, dataApi, stableKey(params), source],
       immediate
     )
   }
 
-  const useDataSources = (
-    options: UseB10cksCollectionOptions<IBDataSource[]> = {}
-  ): AsyncState<IBDataSource[]> => {
+  const useDataSources = <R = IBDataSource[]>(
+    options: UseB10cksCollectionOptions<IBDataSource[], QueryParams, R> = {}
+  ): AsyncState<R> => {
     const { allPages = false, immediate = false, params = {}, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getDataSources(params, { allPages })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(await dataApi.getDataSources(params, { allPages, signal }), transform),
       [allPages, dataApi, stableKey(params)],
       immediate
     )
   }
 
-  const useSpace = (options: UseB10cksApiOptions<IBSpace> = {}): AsyncState<IBSpace> => {
+  const useSpace = <R = IBSpace>(
+    options: UseB10cksApiOptions<IBSpace, QueryParams, R> = {}
+  ): AsyncState<R> => {
     const { immediate = true, params = {}, transform } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getSpace(params)
-        return transform ? transform(value) : value
-      },
+      async (signal) => applyTransform(await dataApi.getSpace(params, { signal }), transform),
       [dataApi, stableKey(params)],
       immediate
     )
   }
 
-  const useRedirects = (
-    options: UseB10cksApiOptions<RedirectMap> &
-      CollectionFetchOptions & { forceRefresh?: boolean } = {}
-  ): AsyncState<RedirectMap> => {
+  const useRedirects = <R = RedirectMap>(
+    options: UseB10cksApiOptions<RedirectMap, QueryParams, R> &
+      Pick<CollectionFetchOptions, 'allPages'> & { forceRefresh?: boolean } = {}
+  ): AsyncState<R> => {
     const {
       allPages = true,
       immediate = true,
@@ -223,22 +232,23 @@ export function useB10cksApi() {
       forceRefresh = false,
     } = options
     return useAsyncTask(
-      async () => {
-        const value = await dataApi.getRedirects(params, { allPages, forceRefresh })
-        return transform ? transform(value) : value
-      },
+      async (signal) =>
+        applyTransform(
+          await dataApi.getRedirects(params, { allPages, forceRefresh, signal }),
+          transform
+        ),
       [allPages, dataApi, forceRefresh, stableKey(params)],
       immediate
     )
   }
 
   const useB10cksConfig = <T = Record<string, unknown>>(
-    options: GetConfigOptions = {},
+    options: Omit<GetConfigOptions, 'signal'> = {},
     executionOptions: { immediate?: boolean } = {}
   ): UseB10cksConfigResult<T> => {
     const { immediate = true } = executionOptions
     const state = useAsyncTask<T>(
-      () => dataApi.getConfig<T>(options),
+      (signal) => dataApi.getConfig<T>({ ...options, signal }),
       [dataApi, stableKey(options)],
       immediate
     )
@@ -248,6 +258,8 @@ export function useB10cksApi() {
       config: state.data ?? ({} as T),
     }
   }
+
+  const syncRevision = (fallbackRv?: number) => dataApi.syncRevision(fallbackRv)
 
   const useSyncRevision = (fallbackRv?: number) => {
     useEffect(() => {
@@ -270,7 +282,9 @@ export function useB10cksApi() {
     useRedirects,
     useB10cksConfig,
     useSyncRevision,
+    syncRevision,
     dataApi,
+    client,
   }
 }
 
@@ -283,8 +297,12 @@ function stableKey(value: unknown): string {
   return JSON.stringify(value) ?? ''
 }
 
+/**
+ * State for one query. Each `execute` aborts the request before it, and so does
+ * unmounting. Once the query ran, a change to `dependencies` runs it again.
+ */
 function useAsyncTask<T>(
-  task: () => Promise<T>,
+  task: (signal: AbortSignal) => Promise<T>,
   dependencies: unknown[],
   immediate: boolean
 ): AsyncState<T> {
@@ -297,18 +315,19 @@ function useAsyncTask<T>(
   const taskRef = useRef(task)
   taskRef.current = task
 
-  // Monotonic call id so an older in-flight request cannot overwrite the state
-  // of a newer one — the latest `execute` call wins.
-  const callIdRef = useRef(0)
+  // The latest call; older calls are aborted and leave the state alone.
+  const controllerRef = useRef<AbortController | null>(null)
 
   const execute = useCallback(async () => {
-    const id = ++callIdRef.current
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
     setPending(true)
     setError(null)
 
     try {
-      const value = await taskRef.current()
-      if (id === callIdRef.current) {
+      const value = await taskRef.current(controller.signal)
+      if (controllerRef.current === controller) {
         setData(value)
         setPending(false)
       }
@@ -318,7 +337,7 @@ function useAsyncTask<T>(
         caughtError instanceof Error
           ? caughtError
           : new Error(`B10cks request failed: ${String(caughtError)}`)
-      if (id === callIdRef.current) {
+      if (controllerRef.current === controller) {
         setError(normalizedError)
         setPending(false)
       }
@@ -327,12 +346,20 @@ function useAsyncTask<T>(
   }, dependencies)
 
   useEffect(() => {
-    if (immediate) {
+    if (immediate || controllerRef.current) {
       // The error is already captured in state; swallow the rethrow so the
-      // immediate fetch does not surface as an unhandled promise rejection.
+      // background fetch does not surface as an unhandled promise rejection.
       void execute().catch(() => {})
     }
   }, [execute, immediate])
+
+  useEffect(
+    () => () => {
+      controllerRef.current?.abort()
+      controllerRef.current = null
+    },
+    []
+  )
 
   return useMemo(
     () => ({

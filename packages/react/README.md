@@ -48,6 +48,70 @@ function Page() {
 }
 ```
 
+## Fetching data
+
+`useB10cksApi()` returns one hook per query: `useContent`, `useContents`, `useBreadcrumb`, `useBlocks`, `useSitemap`, `useNamedSitemap`, `useDataEntries`, `useDataSources`, `useSpace`, `useRedirects`, `useB10cksConfig`, `useApiResource` and `useApiCollection`. It also returns `dataApi`, `client` and `syncRevision`.
+
+Each hook returns `{ data, pending, error, execute, refresh }`. Single resources fetch on mount. Collections wait for `execute()` unless you pass `immediate: true`. Once a query has run, a change to its slug, name or params fetches it again. A newer request and unmounting abort the request in flight.
+
+```tsx
+const { useContents } = useB10cksApi()
+const articles = useContents({ filter: { content_type: 'article' } }, { immediate: true })
+```
+
+### Map listings down with `transform`
+
+`transform` maps the fetched value, and its return type becomes the type of `data`. A block that lists other entries should keep only the fields its cards show:
+
+```tsx
+const { data: cards } = useContents(
+  { filter: { content_type: 'article' }, per_page: 6 },
+  {
+    immediate: true,
+    transform: (entries: IBContent<Article>[]) =>
+      entries.map((entry) => ({ id: entry.id, title: entry.content.title })),
+  }
+)
+```
+
+Type the parameter of `transform` as above, or pass both type arguments (`useContents<Article, Card[]>`).
+
+### Redirected and missing pages
+
+The delivery API answers a slug that has a redirect with the redirect, and a slug without an entry with a 404. Neither is content: `data` stays `null` and `error` says what happened. Answer them with your router:
+
+```tsx
+import { ApiError, ContentRedirectError } from '@b10cks/client'
+import { Navigate } from 'react-router'
+
+function Page({ slug }: { slug: string }) {
+  const { data: page, error } = useB10cksApi().useContent(slug)
+
+  if (error instanceof ContentRedirectError)
+    return (
+      <Navigate
+        to={error.target}
+        replace
+      />
+    )
+  if (error instanceof ApiError && error.status === 404) return <NotFound />
+  return page ? (
+    <B10cksComponent
+      block={toRootBlock(page)}
+      components={components}
+    />
+  ) : null
+}
+```
+
+### Redirects
+
+`useRedirects` loads every page of the redirect list by default. Pass `allPages: false` for one page. On a server-rendered site, answer redirects on the server instead, so the list stays out of the browser. [`@b10cks/next`](../next/README.md#redirects) does this for Next.js.
+
+### Config
+
+Each set of params is its own request. Calling `useB10cksConfig` once with `language_iso` and once without loads the config twice, so wrap it in one hook of your app that always passes the language.
+
 ## Live preview & visual editing
 
 When your app is rendered inside the b10cks visual editor, these hooks make blocks selectable and keep the preview in sync while editing. They are no-ops outside the editor, so they are safe to leave in production output.
@@ -83,6 +147,9 @@ function Hero({ block }: { block: HeroBlock }) {
   // Make the element selectable; click selects it and the editor highlights/scrolls to it.
   const ref = useEditable<HTMLElement>(block.id, block.block)
 
+  // For accordions, tabs and other blocks whose click handlers must keep working:
+  // const ref = useEditable<HTMLElement>(block.id, block.block, { interactive: true })
+
   // Inline-edit a simple string field (contenteditable, streams edits back):
   const headlineRef = useEditableField<HTMLHeadingElement>({ id: block.id, field: 'headline' })
 
@@ -108,6 +175,8 @@ function Page({ initialContent }: { initialContent: PageContent }) {
   return <B10cksComponent block={content} />
 }
 ```
+
+An entry's `content` object has no `id`, the id lives on the entry. Pass an entry through `toRootBlock` so its root block can be selected in the editor: `usePreviewContent(toRootBlock(entry))`.
 
 ### Broken blocks
 
