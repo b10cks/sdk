@@ -19,7 +19,7 @@ export interface ModuleOptions {
   /**
    * Answer requests whose path has a b10cks redirect, in a server middleware.
    * The list is fetched on the server, kept per instance for `maxAge` seconds
-   * (default 60) and never serialised into a page. Off by default.
+   * (default 60) and never serialised into a page. On by default.
    */
   redirects?: boolean | { maxAge?: number }
 }
@@ -33,8 +33,10 @@ export interface B10cksPublicRuntimeConfig {
   timeoutMs?: number
   retries?: number
   maxConcurrency?: number
-  /** Seconds the server keeps the redirect list before it fetches it again. Default 60. */
-  redirectsMaxAge?: number
+  /** Whether the server middleware answers b10cks redirects. */
+  redirects: boolean
+  /** Seconds the server keeps the redirect list before it fetches it again. */
+  redirectsMaxAge: number
 }
 
 declare module '@nuxt/schema' {

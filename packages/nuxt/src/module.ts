@@ -29,6 +29,7 @@ export default defineNuxtModule<ModuleOptions>({
     accessToken: '',
     apiUrl: 'https://api.b10cks.com/api',
     componentsDir: '~/b10cks',
+    redirects: true,
   },
   setup(options: ModuleOptions, nuxt: Nuxt) {
     const resolver = createResolver(import.meta.url)
@@ -67,7 +68,9 @@ export default defineNuxtModule<ModuleOptions>({
       timeoutMs: options.timeoutMs,
       retries: options.retries,
       maxConcurrency: options.maxConcurrency,
-      redirectsMaxAge: typeof options.redirects === 'object' ? options.redirects.maxAge : undefined,
+      redirects: Boolean(options.redirects),
+      // Always a number: Nitro turns an undefined runtime config value into an empty string.
+      redirectsMaxAge: (typeof options.redirects === 'object' && options.redirects.maxAge) || 60,
     })
 
     addPlugin(resolver.resolve('./runtime/plugin'))

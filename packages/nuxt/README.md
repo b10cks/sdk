@@ -42,8 +42,8 @@ export default defineNuxtConfig({
     timeoutMs: 5000, // per attempt, including reading the body
     retries: 2, // network errors, timeouts, 429 and 5xx on GET requests
     maxConcurrency: 6, // pages fetched at once by `allPages` requests
-    // Optional: answer b10cks redirects on the server, see "Redirects".
-    redirects: true,
+    // Optional: b10cks redirects are answered on the server, see "Redirects".
+    redirects: { maxAge: 300 },
   },
 })
 ```
@@ -177,27 +177,32 @@ const { data: page } = await useContent('home', () => ({ vid: vid.value }))
 
 ### Redirects
 
-Turn on `redirects` and the module answers every request whose path has a b10cks redirect, in a server middleware, before anything renders:
+The module answers every request whose path has a b10cks redirect, in a server middleware, before anything renders:
 
 ```typescript
 // nuxt.config.ts
 export default defineNuxtConfig({
   modules: ['@b10cks/nuxt'],
   b10cks: {
-    redirects: true,
-    // or keep the list longer than the default 60 seconds:
-    // redirects: { maxAge: 300 },
+    // Keep the list longer than the default 60 seconds:
+    redirects: { maxAge: 300 },
+    // Or turn the middleware off:
+    // redirects: false,
   },
 })
 ```
 
-The server fetches the full redirect list, all pages, and keeps it per server instance for `maxAge` seconds. A burst of requests shares one fetch, and a failed refresh keeps the list it had. The list never reaches the browser. Requests with `b10cks_vid`, the visual editor's preview, are not redirected.
+The server fetches the full redirect list, all pages, and keeps it per server instance for `maxAge` seconds. The list never reaches the browser. Requests with `b10cks_vid`, the visual editor's preview, are not redirected.
+
+An expired list keeps answering while one refresh runs in the background, so visitors do not wait for it. Only the first requests of a new server instance wait, for at most 3 seconds. A failed refresh keeps the list it had and tries again after `maxAge`.
+
+A trailing slash and URL encoding do not affect the match, upper and lower case do. The query of the request is added to the target. If both set the same key, the target's value stays.
 
 Do not resolve redirects in a route middleware with `useRedirects`. That serialises the whole list into the payload of every page, which is 50 KB or more of HTML per page for a few hundred redirects. `useRedirects` is still there for pages that show the list itself.
 
-A redirect of a slug the page requests is followed during client-side navigation too, through [`forRoute`](#redirected-and-missing-pages). Redirects of other paths apply on a full page load.
+During client-side navigation, a page with [`forRoute`](#redirected-and-missing-pages) follows the redirect of its slug. If the slug has no entry, the page loads the path once from the server, which answers any other redirect or renders the 404. Routes without a `forRoute` page apply redirects on a full page load only.
 
-For a middleware with its own rules, `resolveB10cksRedirect` is auto-imported in the server bundle and reads the same cached list:
+For a middleware with its own rules, turn `redirects` off. `resolveB10cksRedirect` is auto-imported in the server bundle and reads the same cached list. Pass the event, so that a refresh outlives the response on serverless hosts:
 
 ```typescript
 // server/middleware/redirects.ts
@@ -205,7 +210,7 @@ export default defineEventHandler(async (event) => {
   const { pathname } = getRequestURL(event)
   if (pathname.startsWith('/api/')) return
 
-  const hit = await resolveB10cksRedirect(pathname)
+  const hit = await resolveB10cksRedirect(pathname, event)
   if (hit) return sendRedirect(event, hit.target, hit.status_code || 301)
 })
 ```
