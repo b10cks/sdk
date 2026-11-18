@@ -44,6 +44,8 @@ VITE_B10CKS_TOKEN=your-access-token
 </script>
 ```
 
+A slug that has a redirect sets the store's `error` to a `ContentRedirectError` with its `target` and `status`, and a slug without an entry to an `ApiError` of status 404. Neither sets `data`, so answer them with your router. `useRedirects` loads every page of the redirect list unless you pass `allPages: false`.
+
 `createB10cksContext` also accepts preview options:
 
 ```svelte
