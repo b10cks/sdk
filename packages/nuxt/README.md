@@ -381,6 +381,32 @@ Use `@b10cks/nuxt/rich-text` in app code. It exports the Vue rich text component
 
 `@nuxt/kit` remains a package dependency because Nuxt loads the module in consuming projects. It is only needed by the module entry, not the rich text entry.
 
+## Opening images
+
+`B10cksImg` renders a b10cks asset with [`NuxtImg`](https://image.nuxt.com). It needs `@nuxt/image` 2.2.1 or newer in your app. Import it explicitly; the module does not auto-register it.
+
+```vue
+<script setup lang="ts">
+import type { B10cksAssetValue } from '@b10cks/client'
+import { B10cksImg } from '@b10cks/nuxt/image'
+
+defineProps<{ image: B10cksAssetValue }>()
+</script>
+
+<template>
+  <B10cksImg
+    :asset="image"
+    sizes="100vw md:50vw"
+    loading="eager"
+    class="rounded"
+  />
+</template>
+```
+
+Width, height and alt text come from the asset, and the props of the same name override them. `sizes`, `densities`, `modifiers`, `format`, `quality`, `background`, `fit`, `preset` and `provider` work as on `NuxtImg`, and other attributes land on the `<img>`.
+
+Images are lazy by default. Set `loading="eager"` on the image the page opens with, usually its largest paint. It is then fetched at high priority, with a preload link at the top of the head whose `imagesrcset` and `imagesizes` match the `<img>`.
+
 ## License
 
 MIT
