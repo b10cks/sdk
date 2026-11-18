@@ -14,6 +14,8 @@ export default defineConfig({
       processor: 'vue',
       outDir: 'dist',
       entryRoot: 'src',
+      // Keep `@b10cks/*` imports as package imports, not paths into their sources.
+      pathsToAliases: false,
     }),
   ],
   build: {

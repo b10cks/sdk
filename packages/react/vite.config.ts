@@ -7,10 +7,12 @@ export default defineConfig({
   plugins: [
     dts({
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.spec.ts'],
       bundleTypes: false,
       outDir: 'dist',
       entryRoot: 'src',
+      // Keep `@b10cks/*` imports as package imports, not paths into their sources.
+      pathsToAliases: false,
     }),
   ],
   build: {

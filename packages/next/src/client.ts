@@ -1,3 +1,7 @@
 export { B10cksNextProvider } from './provider'
 export type { B10cksNextProviderProps } from './provider'
 export * from '@b10cks/react'
+export { useB10cksApi, useB10cksVersion, usePageTranslations } from './hooks'
+export type { UseB10cksNextContentOptions } from './hooks'
+export { getPageTranslations } from './page-translations'
+export type { ContentForTranslations, PageTranslations } from './page-translations'

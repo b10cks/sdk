@@ -96,7 +96,9 @@ npm install @b10cks/svelte @b10cks/client
 Next.js integration layer for [b10cks](https://www.b10cks.com) on top of the React SDK.
 
 - Next-friendly provider (`B10cksNextProvider`)
-- Server helper (`createB10cksNextApi`)
+- Server helpers (`createB10cksNextApi`, `getRouteContent`)
+- Server-side redirects for `proxy.ts` (`createB10cksRedirects`)
+- Opening images with `next/image` (`B10cksImg`)
 - Config helper (`withB10cks`)
 
 ```bash

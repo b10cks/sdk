@@ -42,6 +42,8 @@ export default defineNuxtConfig({
     timeoutMs: 5000, // per attempt, including reading the body
     retries: 2, // network errors, timeouts, 429 and 5xx on GET requests
     maxConcurrency: 6, // pages fetched at once by `allPages` requests
+    // Optional: b10cks redirects are answered on the server, see "Redirects".
+    redirects: { maxAge: 300 },
   },
 })
 ```
@@ -83,6 +85,19 @@ const { data: page } = await useContent('home', {
 })
 ```
 
+#### Redirected and missing pages
+
+The delivery API answers a slug that has a redirect with the redirect, and a slug without an entry with a 404. Neither is content. In the page that renders the entry of the current route, pass `forRoute: true`:
+
+```typescript
+// pages/[...slug].vue
+const { data: page } = await useContent(slug, params, { forRoute: true })
+```
+
+A redirected slug then navigates to its target with the redirect's status code (`navigateTo`, so it also works during client-side navigation), and a missing slug shows Nuxt's error page with status 404. There is no need to inspect `page.value.id`.
+
+Leave `forRoute` off for entries that are not the page, such as an entry a block loads by slug. Both cases then only set `error`, to a `ContentRedirectError` or an `ApiError` with status 404, and `data` stays `undefined`.
+
 ```typescript
 // List of content entries — params accepts the same filter object as dataApi.getContents()
 const { useContents } = useB10cksApi()
@@ -100,6 +115,34 @@ const { data: people } = await useContents({
 })
 ```
 
+#### Map listings down with `transform`
+
+`transform` maps the fetched value before it is stored. Its return type becomes the type of `data`, and only its result is serialised into the page payload. A block that lists other entries should map them down to the fields its cards show. Without that, every listed entry lands in the HTML in full, body included.
+
+```typescript
+interface Article {
+  title: string
+  teaser: string
+  body: RichTextDocument
+}
+
+// `data` is `Ref<{ id: string; href: string; title: string; teaser: string }[] | undefined>`
+const { data: cards } = await useContents(
+  { filter: { content_type: 'article' }, per_page: 6 },
+  {
+    transform: (entries: IBContent<Article>[]) =>
+      entries.map((entry) => ({
+        id: entry.id,
+        href: `/${entry.full_slug}`,
+        title: entry.content.title,
+        teaser: entry.content.teaser,
+      })),
+  }
+)
+```
+
+Type the parameter of `transform` as above, or pass both type arguments (`useContents<Article, Card[]>`). Giving only the first leaves the result type at its default, the full entries. Every composable takes `transform`. The server still downloads the full entries, the mapping only keeps them out of the payload.
+
 ```typescript
 // Breadcrumb trail of an entry, root first — one request, no tree walking
 const { useBreadcrumb } = useB10cksApi()
@@ -110,9 +153,8 @@ const { data: trail } = await useBreadcrumb('products/shoes', { language: 'de' }
 ```
 
 ```typescript
-// Redirects and config
-const { useRedirects, useB10cksConfig } = useB10cksApi()
-const redirects = await useRedirects()
+// Config
+const { useB10cksConfig } = useB10cksApi()
 const { data: config, pending, error, refresh } = await useB10cksConfig()
 
 // Pass a getter so the config refetches when the locale changes
@@ -121,6 +163,8 @@ const { config } = await useB10cksConfig(() => ({ language_iso: locale.value }))
 
 `useB10cksConfig` takes `language_iso`, like every other content param.
 `language` still works as a deprecated alias.
+
+Each set of params is its own request and its own payload entry. Calling it once with `language_iso` and once without loads the config twice, so wrap it in one composable of your site that always passes the language.
 
 ### `useB10cksVersion()`
 
@@ -133,27 +177,63 @@ const vid = useB10cksVersion()
 const { data: page } = await useContent('home', () => ({ vid: vid.value }))
 ```
 
-### Server routes and middleware
+### Redirects
 
-Nitro has no access to the Vue injection the module's plugin sets up, so server
-code gets its own entry point. `useB10cksServerApi()` is auto-imported in the
-server bundle and returns the same `B10cksDataApi` — including its paginated
-`getRedirects`, `getSitemap` and `getNamedSitemap`, and their built-in caching:
+The module answers every request whose path has a b10cks redirect, in a server middleware, before anything renders:
+
+```typescript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@b10cks/nuxt'],
+  b10cks: {
+    // Keep the list longer than the default 60 seconds:
+    redirects: { maxAge: 300 },
+    // Or turn the middleware off:
+    // redirects: false,
+  },
+})
+```
+
+The server fetches the full redirect list, all pages, and keeps it per server instance for `maxAge` seconds. The list never reaches the browser. Requests with `b10cks_vid`, the visual editor's preview, are not redirected.
+
+An expired list keeps answering while one refresh runs in the background, so visitors do not wait for it. Only the first requests of a new server instance wait, for at most 3 seconds. A failed refresh keeps the list it had and tries again after `maxAge`.
+
+A trailing slash and URL encoding do not affect the match, upper and lower case do. The query of the request is added to the target. If both set the same key, the target's value stays.
+
+Do not resolve redirects in a route middleware with `useRedirects`. That serialises the whole list into the payload of every page, which is 50 KB or more of HTML per page for a few hundred redirects. `useRedirects` is still there for pages that show the list itself.
+
+During client-side navigation, a page with [`forRoute`](#redirected-and-missing-pages) follows the redirect of its slug. If the slug has no entry, the page loads the path once from the server, which answers any other redirect or renders the 404. Routes without a `forRoute` page apply redirects on a full page load only.
+
+For a middleware with its own rules, turn `redirects` off. `resolveB10cksRedirect` is auto-imported in the server bundle and reads the same cached list. Pass the event, so that a refresh outlives the response on serverless hosts:
 
 ```typescript
 // server/middleware/redirects.ts
 export default defineEventHandler(async (event) => {
-  const url = getRequestURL(event)
-  if (url.searchParams.has('b10cks_vid')) return
+  const { pathname } = getRequestURL(event)
+  if (pathname.startsWith('/api/')) return
 
-  const redirects = await useB10cksServerApi().getRedirects({}, { allPages: true })
-  const hit = redirects[url.pathname]
+  const hit = await resolveB10cksRedirect(pathname, event)
   if (hit) return sendRedirect(event, hit.target, hit.status_code || 301)
 })
 ```
 
+### Server routes and middleware
+
+Nitro has no access to the Vue injection the module's plugin sets up, so server
+code gets its own entry point. `useB10cksServerApi()` is auto-imported in the
+server bundle and returns the same `B10cksDataApi`, including its paginated
+`getSitemap` and `getNamedSitemap`, and their built-in caching:
+
+```typescript
+// server/routes/sitemap.xml.ts
+export default defineEventHandler(async () => {
+  const entries = await useB10cksServerApi().getSitemap({}, { allPages: true })
+  return renderSitemap(entries)
+})
+```
+
 The instance is shared per space so its caches outlive a single request. That
-also means the revision is shared — call `syncRevision()` when a route must
+also means the revision is shared. Call `syncRevision()` when a route must
 read the newest published state.
 
 The helpers use Nuxt's `useAsyncData()` under the hood, so requests participate in SSR payload serialization and are not refetched during hydration. Each helper derives a stable async-data key from its inputs — no manual `key` needed.
@@ -302,6 +382,32 @@ const html = renderRichText(document)
 Use `@b10cks/nuxt/rich-text` in app code. It exports the Vue rich text component, rendering helpers, and their types without importing `@nuxt/kit`. The package root is the Nuxt module entry for `nuxt.config.ts`. Its existing rich text exports remain available for compatibility, but importing them also loads module tooling.
 
 `@nuxt/kit` remains a package dependency because Nuxt loads the module in consuming projects. It is only needed by the module entry, not the rich text entry.
+
+## Opening images
+
+`B10cksImg` renders a b10cks asset with [`NuxtImg`](https://image.nuxt.com). It needs `@nuxt/image` 2.2.1 or newer in your app. Import it explicitly; the module does not auto-register it.
+
+```vue
+<script setup lang="ts">
+import type { B10cksAssetValue } from '@b10cks/client'
+import { B10cksImg } from '@b10cks/nuxt/image'
+
+defineProps<{ image: B10cksAssetValue }>()
+</script>
+
+<template>
+  <B10cksImg
+    :asset="image"
+    sizes="100vw md:50vw"
+    loading="eager"
+    class="rounded"
+  />
+</template>
+```
+
+Width, height and alt text come from the asset, and the props of the same name override them. `sizes`, `densities`, `modifiers`, `format`, `quality`, `background`, `fit`, `preset` and `provider` work as on `NuxtImg`, and other attributes land on the `<img>`.
+
+Images are lazy by default. Set `loading="eager"` on the image the page opens with, usually its largest paint. It is then fetched at high priority, with a preload link at the top of the head whose `imagesrcset` and `imagesizes` match the `<img>`.
 
 ## License
 

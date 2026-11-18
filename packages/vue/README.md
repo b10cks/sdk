@@ -79,6 +79,8 @@ const { data } = useContent(
 )
 ```
 
+A slug that has a redirect sets `error` to a `ContentRedirectError` with its `target` and `status`, and a slug without an entry to an `ApiError` of status 404. `data` stays `null` in both cases, so answer them with your router. `useRedirects` loads every page of the redirect list unless you pass `allPages: false`.
+
 ### Components
 
 Use `B10cksComponent` to render block-specific Vue components dynamically:

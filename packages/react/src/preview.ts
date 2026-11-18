@@ -10,7 +10,9 @@ import { type RefObject, useEffect, useMemo, useRef, useSyncExternalStore } from
 /**
  * Attach a ref'd element as a selectable block in the b10cks editor. Returns a
  * ref to spread onto the element. `label` names the block on its highlight,
- * typically the block type. No-op outside preview mode.
+ * typically the block type. Set `interactive` for accordions, tabs and other
+ * blocks whose click handlers must keep working in the editor. No-op outside
+ * preview mode.
  *
  * ```tsx
  * const ref = useEditable<HTMLDivElement>(block.id, block.block)
@@ -19,15 +21,16 @@ import { type RefObject, useEffect, useMemo, useRef, useSyncExternalStore } from
  */
 export function useEditable<T extends HTMLElement = HTMLElement>(
   id?: string | null,
-  label?: string
+  label?: string,
+  { interactive = false }: { interactive?: boolean } = {}
 ): RefObject<T | null> {
   const ref = useRef<T>(null)
   useEffect(() => {
     if (!ref.current || !id) {
       return
     }
-    return attachEditable(ref.current, { id, label })
-  }, [id, label])
+    return attachEditable(ref.current, { id, label, interactive })
+  }, [id, label, interactive])
   return ref
 }
 

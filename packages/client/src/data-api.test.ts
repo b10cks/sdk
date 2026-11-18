@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { DataApiClient, GetConfigOptions } from './data-api'
 import { B10cksDataApi } from './data-api'
-import { ApiClient } from './index'
+import { ApiClient, ApiError, ContentRedirectError } from './index'
 
 describe('ApiClient', () => {
   it('paginates without duplicating the first page', async () => {
@@ -77,6 +77,44 @@ describe('B10cksDataApi', () => {
     await expect(dataApi.getDataEntries('..')).rejects.toThrow('Invalid path segment')
   })
 
+  it('rejects a redirected slug with its target, for fetch and for clients that return the body', async () => {
+    const body = { redirect: true, to: '/en/pricing', status_code: 301 }
+    const overFetch = new B10cksDataApi(
+      new ApiClient({
+        baseUrl: 'https://api.example.com',
+        token: 'test-token',
+        fetchClient: async () => new Response(JSON.stringify(body), { status: 301 }),
+      })
+    )
+    const overBody = new B10cksDataApi({
+      get: vi.fn().mockResolvedValue(body),
+      getAll: vi.fn(),
+      setRv: vi.fn(),
+    })
+
+    for (const dataApi of [overFetch, overBody]) {
+      const error = await dataApi.getContent('prices').catch((caught: unknown) => caught)
+      expect(error).toBeInstanceOf(ContentRedirectError)
+      expect(error).toMatchObject({ target: '/en/pricing', status: 301 })
+      expect(await dataApi.resolveContent('prices')).toEqual({
+        type: 'redirect',
+        target: '/en/pricing',
+        status_code: 301,
+      })
+    }
+  })
+
+  it('resolves a missing slug to not_found and still rejects other failures', async () => {
+    const get = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError('missing', 404, 'contents/nope'))
+      .mockRejectedValueOnce(new ApiError('down', 503, 'contents/nope'))
+    const dataApi = new B10cksDataApi({ get, getAll: vi.fn(), setRv: vi.fn() })
+
+    expect(await dataApi.resolveContent('nope')).toEqual({ type: 'not_found' })
+    await expect(dataApi.resolveContent('nope')).rejects.toMatchObject({ status: 503 })
+  })
+
   const buildContent = (id: string, theme = id) => ({
     id,
     slug: id,
@@ -91,7 +129,7 @@ describe('B10cksDataApi', () => {
     updated_at: '2024-01-01T00:00:00Z',
   })
 
-  it('caches redirects until force refresh is requested', async () => {
+  it('fetches every redirect page by default and caches until force refresh', async () => {
     const client: DataApiClient = {
       get: vi.fn(),
       getAll: vi
@@ -103,8 +141,8 @@ describe('B10cksDataApi', () => {
 
     const dataApi = new B10cksDataApi(client)
 
-    const first = await dataApi.getRedirects({}, { allPages: true })
-    const second = await dataApi.getRedirects({}, { allPages: true })
+    const first = await dataApi.getRedirects()
+    const second = await dataApi.getRedirects({}, {})
     const third = await dataApi.getRedirects({}, true)
 
     expect(first).toEqual({ '/old': { target: '/new', status_code: 301 } })

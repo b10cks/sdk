@@ -1,4 +1,10 @@
-export { blockAnchorAttrs, resolveB10cksLink, type B10cksLinkResolved } from '@b10cks/client'
+export {
+  blockAnchorAttrs,
+  resolveB10cksLink,
+  toRootBlock,
+  type B10cksLinkResolved,
+  type RootBlock,
+} from '@b10cks/client'
 export type { RichTextDocument, RichTextHtmlOptions } from '@b10cks/richtext'
 export { B10cksComponent } from './components/B10cksComponent'
 export type { B10cksComponentProps, B10cksComponents } from './components/B10cksComponent'
@@ -10,6 +16,7 @@ export type {
   UseB10cksApiOptions,
   UseB10cksCollectionOptions,
   UseB10cksConfigResult,
+  UseB10cksContentOptions,
 } from './hooks'
 export { previewBridge } from './preview-bridge'
 export { useEditable, useEditableField, usePreviewContent } from './preview'
@@ -20,5 +27,5 @@ export {
   usePreviewSelection,
   type B10cksProviderProps,
 } from './provider'
-export { B10cksRichText, renderRichTextHtml } from './rich-text'
+export { B10cksRichText, renderRichTextAsText, renderRichTextHtml } from './rich-text'
 export type { B10cksRichTextProps, EditableRichTextField } from './rich-text'

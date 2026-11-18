@@ -260,7 +260,7 @@ export function useB10cksApi() {
       Pick<CollectionFetchOptions, 'allPages'> & { forceRefresh?: boolean } = {}
   ): AsyncState<RedirectMap> => {
     const {
-      allPages = false,
+      allPages = true,
       immediate = true,
       params = {},
       transform,

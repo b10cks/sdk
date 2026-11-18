@@ -1,3 +1,4 @@
+import { ApiError } from './errors'
 import type {
   B10cksApiClientOptions,
   Endpoint,
@@ -12,27 +13,6 @@ import type {
 export interface B10cksApiClientRvOptions {
   getRv?: () => string | number
   setRv?: (value: string | number) => void
-}
-
-/**
- * Error thrown for non-2xx API responses and transport failures. Carries the
- * HTTP `status` (0 for network/timeout errors), the requested `endpoint`, and a
- * best-effort parsed `body` so callers can branch on status (e.g. render a 404
- * page) without string-matching the message. Messages name the endpoint, never
- * the request URL, so the access token stays out of logs.
- */
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly endpoint: string,
-    public readonly body?: unknown,
-    /** Delay the API asked for in a `Retry-After` header, in milliseconds. */
-    public readonly retryAfterMs?: number
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
 }
 
 /** A `Retry-After` longer than this is not waited for: the request fails instead. */
@@ -84,8 +64,10 @@ export * from './breadcrumb'
 export * from './content'
 export * from './data-api'
 export * from './editable'
+export * from './errors'
 export * from './preview-bridge'
 export * from './preview-store'
+export * from './redirect-cache'
 export * from './rich-text-field'
 export * from './sitemap'
 export type * from './types'

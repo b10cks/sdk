@@ -46,6 +46,47 @@ if (redirect) {
 }
 ```
 
+## Redirected and missing entries
+
+`getContent` only resolves with an entry. A slug that has a redirect rejects with a `ContentRedirectError`, a slug without an entry with an `ApiError` of status 404. `resolveContent` returns the same three cases as a result you can switch on:
+
+```typescript
+const result = await dataApi.resolveContent('prices')
+
+switch (result.type) {
+  case 'content':
+    return render(result.content)
+  case 'redirect':
+    return redirect(result.target, result.status_code)
+  case 'not_found':
+    return notFound()
+}
+```
+
+Other failures, like a 500 or a timeout, still reject.
+
+## Server-side redirects
+
+`@b10cks/nuxt` and `@b10cks/next` answer redirects on the server for you. For another server framework, `createRedirectCache` keeps the list in memory and looks up request paths:
+
+```typescript
+import { createRedirectCache, withRequestQuery } from '@b10cks/client'
+
+// Create it once per server instance. The second argument is the list's lifetime in seconds.
+const resolveRedirect = createRedirectCache(async (signal) => {
+  await dataApi.syncRevision(undefined, { signal })
+  return dataApi.getRedirects({}, { forceRefresh: true, signal })
+}, 60)
+
+const url = new URL(request.url)
+const hit = await resolveRedirect(url.pathname)
+if (hit) {
+  return Response.redirect(new URL(withRequestQuery(hit.target, url.search), url), hit.status_code)
+}
+```
+
+An expired list keeps answering while one refresh runs in the background. Only the first requests wait, for at most 3 seconds. A failed refresh keeps the list it had and tries again after the list's lifetime. A trailing slash and URL encoding do not affect the match. On serverless hosts, pass an object with `waitUntil` as the second argument of the lookup, so that a refresh outlives the response. `withBaseURL` and `withoutBaseURL` handle sites served below a base path.
+
 ## Typed Filters
 
 `getContents`, `getBlocks`, and `getRedirects` accept a `filter` object whose fields map directly to the Laravel AdvancedFilter query-param scheme. Filter values can be plain values, operator objects, or date ranges — they are serialized to the wire format (`op:value`) automatically.
@@ -128,27 +169,28 @@ const params = serializeFilter({
 
 ## Data API Methods
 
-| Method                                    | Description                                                   |
-| ----------------------------------------- | ------------------------------------------------------------- |
-| `getContent(slug, params)`                | Single content entry by full slug                             |
-| `getContents(params, options)`            | List of content entries                                       |
-| `getBreadcrumb(slug, params)`             | Ancestor trail of an entry, root first                        |
-| `getBreadcrumbResponse(slug, params)`     | Same trail, with the response's `meta` block                  |
-| `getBlock(blockId, params)`               | Single block by ID                                            |
-| `getBlocks(params, options)`              | List of blocks                                                |
-| `search(params)`                          | Full-text content search (`q`, `limit`, `offset`, `language`) |
-| `lookupRedirect(source)`                  | POST redirect lookup for a given source path                  |
-| `getRedirects(params, options)`           | Redirect map (cached when `allPages: true`)                   |
-| `getDataEntries(source, params, options)` | Entries for a data source slug                                |
-| `getDataSources(params, options)`         | List of data sources                                          |
-| `getSitemap(params, options)`             | Sitemap entries (default sitemap)                             |
-| `getNamedSitemap(name, params, options)`  | Entries of a named sitemap from `settings.sitemaps`           |
-| `getSpace(params)`                        | Current space info                                            |
-| `getConfig(options)`                      | Config entry content plus its `id` (cached)                   |
-| `syncRevision(fallbackRv)`                | Sync local RV from the space                                  |
-| `clearCache()`                            | Clear redirect and config caches                              |
+| Method                                    | Description                                                    |
+| ----------------------------------------- | -------------------------------------------------------------- |
+| `getContent(slug, params)`                | Single content entry by full slug                              |
+| `resolveContent(slug, params)`            | The entry, its redirect or `not_found` as a typed result       |
+| `getContents(params, options)`            | List of content entries                                        |
+| `getBreadcrumb(slug, params)`             | Ancestor trail of an entry, root first                         |
+| `getBreadcrumbResponse(slug, params)`     | Same trail, with the response's `meta` block                   |
+| `getBlock(blockId, params)`               | Single block by ID                                             |
+| `getBlocks(params, options)`              | List of blocks                                                 |
+| `search(params)`                          | Full-text content search (`q`, `limit`, `offset`, `language`)  |
+| `lookupRedirect(source)`                  | POST redirect lookup for a given source path                   |
+| `getRedirects(params, options)`           | Redirect map of every page, cached (`allPages: false` for one) |
+| `getDataEntries(source, params, options)` | Entries for a data source slug                                 |
+| `getDataSources(params, options)`         | List of data sources                                           |
+| `getSitemap(params, options)`             | Sitemap entries (default sitemap)                              |
+| `getNamedSitemap(name, params, options)`  | Entries of a named sitemap from `settings.sitemaps`            |
+| `getSpace(params)`                        | Current space info                                             |
+| `getConfig(options)`                      | Config entry content plus its `id` (cached)                    |
+| `syncRevision(fallbackRv)`                | Sync local RV from the space                                   |
+| `clearCache()`                            | Clear redirect and config caches                               |
 
-Pass `{ allPages: true }` as the second argument to any collection method to fetch every page automatically.
+Pass `{ allPages: true }` as the second argument to any collection method to fetch every page automatically. `getRedirects` does so by default, because a redirect map that stops after the first page is incomplete.
 
 Every collection method normalizes the response envelope, so a bare array, a
 `{ data }` wrapper and a `{ data: { data } }` wrapper all resolve to a plain

@@ -4,6 +4,7 @@ import { createRichTextHtmlRenderer, renderRichText } from '@b10cks/richtext'
 import { type HTMLAttributes, type ReactElement, useEffect, useRef, useState } from 'react'
 
 export type { EditableRichTextField } from '@b10cks/client'
+export { renderRichTextAsText } from '@b10cks/richtext'
 export type { RichTextDocument, RichTextHtmlOptions } from '@b10cks/richtext'
 
 export interface B10cksRichTextProps extends HTMLAttributes<HTMLDivElement> {
