@@ -1,12 +1,12 @@
-import type { RedirectMap } from '@b10cks/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { RedirectMap } from './data-api'
 import {
   createRedirectCache,
   withBaseURL,
   withoutBaseURL,
   withRequestQuery,
-} from '../src/runtime/server/redirectCache'
+} from './redirect-cache'
 
 const list = (target = '/new'): RedirectMap => ({ '/old': { target, status_code: 301 } })
 

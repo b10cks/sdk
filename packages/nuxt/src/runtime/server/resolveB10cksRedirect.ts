@@ -1,8 +1,12 @@
-import type { B10cksDataApi, RedirectMap } from '@b10cks/client'
+import {
+  type B10cksDataApi,
+  type BackgroundTasks,
+  createRedirectCache,
+  type RedirectMap,
+} from '@b10cks/client'
 
 import { useRuntimeConfig } from '#imports'
 
-import { type BackgroundTasks, createRedirectCache } from './redirectCache'
 import { useB10cksServerApi } from './useB10cksServerApi'
 
 /** One list per data API, which `useB10cksServerApi` shares per space. */

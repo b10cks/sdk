@@ -1,4 +1,4 @@
-import type { RedirectMap } from '@b10cks/client'
+import type { RedirectMap } from './data-api'
 
 type Redirect = RedirectMap[string]
 

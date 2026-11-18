@@ -1,8 +1,8 @@
+import { withBaseURL, withoutBaseURL, withRequestQuery } from '@b10cks/client'
 import { defineEventHandler, getRequestURL, sendRedirect } from 'h3'
 
 import { useRuntimeConfig } from '#imports'
 
-import { withBaseURL, withoutBaseURL, withRequestQuery } from '../redirectCache'
 import { resolveB10cksRedirect } from '../resolveB10cksRedirect'
 
 /** Answers a request whose path has a b10cks redirect, before anything renders. */

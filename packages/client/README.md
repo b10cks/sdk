@@ -65,6 +65,28 @@ switch (result.type) {
 
 Other failures, like a 500 or a timeout, still reject.
 
+## Server-side redirects
+
+`@b10cks/nuxt` and `@b10cks/next` answer redirects on the server for you. For another server framework, `createRedirectCache` keeps the list in memory and looks up request paths:
+
+```typescript
+import { createRedirectCache, withRequestQuery } from '@b10cks/client'
+
+// Create it once per server instance. The second argument is the list's lifetime in seconds.
+const resolveRedirect = createRedirectCache(async (signal) => {
+  await dataApi.syncRevision(undefined, { signal })
+  return dataApi.getRedirects({}, { forceRefresh: true, signal })
+}, 60)
+
+const url = new URL(request.url)
+const hit = await resolveRedirect(url.pathname)
+if (hit) {
+  return Response.redirect(new URL(withRequestQuery(hit.target, url.search), url), hit.status_code)
+}
+```
+
+An expired list keeps answering while one refresh runs in the background. Only the first requests wait, for at most 3 seconds. A failed refresh keeps the list it had and tries again after the list's lifetime. A trailing slash and URL encoding do not affect the match. On serverless hosts, pass an object with `waitUntil` as the second argument of the lookup, so that a refresh outlives the response. `withBaseURL` and `withoutBaseURL` handle sites served below a base path.
+
 ## Typed Filters
 
 `getContents`, `getBlocks`, and `getRedirects` accept a `filter` object whose fields map directly to the Laravel AdvancedFilter query-param scheme. Filter values can be plain values, operator objects, or date ranges — they are serialized to the wire format (`op:value`) automatically.
