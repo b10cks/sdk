@@ -22,6 +22,7 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 import {
   callOnce,
+  createError,
   navigateTo,
   reloadNuxtApp,
   showError,
@@ -199,12 +200,20 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     await api.syncRevision()
   }).catch(() => {})
 
-  /** Run `load` after the revision is synced, under the handler's abort signal. */
+  /**
+   * Run `load` after the revision is synced, under the handler's abort signal.
+   * Nuxt masks errors it does not trust as a 500 during production SSR, so an
+   * API error with an HTTP status is rethrown as a `createError` that keeps it.
+   */
   const query =
     <T>(load: (signal: AbortSignal) => Promise<T>) =>
     async (_nuxtApp: unknown, { signal }: { signal: AbortSignal }) => {
       await revision
-      return load(signal)
+      try {
+        return await load(signal)
+      } catch (error) {
+        throw toHttpError(error)
+      }
     }
 
   const keyOf = (
@@ -462,6 +471,22 @@ export const useB10cksApi = (): NuxtB10cksApi => {
     useB10cksConfig,
     client: api.client,
   }
+}
+
+/**
+ * `ApiError`s with an HTTP status (400 and up) become a Nuxt error with that
+ * status. The text is fixed, so the endpoint stays out of the payload, and the
+ * original error rides along as `cause`, which Nuxt does not serialize.
+ * Aborts, network errors (status 0) and all other errors pass through.
+ */
+function toHttpError(error: unknown): unknown {
+  if (!(error instanceof ApiError) || error.status < 400) return error
+
+  return createError({
+    status: error.status,
+    message: `b10cks API request failed with status ${error.status}`,
+    cause: error,
+  })
 }
 
 function createAsyncDataKey(scope: string, payload: unknown): string {
