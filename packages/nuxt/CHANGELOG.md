@@ -1,5 +1,32 @@
 # @b10cks/nuxt
 
+## 5.0.0
+
+### Major Changes
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`380da1a`](https://github.com/b10cks/sdk/commit/380da1aef39454c2eb200812623e27bf9b03c5ce) Thanks [@badmike](https://github.com/badmike)! - Add `forRoute` to `useContent`. For the entry of the current route, a slug that has a redirect navigates to its target with the redirect's status code, and a missing slug shows the 404 error page. With `redirects` on, a missing slug during client-side navigation first loads the path from the server, which answers redirects of paths without an entry.
+  
+  **Breaking:** without the option a redirected slug now sets `error` to a `ContentRedirectError` and leaves `data` undefined. It used to put the redirect body into `data`. Code that reads `data.value.redirect` no longer redirects and must use `forRoute: true`.
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`926c149`](https://github.com/b10cks/sdk/commit/926c1496bcae17873918506dd60304112f15ca30) Thanks [@badmike](https://github.com/badmike)! - Answer b10cks redirects on the server by default. A server middleware fetches the full list, keeps it per instance for `maxAge` seconds (default 60) and never serialises it into a page. An expired list keeps answering while one refresh runs in the background. Matching ignores a trailing slash and URL encoding, and the request's query is added to the target. `resolveB10cksRedirect` is auto-imported in the server bundle for a middleware with its own rules.
+  
+  **Breaking:** the middleware is on after upgrading. Delete a hand-written redirect resolver or route middleware around `useRedirects`, or set `redirects: false` to keep yours.
+
+### Minor Changes
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`adf1b07`](https://github.com/b10cks/sdk/commit/adf1b07762f1eda1edc3b1387799d30f9b24cb1b) Thanks [@badmike](https://github.com/badmike)! - Add `B10cksImg` in `@b10cks/nuxt/image`. It renders a b10cks asset with `NuxtImg`, and `loading="eager"` adds high fetch priority and a preload link that matches the image's `srcset` and `sizes`. `@nuxt/image` 2.2.1 or newer is an optional peer dependency, needed only for this entry.
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`5b674f4`](https://github.com/b10cks/sdk/commit/5b674f4b3191e53f06052904509434453c402c12) Thanks [@badmike](https://github.com/badmike)! - `transform` can return a different type on every Nuxt composable. The mapped result is the type of `data` and is what gets serialised into the page payload, so a listing block can map entries down to its card fields. `transform` is now passed to `useAsyncData`, which also accepts an async function.
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`d243234`](https://github.com/b10cks/sdk/commit/d2432340844c470e2d3ef6eafebb31867f6f9f09) Thanks [@badmike](https://github.com/badmike)! - `getRedirects` and `useRedirects` fetch every page by default. They returned only the first page unless `allPages: true` was passed, so redirect maps were silently incomplete. Pass `allPages: false` to get a single page.
+
+### Patch Changes
+
+- [#49](https://github.com/b10cks/sdk/pull/49) [`fe92d07`](https://github.com/b10cks/sdk/commit/fe92d078980b61faf0f76da1e7116f688ce928de) Thanks [@badmike](https://github.com/badmike)! - Keep the HTTP status of API errors in the Nuxt data composables. Since Nuxt 4.7, `useAsyncData` turns errors it does not trust into a 500 during production SSR, so a CMS 404 reached the app as a 500. Failed requests now surface as Nuxt errors with the API's status, and the original `ApiError` is kept as `cause`.
+- Updated dependencies [[`273a4bc`](https://github.com/b10cks/sdk/commit/273a4bcf47e5903ce0a8c146488600defb1ae167), [`ee204a1`](https://github.com/b10cks/sdk/commit/ee204a1c0faadfed358dc34eedde1066213554d5), [`781a831`](https://github.com/b10cks/sdk/commit/781a83191e7b35bdac1a1f8441b330b1dddcf4e4), [`d243234`](https://github.com/b10cks/sdk/commit/d2432340844c470e2d3ef6eafebb31867f6f9f09)]:
+  - @b10cks/client@2.3.0
+  - @b10cks/vue@3.2.0
+
 ## 4.2.0
 
 ### Minor Changes
