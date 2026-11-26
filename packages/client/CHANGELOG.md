@@ -1,5 +1,17 @@
 # @b10cks/client
 
+## 2.3.0
+
+### Minor Changes
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`273a4bc`](https://github.com/b10cks/sdk/commit/273a4bcf47e5903ce0a8c146488600defb1ae167) Thanks [@badmike](https://github.com/badmike)! - Add `createRedirectCache`, `withRequestQuery`, `withBaseURL` and `withoutBaseURL`, the server-side redirect handling that framework integrations share.
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`ee204a1`](https://github.com/b10cks/sdk/commit/ee204a1c0faadfed358dc34eedde1066213554d5) Thanks [@badmike](https://github.com/badmike)! - `getContent` rejects with a `ContentRedirectError` (`target`, `status`) for a slug that has a redirect. Before, clients that do not reject a 301, like Nuxt's `$fetch`, returned the redirect body typed as `IBContent`, which rendered as an empty page. Add `resolveContent`, which returns the entry, the redirect or `not_found` as a typed result.
+  
+  **Behaviour change:** code that reads `redirect` or `to` from the result of `getContent` must catch `ContentRedirectError` or use `resolveContent`.
+
+- [#47](https://github.com/b10cks/sdk/pull/47) [`d243234`](https://github.com/b10cks/sdk/commit/d2432340844c470e2d3ef6eafebb31867f6f9f09) Thanks [@badmike](https://github.com/badmike)! - `getRedirects` and `useRedirects` fetch every page by default. They returned only the first page unless `allPages: true` was passed, so redirect maps were silently incomplete. Pass `allPages: false` to get a single page.
+
 ## 2.2.0
 
 ### Minor Changes
